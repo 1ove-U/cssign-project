@@ -1950,3 +1950,308 @@ tr:hover td { background: #F8FAFF; }
   max-width: 380px;
   margin: 0 auto;
 }
+
+/* ===========================
+   HERO — BROTHER SIGN STYLE
+   Full-bleed, dark, bold heading
+   =========================== */
+
+.hero {
+  background: #07111F;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 560px;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 60% 40%, rgba(21,101,192,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(21,101,192,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: none;
+}
+
+.hero-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(21,101,192,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(21,101,192,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 80px 28px 60px;
+  text-align: left;
+  flex: 1;
+}
+
+.hero-eyebrow {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--cs-gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 2px;
+  background: var(--cs-gold);
+  flex-shrink: 0;
+}
+
+.hero-heading {
+  font-size: 62px;
+  font-weight: 800;
+  color: white;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+  max-width: 620px;
+}
+
+.hero-heading-accent {
+  color: var(--cs-blue-light);
+}
+
+.hero-sub {
+  color: var(--cs-steel);
+  font-size: 16px;
+  margin-bottom: 36px;
+  max-width: 480px;
+  line-height: 1.7;
+}
+
+.hero-cta-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hero-cta-primary {
+  background: var(--cs-blue);
+  color: white;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 13px 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.hero-cta-primary:hover {
+  background: var(--cs-blue-mid);
+  transform: translateY(-1px);
+}
+
+.hero-cta-outline {
+  background: transparent;
+  color: white;
+  border: 1.5px solid rgba(176,190,197,0.4);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 13px 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.hero-cta-outline:hover {
+  border-color: white;
+  background: rgba(255,255,255,0.06);
+}
+
+/* Stats bar pinned to bottom of hero */
+.hero-stats-bar {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid rgba(176,190,197,0.1);
+  background: rgba(255,255,255,0.025);
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0 28px;
+}
+
+.hstat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 40px;
+  gap: 3px;
+  flex: 1;
+  text-align: center;
+}
+
+.hstat-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.hstat-label {
+  font-size: 11px;
+  color: var(--cs-steel);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.hstat-div {
+  width: 1px;
+  height: 36px;
+  background: rgba(176,190,197,0.12);
+  flex-shrink: 0;
+}
+
+/* ===========================
+   HOME SECTIONS
+   =========================== */
+.home-cat-section {
+  padding-top: 60px;
+}
+
+.home-featured-section {
+  padding-top: 0;
+  background: var(--bg);
+}
+
+/* Portfolio band — dark like Brother Sign */
+.home-portfolio-band {
+  background: #07111F;
+  margin-top: 0;
+}
+
+.home-portfolio-band .section {
+  padding-top: 52px;
+  padding-bottom: 52px;
+}
+
+.view-all-btn-light {
+  background: none;
+  border: 1.5px solid rgba(176,190,197,0.3);
+  color: var(--cs-steel);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.view-all-btn-light:hover {
+  border-color: white;
+  color: white;
+}
+
+/* Home portfolio — 3-col peek grid */
+#home-portfolio-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+#home-portfolio-grid .portfolio-card {
+  background: #0E1E30;
+  border-color: rgba(255,255,255,0.06);
+}
+
+#home-portfolio-grid .portfolio-title {
+  color: #E2E8F0;
+}
+
+#home-portfolio-grid .portfolio-sub {
+  color: #64748B;
+}
+
+/* ===========================
+   WHY US STRIP
+   =========================== */
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.why-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border-light);
+  border-top: 3px solid var(--cs-blue);
+  border-radius: var(--radius);
+  padding: 28px 22px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+
+.why-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.why-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.why-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.why-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+/* Responsive why-grid */
+@media (max-width: 960px) {
+  .why-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 580px) {
+  .why-grid { grid-template-columns: 1fr; }
+  .hero-heading { font-size: 38px; }
+  .hero-content { padding: 52px 16px 40px; }
+  .hstat { padding: 14px 16px; }
+  .hstat-num { font-size: 22px; }
+  .hero-stats-bar { flex-wrap: wrap; }
+  .hstat-div { display: none; }
+}
+
+@media (max-width: 768px) {
+  .hero-heading { font-size: 44px; }
+  .hero-content { padding: 60px 16px 44px; }
+  .why-grid { grid-template-columns: repeat(2, 1fr); }
+}
