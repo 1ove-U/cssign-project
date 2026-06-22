@@ -146,9 +146,11 @@ export function showPage(name) {
   const navBtn = document.querySelector(`.nav-btn[data-page="${name}"]`);
   if (navBtn) navBtn.classList.add('active');
 
-  if (name === 'home')     renderHome();
-  if (name === 'products') renderProductsPage();
-  if (name === 'admin')    renderAdmin();
+  if (name === 'home')       renderHome();
+  if (name === 'products')   renderProductsPage();
+  if (name === 'categories') renderCategoriesPage();
+  if (name === 'portfolio')  renderPortfolioPage();
+  if (name === 'admin')      renderAdmin();
   window.scrollTo(0, 0);
 }
 
@@ -185,6 +187,75 @@ function renderHome() {
 export function showCategoryProducts(catId) {
   currentFilter = catId;
   showPage('products');
+}
+
+// ===========================
+// RENDER CATEGORIES PAGE
+// ===========================
+function renderCategoriesPage() {
+  const grid = document.getElementById('categories-full-grid');
+  if (!grid) return;
+
+  if (store.categories.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">📁</div>
+      <div class="empty-title">ยังไม่มีหมวดหมู่</div>
+      <div class="empty-text">เพิ่มหมวดหมู่ผ่านระบบ Admin</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = store.categories.map(c => {
+    const count = store.products.filter(p => p.cat_id === c.id).length;
+    const desc = c.description || '';
+    return `<div class="cat-full-card" onclick="app.showCategoryProducts('${c.id}')">
+      <div class="cat-full-top">
+        <div class="cat-full-icon">${c.icon}</div>
+        <div class="cat-full-info">
+          <div class="cat-full-name">${c.name}</div>
+          <div class="cat-full-count">${count} รายการสินค้า</div>
+        </div>
+      </div>
+      ${desc ? `<div class="cat-full-desc">${desc}</div>` : ''}
+      <div class="cat-full-footer">
+        <span class="cat-full-link">ดูสินค้า →</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===========================
+// RENDER PORTFOLIO PAGE
+// ===========================
+function renderPortfolioPage() {
+  const grid = document.getElementById('portfolio-grid');
+  if (!grid) return;
+
+  const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0);
+
+  if (withImages.length === 0) {
+    grid.innerHTML = `<div class="portfolio-empty">
+      <div class="portfolio-empty-icon">🖼️</div>
+      <div class="portfolio-empty-title">ยังไม่มีผลงานที่แสดง</div>
+      <div class="portfolio-empty-text">ผลงานจะแสดงอัตโนมัติเมื่อสินค้ามีรูปภาพ<br>เพิ่มรูปภาพสินค้าผ่านระบบ Admin</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = withImages.map(p => {
+    const cat = store.categories.find(c => c.id === p.cat_id);
+    const tag = cat ? cat.name : 'ผลงาน';
+    return `<div class="portfolio-card" onclick="app.showProductDetail('${p.id}')">
+      <div class="portfolio-img">
+        <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
+        <div class="portfolio-tag">${tag}</div>
+      </div>
+      <div class="portfolio-body">
+        <div class="portfolio-title">${p.name}</div>
+        <div class="portfolio-sub">${(p.description || '').substring(0, 80)}${(p.description || '').length > 80 ? '...' : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ===========================
