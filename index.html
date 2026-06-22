@@ -30,7 +30,9 @@
     </div>
     <nav class="header-nav">
       <button class="nav-btn active" data-page="home" onclick="app.showPage('home')">หน้าแรก</button>
+      <button class="nav-btn" data-page="categories" onclick="app.showPage('categories')">หมวดหมู่สินค้า</button>
       <button class="nav-btn" data-page="products" onclick="app.showPage('products')">สินค้าทั้งหมด</button>
+      <button class="nav-btn" data-page="portfolio" onclick="app.showPage('portfolio')">ผลงานของเรา</button>
       <button class="nav-btn" data-page="about" onclick="app.showPage('about')">เกี่ยวกับเรา</button>
       <button class="nav-btn" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">ติดต่อเรา</button>
       <!-- Admin badge (แสดงเมื่อ login แล้ว) -->
@@ -101,6 +103,38 @@
   </div>
   <div class="section" style="padding-top:8px">
     <div class="product-grid" id="products-grid"></div>
+  </div>
+</div>
+
+<!-- ===== CATEGORIES PAGE ===== -->
+<div id="page-categories" class="page">
+  <div class="cat-page-header">
+    <div class="cat-page-inner">
+      <button class="back-btn" onclick="app.showPage('home')">← กลับหน้าแรก</button>
+      <div>
+        <div class="cat-page-title">หมวดหมู่สินค้า</div>
+        <div class="cat-page-sub">เลือกหมวดหมู่เพื่อดูสินค้าในหมวดนั้น</div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="cat-full-grid" id="categories-full-grid"></div>
+  </div>
+</div>
+
+<!-- ===== PORTFOLIO PAGE ===== -->
+<div id="page-portfolio" class="page">
+  <div class="cat-page-header">
+    <div class="cat-page-inner">
+      <button class="back-btn" onclick="app.showPage('home')">← กลับหน้าแรก</button>
+      <div>
+        <div class="cat-page-title">ผลงานของเรา</div>
+        <div class="cat-page-sub">ตัวอย่างผลงานที่ผ่านมา — ป้ายจราจร ป้ายความปลอดภัย ป้ายอุตสาหกรรม</div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div id="portfolio-grid" class="portfolio-grid"></div>
   </div>
 </div>
 
