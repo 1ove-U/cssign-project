@@ -28,7 +28,7 @@ import { getFirestore, collection, doc,
          deleteDoc, orderBy, query,
          getDoc, setDoc }                           from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const app = initializeApp(FIREBASE_CONFIG);
+const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 // ===========================
