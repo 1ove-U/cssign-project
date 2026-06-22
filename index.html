@@ -51,27 +51,41 @@
 
 <!-- ===== HOME PAGE ===== -->
 <div id="page-home" class="page active">
+
+  <!-- HERO: full-bleed dark with big heading -->
   <div class="hero">
+    <div class="hero-bg-overlay"></div>
     <div class="hero-content">
-      <div class="hero-badge">🏆 ผู้จำหน่ายป้ายมาตรฐาน มอก.</div>
-      <h1>ป้ายจราจร & ป้ายความปลอดภัย<br>ครบวงจร</h1>
-      <p data-setting="hero">ป้ายคุณภาพสูง ได้มาตรฐาน พร้อมบริการติดตั้งและให้คำปรึกษา</p>
-      <div class="hero-stats">
-        <div class="stat"><div class="stat-num" id="stat-products">0</div><div class="stat-label">รายการสินค้า</div></div>
-        <div class="stat"><div class="stat-num" id="stat-cats">0</div><div class="stat-label">หมวดหมู่</div></div>
-        <div class="stat"><div class="stat-num">24ชม</div><div class="stat-label">ตอบกลับใน</div></div>
+      <div class="hero-eyebrow">ผู้จำหน่ายป้ายมาตรฐาน มอก. · ประสบการณ์กว่า 20 ปี</div>
+      <h1 class="hero-heading">ป้ายจราจร<br><span class="hero-heading-accent">&amp; ป้ายความปลอดภัย</span><br>ครบวงจร</h1>
+      <p class="hero-sub" data-setting="hero">ป้ายคุณภาพสูง ได้มาตรฐาน พร้อมบริการติดตั้งและให้คำปรึกษา</p>
+      <div class="hero-cta-row">
+        <button class="hero-cta-primary" onclick="app.showPage('products')">ดูสินค้าทั้งหมด</button>
+        <button class="hero-cta-outline" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">ติดต่อสอบถาม</button>
       </div>
+    </div>
+    <div class="hero-stats-bar">
+      <div class="hstat"><span class="hstat-num" id="stat-products">0</span><span class="hstat-label">รายการสินค้า</span></div>
+      <div class="hstat-div"></div>
+      <div class="hstat"><span class="hstat-num" id="stat-cats">0</span><span class="hstat-label">หมวดหมู่</span></div>
+      <div class="hstat-div"></div>
+      <div class="hstat"><span class="hstat-num">20+</span><span class="hstat-label">ปีประสบการณ์</span></div>
+      <div class="hstat-div"></div>
+      <div class="hstat"><span class="hstat-num">24ชม.</span><span class="hstat-label">ตอบกลับภายใน</span></div>
     </div>
   </div>
 
-  <div class="section">
+  <!-- CATEGORIES STRIP -->
+  <div class="section home-cat-section">
     <div class="section-header">
       <div class="section-title">หมวดหมู่สินค้า<span>เลือกหมวดหมู่ที่ต้องการ</span></div>
+      <button class="view-all-btn" onclick="app.showPage('categories')">ดูทั้งหมด →</button>
     </div>
     <div class="cat-grid" id="home-cat-grid"></div>
   </div>
 
-  <div class="section" style="padding-top:0">
+  <!-- FEATURED PRODUCTS -->
+  <div class="section home-featured-section">
     <div class="section-header">
       <div class="section-title">สินค้าแนะนำ<span>สินค้าขายดีและได้รับความนิยม</span></div>
       <button class="view-all-btn" onclick="app.showPage('products')">ดูทั้งหมด →</button>
@@ -79,6 +93,42 @@
     <div class="product-grid" id="home-featured-grid"></div>
   </div>
 
+  <!-- PORTFOLIO TEASER -->
+  <div class="home-portfolio-band">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title" style="color:white;">ผลงานของเรา<span style="color:var(--cs-steel);">ตัวอย่างงานที่ผ่านมา</span></div>
+        <button class="view-all-btn-light" onclick="app.showPage('portfolio')">ดูผลงานทั้งหมด →</button>
+      </div>
+      <div class="portfolio-grid" id="home-portfolio-grid"></div>
+    </div>
+  </div>
+
+  <!-- WHY US STRIP -->
+  <div class="section">
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-icon">🏆</div>
+        <div class="why-title">มาตรฐาน มอก.</div>
+        <div class="why-text">สินค้าทุกชิ้นผ่านการรับรองมาตรฐานอุตสาหกรรมไทย</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">⚡</div>
+        <div class="why-title">ส่งเร็ว พร้อมติดตั้ง</div>
+        <div class="why-text">บริการครบวงจร ตั้งแต่ออกแบบ ผลิต จนถึงติดตั้งหน้างาน</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">💬</div>
+        <div class="why-title">ให้คำปรึกษาฟรี</div>
+        <div class="why-text">ทีมงานพร้อมประเมินความเสี่ยงและแนะนำสินค้าที่เหมาะสม</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🏭</div>
+        <div class="why-title">ผู้ผลิตโดยตรง</div>
+        <div class="why-text">ราคาจากโรงงาน ไม่ผ่านพ่อค้าคนกลาง ประหยัดต้นทุน</div>
+      </div>
+    </div>
+  </div>
 
 </div>
 
