@@ -18,8 +18,8 @@ const firebaseConfig = {
 
 // ── Cloudinary Config ─────────────────────────────
 // Cloudinary Dashboard → Settings → Upload → Upload presets
-const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME";   // เช่น "paisign123"
-const CLOUDINARY_UPLOAD_PRESET = "YOUR_PRESET";    // เช่น "paisign_unsigned"
+const CLOUDINARY_CLOUD_NAME = "dizd3payw";   // เช่น "paisign123"
+const CLOUDINARY_UPLOAD_PRESET = "paisign_unsigned";    // เช่น "paisign_unsigned"
 
 // ─────────────────────────────────────────────────
 import { initializeApp }                            from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
