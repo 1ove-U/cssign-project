@@ -4,18 +4,20 @@
 // แก้ไขค่าด้านล่างด้วยค่าจริงจาก Firebase และ Cloudinary
 
 // ── Firebase Config ──────────────────────────────
-const FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAqTzezesfOGXDXHPjAEGntXa5MlPdT-NU",
+  authDomain: "cssign.firebaseapp.com",
+  projectId: "cssign",
+  storageBucket: "cssign.firebasestorage.app",
+  messagingSenderId: "719473469014",
+  appId: "1:719473469014:web:0a9b7f63222f82f43cbdf7",
+  measurementId: "G-65XCSJ42KM"
 };
 
 // ── Cloudinary Config ─────────────────────────────
-const CLOUDINARY_CLOUD_NAME   = "YOUR_CLOUD_NAME";
-const CLOUDINARY_UPLOAD_PRESET = "YOUR_PRESET";
+const CLOUDINARY_CLOUD_NAME   = "dizd3payw";
+const CLOUDINARY_UPLOAD_PRESET = "paisign_unsigned";
 
 // ─────────────────────────────────────────────────
 import { initializeApp }                            from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -26,7 +28,7 @@ import { getFirestore, collection, doc,
 import { getAuth, signInWithEmailAndPassword,
          signOut, onAuthStateChanged }              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const app  = initializeApp(FIREBASE_CONFIG);
+const app = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 export const auth = getAuth(app);
 
