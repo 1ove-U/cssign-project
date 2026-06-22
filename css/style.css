@@ -1,605 +1,699 @@
-/* ===========================
-   ป้ายพาณิชย์ — Main Stylesheet
-   =========================== */
+// ===========================
+// js/app.js — Main Application Logic (with Admin Auth)
+// ===========================
+import {
+  getCategories, saveCategory as apiSaveCategory, deleteCategory as apiDeleteCategory,
+  getProducts, saveProduct as apiSaveProduct, deleteProduct as apiDeleteProduct,
+  uploadImage, deleteImage,
+  getSettings, saveSettings as apiSaveSettings,
+  auth, loginAdmin, logoutAdmin, onAuthChange
+} from './db.js';
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+// ===== STATE =====
+let store = { categories: [], products: [], settings: {} };
+let currentFilter = 'all';
+let currentDetailProduct = null;
+let pendingImageFiles = [];
+let currentAdmin = null;   // Firebase user หรือ null
 
-:root {
-  --navy: #1A3A6E;
-  --navy-dark: #0F2347;
-  --blue: #2563EB;
-  --blue-light: #3B82F6;
-  --blue-pale: #EFF6FF;
-  --bg: #F8FAFF;
-  --white: #FFFFFF;
-  --text: #1E293B;
-  --muted: #64748B;
-  --border: #CBD5E1;
-  --border-light: #E2E8F0;
-  --success: #059669;
-  --danger: #DC2626;
-  --warning: #D97706;
-  --radius: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
-}
+// ===========================
+// INIT
+// ===========================
+async function init() {
+  // ฟัง auth state ก่อนโหลดข้อมูล
+  onAuthChange(async (user) => {
+    currentAdmin = user;
+    updateAdminUI();
+  });
 
-body {
-  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  font-size: 15px;
-}
-
-/* ===== HEADER ===== */
-.site-header {
-  background: var(--navy);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.header-stripe {
-  height: 4px;
-  background: repeating-linear-gradient(
-    -45deg,
-    #FCD34D 0px, #FCD34D 6px,
-    var(--navy-dark) 6px, var(--navy-dark) 12px
-  );
+  showLoading(true);
+  try {
+    const [cats, prods, settings] = await Promise.all([
+      getCategories(), getProducts(), getSettings()
+    ]);
+    store.categories = cats || [];
+    store.products   = prods || [];
+    store.settings   = settings || {};
+    applySettings();
+    renderHome();
+  } catch (err) {
+    showToast('❌ โหลดข้อมูลไม่สำเร็จ: ' + err.message, 'error');
+  }
+  showLoading(false);
 }
 
-.header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
+function applySettings() {
+  const s = store.settings;
+  if (!s) return;
+  if (s.shop_name) {
+    document.querySelectorAll('[data-setting="shop_name"]').forEach(el => el.textContent = s.shop_name);
+    document.title = s.shop_name;
+  }
+  if (s.phone)    document.querySelectorAll('[data-setting="phone"]').forEach(el => el.textContent = s.phone);
+  if (s.line_id)  document.querySelectorAll('[data-setting="line"]').forEach(el => el.textContent = '@' + s.line_id);
+  if (s.address)  document.querySelectorAll('[data-setting="address"]').forEach(el => el.innerHTML = s.address.replace(/\n/g, '<br>'));
+  if (s.hero_text) document.querySelectorAll('[data-setting="hero"]').forEach(el => el.textContent = s.hero_text);
 }
 
-.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
-.logo-icon-img { width: 46px; height: 46px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-.logo-img { width: 46px; height: 46px; object-fit: contain; border-radius: 50%; }
-.logo-text { color: white; font-weight: 700; font-size: 17px; letter-spacing: -0.02em; line-height: 1.2; }
-.logo-sub { color: #93C5FD; font-size: 11px; font-weight: 400; display: block; letter-spacing: 0.04em; }
-
-.header-nav { display: flex; align-items: center; gap: 4px; }
-
-.nav-btn {
-  background: none; border: none; color: #CBD5E1;
-  font-family: inherit; font-size: 14px; padding: 8px 14px;
-  border-radius: 6px; cursor: pointer; transition: background 0.15s, color 0.15s;
-}
-.nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,0.1); color: white; }
-.nav-btn.admin-btn { background: var(--blue); color: white; margin-left: 8px; font-weight: 500; }
-.nav-btn.admin-btn:hover { background: var(--blue-light); }
-
-/* ===== PAGES ===== */
-.page { display: none; }
-.page.active { display: block; }
-
-/* ===== HERO ===== */
-.hero {
-  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 60%, #1E4D9B 100%);
-  padding: 64px 24px 56px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-.hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(-45deg, transparent 0px, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 80px);
-}
-.hero-content { position: relative; max-width: 680px; margin: 0 auto; }
-.hero-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(37,99,235,0.3); border: 1px solid rgba(59,130,246,0.4);
-  color: #93C5FD; font-size: 12px; font-weight: 500;
-  padding: 4px 12px; border-radius: 100px; margin-bottom: 20px; letter-spacing: 0.04em;
-}
-.hero h1 { font-size: 40px; font-weight: 700; color: white; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 16px; }
-.hero p { color: #93C5FD; font-size: 16px; margin-bottom: 36px; }
-.hero-stats { display: flex; justify-content: center; gap: 48px; }
-.stat { text-align: center; }
-.stat-num { font-size: 28px; font-weight: 700; color: white; line-height: 1; }
-.stat-label { font-size: 12px; color: #93C5FD; margin-top: 4px; }
-
-/* ===== SECTION ===== */
-.section { max-width: 1200px; margin: 0 auto; padding: 48px 24px; }
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-.section-title { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
-.section-title span { display: block; font-size: 13px; font-weight: 400; color: var(--muted); letter-spacing: 0; margin-top: 2px; }
-
-.view-all-btn {
-  background: none; border: 1px solid var(--border); color: var(--blue);
-  font-family: inherit; font-size: 13px; font-weight: 500;
-  padding: 7px 16px; border-radius: 6px; cursor: pointer; transition: all 0.15s;
-}
-.view-all-btn:hover { background: var(--blue-pale); border-color: var(--blue); }
-
-/* ===== CATEGORY CARDS ===== */
-.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-.cat-card {
-  background: var(--white); border: 1px solid var(--border-light); border-radius: var(--radius);
-  padding: 24px; cursor: pointer; transition: all 0.18s;
-  display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow);
-}
-.cat-card:hover { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.08), var(--shadow-md); transform: translateY(-1px); }
-.cat-icon { width: 56px; height: 56px; background: var(--blue-pale); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
-.cat-info { flex: 1; }
-.cat-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-.cat-count { font-size: 13px; color: var(--muted); }
-.cat-arrow { color: var(--blue); font-size: 18px; }
-
-/* ===== PRODUCT GRID ===== */
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-.product-card {
-  background: var(--white); border: 1px solid var(--border-light); border-radius: var(--radius);
-  overflow: hidden; box-shadow: var(--shadow); transition: all 0.18s; cursor: pointer;
-}
-.product-card:hover { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.08), var(--shadow-md); transform: translateY(-2px); }
-.product-img { width: 100%; height: 180px; background: var(--bg); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-.product-img img { width: 100%; height: 100%; object-fit: cover; }
-.product-img-placeholder { font-size: 56px; opacity: 0.3; }
-.product-badge { position: absolute; top: 10px; left: 10px; background: var(--navy); color: white; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.04em; }
-.product-body { padding: 16px; }
-.product-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
-.product-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
-.product-footer { display: flex; align-items: center; justify-content: space-between; }
-.product-price { font-size: 16px; font-weight: 700; color: var(--navy); }
-.product-price small { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 2px; }
-.inquiry-btn { background: var(--blue); color: white; border: none; font-family: inherit; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 5px; cursor: pointer; transition: background 0.15s; }
-.inquiry-btn:hover { background: var(--blue-light); }
-
-/* ===== CATEGORY PAGE ===== */
-.cat-page-header { background: var(--white); border-bottom: 1px solid var(--border-light); padding: 24px; }
-.cat-page-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
-.back-btn {
-  background: none; border: 1px solid var(--border); color: var(--muted);
-  font-family: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px;
-  cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s;
-}
-.back-btn:hover { background: var(--bg); color: var(--text); }
-.cat-page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-.cat-page-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
-
-.filter-bar { max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.filter-label { font-size: 13px; font-weight: 500; color: var(--muted); margin-right: 4px; }
-.filter-chip { background: var(--white); border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 13px; padding: 6px 14px; border-radius: 100px; cursor: pointer; transition: all 0.15s; }
-.filter-chip:hover, .filter-chip.active { background: var(--navy); border-color: var(--navy); color: white; }
-.search-box { margin-left: auto; display: flex; align-items: center; gap: 8px; background: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; }
-.search-box input { border: none; outline: none; font-family: inherit; font-size: 13px; color: var(--text); background: none; width: 180px; }
-.search-box input::placeholder { color: var(--muted); }
-
-/* ===== ADMIN ===== */
-.admin-layout { display: flex; min-height: calc(100vh - 68px); }
-.admin-sidebar { width: 220px; background: var(--white); border-right: 1px solid var(--border-light); padding: 24px 0; flex-shrink: 0; position: sticky; top: 68px; height: calc(100vh - 68px); overflow-y: auto; }
-.sidebar-section { padding: 0 12px; margin-bottom: 8px; }
-.sidebar-label { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; display: block; }
-.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--muted); transition: all 0.15s; margin-bottom: 2px; border: none; background: none; font-family: inherit; width: 100%; text-align: left; }
-.sidebar-item:hover { background: var(--bg); color: var(--text); }
-.sidebar-item.active { background: var(--blue-pale); color: var(--blue); font-weight: 600; }
-.sidebar-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
-.admin-content { flex: 1; padding: 32px; overflow: hidden; }
-.admin-panel { display: none; }
-.admin-panel.active { display: block; }
-.admin-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
-.admin-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-.admin-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
-
-/* ===== BUTTONS ===== */
-.btn-primary { background: var(--blue); color: white; border: none; font-family: inherit; font-size: 14px; font-weight: 500; padding: 9px 20px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s; white-space: nowrap; }
-.btn-primary:hover { background: var(--blue-light); }
-.btn-secondary { background: var(--white); color: var(--text); border: 1px solid var(--border); font-family: inherit; font-size: 14px; font-weight: 500; padding: 9px 20px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
-.btn-secondary:hover { background: var(--bg); }
-.btn-danger { background: none; color: var(--danger); border: 1px solid #FCA5A5; font-family: inherit; font-size: 13px; padding: 6px 12px; border-radius: 5px; cursor: pointer; transition: all 0.15s; }
-.btn-danger:hover { background: #FEF2F2; }
-.btn-edit { background: none; color: var(--blue); border: 1px solid #BFDBFE; font-family: inherit; font-size: 13px; padding: 6px 12px; border-radius: 5px; cursor: pointer; transition: all 0.15s; }
-.btn-edit:hover { background: var(--blue-pale); }
-
-/* ===== DASHBOARD CARDS ===== */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
-.stat-card { background: var(--white); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-.stat-card-label { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px; }
-.stat-card-num { font-size: 32px; font-weight: 700; color: var(--navy); line-height: 1; margin-bottom: 4px; }
-.stat-card-change { font-size: 12px; color: var(--success); font-weight: 500; }
-
-/* ===== TABLE ===== */
-.data-table { background: var(--white); border: 1px solid var(--border-light); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-.table-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
-.table-title { font-size: 15px; font-weight: 600; }
-.table-count { font-size: 13px; color: var(--muted); margin-left: 8px; }
-table { width: 100%; border-collapse: collapse; }
-th { background: var(--bg); text-align: left; padding: 11px 16px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid var(--border-light); }
-td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--bg); }
-.td-img { width: 48px; height: 48px; background: var(--bg); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border: 1px solid var(--border-light); }
-.td-img img { width: 100%; height: 100%; object-fit: cover; }
-
-/* ===== BADGES ===== */
-.badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.03em; }
-.badge-blue { background: var(--blue-pale); color: var(--blue); }
-.badge-green { background: #D1FAE5; color: var(--success); }
-.badge-yellow { background: #FEF3C7; color: var(--warning); }
-.action-btns { display: flex; gap: 6px; }
-
-/* ===== MODAL ===== */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
-.modal-overlay.open { display: flex; }
-.modal { background: var(--white); border-radius: 12px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border-light); }
-.modal-title { font-size: 17px; font-weight: 700; }
-.modal-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 4px; border-radius: 4px; line-height: 1; transition: color 0.15s; }
-.modal-close:hover { color: var(--text); }
-.modal-body { padding: 24px; }
-.modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--border-light); }
-
-/* ===== FORMS ===== */
-.form-row { margin-bottom: 16px; }
-.form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
-.form-label sup { color: var(--danger); }
-.form-input, .form-select, .form-textarea { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; font-family: inherit; font-size: 14px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
-.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-.form-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 28px; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--bg); }
-.upload-zone:hover { border-color: var(--blue); background: var(--blue-pale); }
-.upload-zone input[type=file] { display: none; }
-.upload-icon { font-size: 32px; margin-bottom: 8px; }
-.upload-text { font-size: 13px; color: var(--muted); }
-.upload-text strong { color: var(--blue); }
-.preview-imgs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.preview-img { width: 64px; height: 64px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); }
-.preview-wrap { position: relative; display: inline-block; }
-.preview-remove { position: absolute; top: -6px; right: -6px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
-
-/* ===== TOAST ===== */
-.toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 500; transform: translateY(80px); opacity: 0; transition: all 0.3s; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 10px; }
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.success { background: var(--success); }
-.toast.error { background: var(--danger); }
-
-/* ===== CONTACT / FOOTER ===== */
-.contact-bar { background: var(--white); border-top: 1px solid var(--border-light); padding: 40px 24px; margin-top: 8px; }
-.contact-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
-.contact-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-.contact-item p { font-size: 13px; color: var(--muted); line-height: 1.7; }
-.contact-item a { color: var(--blue); text-decoration: none; }
-.site-footer { background: var(--navy-dark); padding: 20px 24px; text-align: center; color: #475569; font-size: 12px; }
-
-/* ===== EMPTY STATE ===== */
-.empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
-.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
-.empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-.empty-text { font-size: 13px; }
-
-/* ===== PRODUCT DETAIL ===== */
-.product-detail-imgs { display: flex; gap: 8px; margin-bottom: 16px; }
-.product-detail-main { flex: 1; height: 220px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 64px; overflow: hidden; }
-.product-detail-main img { width: 100%; height: 100%; object-fit: cover; }
-.detail-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
-.detail-key { font-size: 13px; color: var(--muted); width: 100px; flex-shrink: 0; padding-top: 1px; }
-.detail-val { font-size: 14px; color: var(--text); font-weight: 500; }
-
-/* ===== LOADING ===== */
-.loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); z-index: 999; display: flex; align-items: center; justify-content: center; }
-.loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .hero h1 { font-size: 28px; }
-  .hero-stats { gap: 24px; }
-  .admin-layout { flex-direction: column; }
-  .admin-sidebar { width: 100%; height: auto; position: static; display: flex; gap: 4px; padding: 12px; overflow-x: auto; }
-  .sidebar-label { display: none; }
-  .admin-content { padding: 16px; }
-  .contact-inner { grid-template-columns: 1fr; gap: 16px; }
-  .form-row-2 { grid-template-columns: 1fr; }
+// ===========================
+// AUTH UI
+// ===========================
+function updateAdminUI() {
+  const adminNavBtn  = document.getElementById('admin-nav-btn');
+  const adminBadge   = document.getElementById('admin-badge');
+  const loginNavBtn  = document.getElementById('login-nav-btn');
+  const emailSmall   = document.getElementById('admin-user-email');
+  if (currentAdmin) {
+    if (adminNavBtn) adminNavBtn.style.display  = 'flex';
+    if (adminBadge)  adminBadge.style.display   = 'flex';
+    if (loginNavBtn) loginNavBtn.style.display  = 'none';
+    if (emailSmall)  emailSmall.textContent     = currentAdmin.email;
+  } else {
+    if (adminNavBtn) adminNavBtn.style.display  = 'none';
+    if (adminBadge)  adminBadge.style.display   = 'none';
+    if (loginNavBtn) loginNavBtn.style.display  = '';
+    // ถ้าอยู่หน้า admin แต่ logout → กลับหน้าแรก
+    if (document.getElementById('page-admin').classList.contains('active')) {
+      showPage('home');
+    }
+  }
 }
 
-/* ===== AUTH / LOGIN ===== */
-.login-btn {
-  background: var(--bg) !important;
-  color: var(--muted) !important;
-  border: 1px solid var(--border) !important;
-  font-size: 13px !important;
-  padding: 6px 14px !important;
-}
-.login-btn:hover { background: var(--border) !important; color: var(--text) !important; }
-
-/* Admin badge (header) */
-.admin-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  border-radius: 20px;
-  padding: 4px 10px 4px 8px;
-  font-size: 12px;
-  color: var(--blue);
-}
-.admin-badge-dot {
-  width: 6px; height: 6px;
-  background: #22C55E;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.admin-badge-email { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.admin-badge-out {
-  background: none; border: none; cursor: pointer;
-  color: var(--muted); font-size: 11px; padding: 0 0 0 4px;
-  line-height: 1;
-}
-.admin-badge-out:hover { color: var(--red); }
-
-/* Sidebar user block */
-.sidebar-user {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 16px;
-  margin-top: 8px;
-  border-top: 1px solid var(--border);
-}
-.sidebar-user-icon { font-size: 22px; }
-.sidebar-user-info { min-width: 0; }
-.sidebar-user-role { font-size: 11px; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: 0.5px; }
-.sidebar-user-email-sm { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.sidebar-logout { color: #EF4444 !important; }
-.sidebar-logout:hover { background: #FEF2F2 !important; }
-
-/* Login error */
-.login-error {
-  color: #EF4444;
-  font-size: 13px;
-  min-height: 18px;
-  margin-bottom: 4px;
-  text-align: center;
+// เปิด modal login
+export function openLoginModal() {
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-modal').classList.add('open');
+  setTimeout(() => document.getElementById('login-email').focus(), 100);
 }
 
-/* Detail image thumbnails */
-.detail-thumbs { display: flex; flex-direction: column; gap: 6px; }
-.detail-thumb {
-  width: 56px; height: 56px; object-fit: cover;
-  border-radius: 6px; border: 2px solid var(--border);
-  cursor: pointer; opacity: 0.7; transition: all .15s;
-}
-.detail-thumb.active, .detail-thumb:hover { opacity: 1; border-color: var(--blue); }
-
-/* Hide login-nav-btn when logged in (handled by JS) */
-
-/* ===== FOOTER ===== */
-.site-footer {
-  background: #0D1F3C;
-  color: #CBD5E1;
-  margin-top: 64px;
-  font-size: 13px;
+export function closeLoginModal() {
+  document.getElementById('login-modal').classList.remove('open');
 }
 
-.footer-stripe {
-  height: 4px;
-  background: repeating-linear-gradient(
-    -45deg,
-    #FCD34D 0px, #FCD34D 6px,
-    #0D1F3C 6px, #0D1F3C 12px
-  );
+export async function submitLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('login-btn');
+
+  if (!email || !password) { errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'กำลังเข้าสู่ระบบ...';
+  errEl.textContent = '';
+
+  try {
+    await loginAdmin(email, password);
+    closeLoginModal();
+    showPage('admin');
+    showToast('✅ เข้าสู่ระบบสำเร็จ', 'success');
+  } catch (err) {
+    errEl.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'เข้าสู่ระบบ';
+  }
 }
 
-.footer-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
+export async function handleLogout() {
+  if (!confirm('ออกจากระบบ?')) return;
+  await logoutAdmin();
+  showToast('ออกจากระบบแล้ว');
 }
 
-/* ── Grid layout ── */
-.footer-top {
-  display: grid;
-  grid-template-columns: 220px 1fr 220px;
-  gap: 48px;
-  padding: 52px 0 44px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-}
-@media (max-width: 900px) {
-  .footer-top { grid-template-columns: 1fr 1fr; }
-  .footer-brand { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 20px; }
-}
-@media (max-width: 580px) {
-  .footer-top { grid-template-columns: 1fr; gap: 28px; padding: 36px 0 28px; }
-  .footer-brand { flex-direction: column; align-items: flex-start; }
+// Guard: ต้อง login ก่อนเข้าหน้า admin
+function requireAdmin(action) {
+  if (!currentAdmin) {
+    openLoginModal();
+    return false;
+  }
+  return true;
 }
 
-/* ── Brand column ── */
-.footer-brand {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.footer-logo {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.12);
-  box-shadow: 0 0 0 4px rgba(255,255,255,0.04);
-  flex-shrink: 0;
-}
-.footer-brand-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: white;
-  letter-spacing: 0.04em;
-}
-.footer-brand-desc {
-  font-size: 12.5px;
-  color: #64748B;
-  line-height: 1.75;
-}
-.footer-badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-.footer-badge {
-  font-size: 11px;
-  font-weight: 600;
-  color: #FCD34D;
-  background: rgba(252,211,77,0.08);
-  border: 1px solid rgba(252,211,77,0.2);
-  border-radius: 4px;
-  padding: 2px 8px;
-  letter-spacing: 0.03em;
+// ===========================
+// PAGE NAVIGATION
+// ===========================
+export function showPage(name) {
+  if (name === 'admin' && !currentAdmin) {
+    openLoginModal();
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn[data-page]').forEach(b => b.classList.remove('active'));
+  const navBtn = document.querySelector(`.nav-btn[data-page="${name}"]`);
+  if (navBtn) navBtn.classList.add('active');
+
+  if (name === 'home')     renderHome();
+  if (name === 'products') renderProductsPage();
+  if (name === 'admin')    renderAdmin();
+  window.scrollTo(0, 0);
 }
 
-/* ── Column headings ── */
-.footer-col {}
-.footer-heading {
-  font-size: 12px;
-  font-weight: 700;
-  color: #FCD34D;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 18px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(252,211,77,0.15);
+export function goHome() { showPage('home'); }
+
+// ===========================
+// RENDER HOME
+// ===========================
+function renderHome() {
+  document.getElementById('stat-products').textContent = store.products.length;
+  document.getElementById('stat-cats').textContent     = store.categories.length;
+
+  const catGrid = document.getElementById('home-cat-grid');
+  catGrid.innerHTML = store.categories.map(c => {
+    const count = store.products.filter(p => p.cat_id === c.id).length;
+    return `<div class="cat-card" onclick="app.showCategoryProducts('${c.id}')">
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-info">
+        <div class="cat-name">${c.name}</div>
+        <div class="cat-count">${count} รายการ</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">${c.description || ''}</div>
+      </div>
+      <div class="cat-arrow">›</div>
+    </div>`;
+  }).join('');
+
+  const featured = store.products.filter(p => p.featured);
+  const featGrid = document.getElementById('home-featured-grid');
+  featGrid.innerHTML = featured.length === 0
+    ? '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><div class="empty-title">ยังไม่มีสินค้าแนะนำ</div></div>'
+    : featured.map(p => productCard(p)).join('');
 }
 
-/* ── Contact cards ── */
-.footer-contact-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+export function showCategoryProducts(catId) {
+  currentFilter = catId;
+  showPage('products');
 }
-.footer-contact-card:last-child { border-bottom: none; }
-.fcc-icon {
-  font-size: 15px;
-  margin-top: 1px;
-  flex-shrink: 0;
-  width: 20px;
-  text-align: center;
-}
-.fcc-body { min-width: 0; }
-.fcc-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #93C5FD;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 3px;
-}
-.fcc-value {
-  color: #CBD5E1;
-  line-height: 1.6;
-  font-size: 13px;
-}
-.fcc-tax { font-family: monospace; font-size: 13px; letter-spacing: 0.05em; color: #E2E8F0; }
-.fcc-phone {
-  color: #6EE7B7;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s;
-}
-.fcc-phone:hover { color: white; }
-.fcc-sep { color: #475569; margin: 0 6px; }
 
-/* ── Social / Map link cards ── */
-.footer-link-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.03);
-  text-decoration: none;
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-.footer-link-card:hover {
-  background: rgba(255,255,255,0.07);
-  border-color: rgba(255,255,255,0.14);
-  transform: translateX(3px);
-}
-.flc-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.flc-icon svg { width: 18px; height: 18px; fill: currentColor; }
-.footer-link-fb .flc-icon { background: #1877F2; color: white; }
-.footer-link-map .flc-icon { background: #EA4335; color: white; }
-.flc-body { flex: 1; min-width: 0; }
-.flc-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: white;
-  line-height: 1.3;
-}
-.flc-sub {
-  font-size: 11.5px;
-  color: #64748B;
-  margin-top: 1px;
-}
-.flc-arrow {
-  color: #475569;
-  font-size: 14px;
-  transition: color 0.15s;
-}
-.footer-link-card:hover .flc-arrow { color: #CBD5E1; }
+// ===========================
+// PRODUCT CARD
+// ===========================
+function productCard(p) {
+  const cat = store.categories.find(c => c.id === p.cat_id);
+  const imgs = Array.isArray(p.images) ? p.images : [];
+  const statusBadge = p.status === 'preorder'
+    ? '<div class="product-badge">สั่งผลิต</div>'
+    : p.status === 'out' ? '<div class="product-badge" style="background:var(--muted)">สินค้าหมด</div>' : '';
+  const imgContent = imgs.length > 0
+    ? `<img src="${imgs[0]}" alt="${p.name}" loading="lazy">`
+    : `<div class="product-img-placeholder">${cat ? cat.icon : '🏷️'}</div>`;
 
-/* ── Business hours ── */
-.footer-hours {
-  margin-top: 4px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 8px;
-  padding: 12px 14px;
+  return `<div class="product-card" onclick="app.showProductDetail('${p.id}')">
+    <div class="product-img">${imgContent}${statusBadge}</div>
+    <div class="product-body">
+      <div class="product-name">${p.name}</div>
+      <div class="product-desc">${(p.description || '').substring(0, 70)}${(p.description || '').length > 70 ? '...' : ''}</div>
+      <div class="product-footer">
+        <div class="product-price">${p.price > 0 ? p.price.toLocaleString() : 'สอบถาม'}<small>${p.price > 0 ? ' บาท/' + (p.unit || 'ชิ้น') : ''}</small></div>
+        <button class="inquiry-btn" onclick="event.stopPropagation();app.inquireProductId('${p.id}')">สอบถาม</button>
+      </div>
+    </div>
+  </div>`;
 }
-.footer-hours-title {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #93C5FD;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin-bottom: 10px;
-}
-.footer-hours-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12.5px;
-  color: #94A3B8;
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.footer-hours-row:last-child { border-bottom: none; }
-.footer-hours-time { color: #6EE7B7; font-weight: 600; }
-.footer-hours-closed { color: #475569; }
-.footer-hours-closed span:last-child { color: #DC2626; font-weight: 500; }
 
-/* ── Copyright bar ── */
-.footer-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 18px 0;
-  font-size: 11.5px;
-  color: #334155;
-  letter-spacing: 0.03em;
+// ===========================
+// PRODUCTS PAGE
+// ===========================
+function renderProductsPage() {
+  const filterBar = document.getElementById('filter-bar');
+  let chips = `<span class="filter-label">หมวดหมู่:</span>
+    <button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" onclick="app.filterProducts('all', this)">ทั้งหมด</button>`;
+  store.categories.forEach(c => {
+    chips += `<button class="filter-chip ${currentFilter === c.id ? 'active' : ''}" onclick="app.filterProducts('${c.id}', this)">${c.icon} ${c.name}</button>`;
+  });
+  chips += `<div class="search-box" style="margin-left:auto"><span>🔍</span><input type="text" placeholder="ค้นหาสินค้า..." id="search-input" oninput="app.searchProducts()"></div>`;
+  filterBar.innerHTML = chips;
+  applyFilter();
 }
-.footer-bottom-sep { color: #1E293B; }
+
+export function filterProducts(catId, btn) {
+  currentFilter = catId;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
+}
+
+export function searchProducts() { applyFilter(); }
+
+function applyFilter() {
+  const q = (document.getElementById('search-input') || {}).value || '';
+  let filtered = store.products;
+  if (currentFilter !== 'all') filtered = filtered.filter(p => p.cat_id === currentFilter);
+  if (q) filtered = filtered.filter(p => p.name.includes(q) || (p.description || '').includes(q));
+
+  const titleEl = document.getElementById('products-page-title');
+  const subEl   = document.getElementById('products-page-sub');
+  if (currentFilter === 'all') {
+    titleEl.textContent = 'สินค้าทั้งหมด';
+  } else {
+    const cat = store.categories.find(c => c.id === currentFilter);
+    titleEl.textContent = cat ? cat.name : 'สินค้า';
+  }
+  subEl.textContent = `${filtered.length} รายการ`;
+
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = filtered.length === 0
+    ? '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">ไม่พบสินค้า</div><div class="empty-text">ลองเปลี่ยนคำค้นหาหรือหมวดหมู่</div></div>'
+    : filtered.map(p => productCard(p)).join('');
+}
+
+// ===========================
+// PRODUCT DETAIL
+// ===========================
+export function showProductDetail(id) {
+  const p = store.products.find(x => x.id === id);
+  if (!p) return;
+  currentDetailProduct = p;
+  const cat = store.categories.find(c => c.id === p.cat_id);
+  const imgs = Array.isArray(p.images) ? p.images : [];
+
+  document.getElementById('detail-title').textContent = p.name;
+
+  // gallery with thumbnails
+  const mainImg = imgs.length > 0
+    ? `<img src="${imgs[0]}" id="detail-main-img" style="width:100%;height:100%;object-fit:cover;">`
+    : `<span id="detail-main-img" style="font-size:64px;">${cat ? cat.icon : '🏷️'}</span>`;
+  const thumbs = imgs.length > 1
+    ? `<div class="detail-thumbs">${imgs.map((src, i) =>
+        `<img src="${src}" class="detail-thumb ${i===0?'active':''}" onclick="app.switchDetailImg('${src}', this)">`
+      ).join('')}</div>`
+    : '';
+
+  const statusText = { available: '✅ มีสินค้า', preorder: '🔄 สั่งผลิต', out: '❌ สินค้าหมด' };
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="product-detail-imgs">
+      <div class="product-detail-main">${mainImg}</div>
+      ${thumbs}
+    </div>
+    <div class="detail-row"><div class="detail-key">หมวดหมู่</div><div class="detail-val"><span class="badge badge-blue">${cat ? cat.icon + ' ' + cat.name : '-'}</span></div></div>
+    <div class="detail-row"><div class="detail-key">ราคา</div><div class="detail-val" style="font-size:20px;font-weight:700;color:var(--navy);">${p.price > 0 ? p.price.toLocaleString() + ' บาท/' + (p.unit || 'ชิ้น') : 'สอบถามราคา'}</div></div>
+    <div class="detail-row"><div class="detail-key">สถานะ</div><div class="detail-val">${statusText[p.status] || '-'}</div></div>
+    <div class="detail-row" style="align-items:flex-start"><div class="detail-key">รายละเอียด</div><div class="detail-val" style="line-height:1.7;font-weight:400;">${(p.description || '-').replace(/\n/g,'<br>')}</div></div>
+  `;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+export function switchDetailImg(src, thumbEl) {
+  const main = document.getElementById('detail-main-img');
+  if (main) main.src = src;
+  document.querySelectorAll('.detail-thumb').forEach(t => t.classList.remove('active'));
+  thumbEl.classList.add('active');
+}
+
+export function closeDetailModal() {
+  document.getElementById('detail-modal').classList.remove('open');
+}
+
+export function inquireProduct() {
+  if (currentDetailProduct) inquireProductId(currentDetailProduct.id);
+}
+
+export function inquireProductId(id) {
+  const p      = store.products.find(x => x.id === id);
+  const phone  = store.settings?.phone  || '081-234-5678';
+  const line   = store.settings?.line_id ? '@' + store.settings.line_id : '@paisign';
+  showToast(`📞 กรุณาโทร ${phone} หรือ Line: ${line} เพื่อสอบถาม "${p ? p.name : 'สินค้า'}"`, 'success');
+  document.getElementById('detail-modal').classList.remove('open');
+}
+
+// ===========================
+// ADMIN (ต้อง login)
+// ===========================
+function renderAdmin() {
+  if (!currentAdmin) { showPage('home'); return; }
+  // อัปเดตชื่อ email ใน sidebar
+  const emailEl = document.getElementById('admin-user-email');
+  if (emailEl) emailEl.textContent = currentAdmin.email;
+  updateDashboard();
+  renderCategoryList();
+  renderProductAdminList();
+}
+
+export function showAdminPanel(panel, btn) {
+  if (!requireAdmin()) return;
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('admin-' + panel).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (panel === 'dashboard')      updateDashboard();
+  if (panel === 'categories')     renderCategoryList();
+  if (panel === 'products-admin') renderProductAdminList();
+  if (panel === 'settings')       loadSettingsForm();
+}
+
+function updateDashboard() {
+  document.getElementById('dash-products').textContent  = store.products.length;
+  document.getElementById('dash-cats').textContent      = store.categories.length;
+  document.getElementById('dash-featured').textContent  = store.products.filter(p => p.featured).length;
+  document.getElementById('dash-instock').textContent   = store.products.filter(p => p.status === 'available').length;
+
+  const recent = [...store.products].reverse().slice(0, 5);
+  document.getElementById('dash-product-list').innerHTML = recent.map(p => {
+    const cat = store.categories.find(c => c.id === p.cat_id);
+    const imgs = Array.isArray(p.images) ? p.images : [];
+    const imgEl = imgs.length > 0
+      ? `<img src="${imgs[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">`
+      : `<span style="font-size:22px;">${cat ? cat.icon : '🏷️'}</span>`;
+    const statusBadge = p.status === 'available' ? '<span class="badge badge-green">มีสินค้า</span>'
+      : p.status === 'preorder' ? '<span class="badge badge-yellow">สั่งผลิต</span>'
+      : '<span class="badge" style="background:#F1F5F9;color:var(--muted)">หมด</span>';
+    return `<tr>
+      <td><div class="td-img">${imgEl}</div></td>
+      <td><strong>${p.name}</strong></td>
+      <td>${cat ? cat.icon + ' ' + cat.name : '-'}</td>
+      <td>${p.price > 0 ? p.price.toLocaleString() + ' ฿' : 'สอบถาม'}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===========================
+// CATEGORY ADMIN
+// ===========================
+function renderCategoryList() {
+  const tbody = document.getElementById('category-list');
+  if (store.categories.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📁</div><div class="empty-title">ยังไม่มีหมวดหมู่</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = store.categories.map(c => {
+    const count = store.products.filter(p => p.cat_id === c.id).length;
+    return `<tr>
+      <td><div style="font-size:28px;text-align:center;">${c.icon}</div></td>
+      <td><strong>${c.name}</strong></td>
+      <td style="color:var(--muted);font-size:13px;">${c.description || '-'}</td>
+      <td><span class="badge badge-blue">${count} รายการ</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-edit" onclick="app.openCategoryModal('${c.id}')">✏️ แก้ไข</button>
+          <button class="btn-danger" onclick="app.deleteCategoryConfirm('${c.id}')">🗑 ลบ</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+export function openCategoryModal(id) {
+  if (!requireAdmin()) return;
+  const modal = document.getElementById('category-modal');
+  document.getElementById('edit-cat-id').value = id || '';
+  if (id) {
+    const c = store.categories.find(x => x.id === id);
+    document.getElementById('cat-modal-title').textContent = 'แก้ไขหมวดหมู่';
+    document.getElementById('cat-name').value  = c.name;
+    document.getElementById('cat-icon').value  = c.icon;
+    document.getElementById('cat-desc').value  = c.description || '';
+  } else {
+    document.getElementById('cat-modal-title').textContent = 'เพิ่มหมวดหมู่ใหม่';
+    document.getElementById('cat-name').value  = '';
+    document.getElementById('cat-icon').value  = '🏷️';
+    document.getElementById('cat-desc').value  = '';
+  }
+  modal.classList.add('open');
+}
+
+export function closeCategoryModal() {
+  document.getElementById('category-modal').classList.remove('open');
+}
+
+export async function saveCategory() {
+  if (!requireAdmin()) return;
+  const name = document.getElementById('cat-name').value.trim();
+  if (!name) { showToast('กรุณาระบุชื่อหมวดหมู่', 'error'); return; }
+  const id = document.getElementById('edit-cat-id').value;
+  const cat = {
+    id:          id || null,
+    name,
+    icon:        document.getElementById('cat-icon').value || '🏷️',
+    description: document.getElementById('cat-desc').value.trim()
+  };
+  showLoading(true);
+  try {
+    await apiSaveCategory(cat);
+    store.categories = await getCategories();
+    showToast(id ? '✅ อัปเดตหมวดหมู่แล้ว' : '✅ เพิ่มหมวดหมู่แล้ว', 'success');
+    closeCategoryModal();
+    renderCategoryList();
+    updateDashboard();
+  } catch (err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+  showLoading(false);
+}
+
+export async function deleteCategoryConfirm(id) {
+  if (!requireAdmin()) return;
+  const count = store.products.filter(p => p.cat_id === id).length;
+  if (count > 0) { showToast('ไม่สามารถลบได้ มีสินค้า ' + count + ' รายการในหมวดนี้', 'error'); return; }
+  if (!confirm('ลบหมวดหมู่นี้?')) return;
+  showLoading(true);
+  try {
+    await apiDeleteCategory(id);
+    store.categories = await getCategories();
+    showToast('ลบหมวดหมู่แล้ว');
+    renderCategoryList();
+  } catch (err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+  showLoading(false);
+}
+
+// ===========================
+// PRODUCT ADMIN
+// ===========================
+function renderProductAdminList() {
+  const tbody = document.getElementById('product-admin-list');
+  if (store.products.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">ยังไม่มีสินค้า</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = store.products.map(p => {
+    const cat  = store.categories.find(c => c.id === p.cat_id);
+    const imgs = Array.isArray(p.images) ? p.images : [];
+    const imgEl = imgs.length > 0
+      ? `<img src="${imgs[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">`
+      : `<span style="font-size:22px;">${cat ? cat.icon : '🏷️'}</span>`;
+    const statusBadge = p.status === 'available' ? '<span class="badge badge-green">มีสินค้า</span>'
+      : p.status === 'preorder' ? '<span class="badge badge-yellow">สั่งผลิต</span>'
+      : '<span class="badge" style="background:#F1F5F9;color:var(--muted)">หมด</span>';
+    return `<tr>
+      <td><div class="td-img">${imgEl}</div></td>
+      <td><strong>${p.name}</strong></td>
+      <td style="font-size:13px;">${cat ? cat.icon + ' ' + cat.name : '-'}</td>
+      <td>${p.price > 0 ? p.price.toLocaleString() + ' ฿' : 'สอบถาม'}</td>
+      <td>${statusBadge}</td>
+      <td style="text-align:center;">${p.featured ? '⭐' : '—'}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-edit" onclick="app.openProductModal('${p.id}')">✏️ แก้ไข</button>
+          <button class="btn-danger" onclick="app.deleteProductConfirm('${p.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+export function openProductModal(id) {
+  if (!requireAdmin()) return;
+  pendingImageFiles = [];
+  document.getElementById('image-preview').innerHTML = '';
+  const modal  = document.getElementById('product-modal');
+  const catSel = document.getElementById('product-cat');
+  catSel.innerHTML = store.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+  document.getElementById('edit-product-id').value = id || '';
+
+  if (id) {
+    const p = store.products.find(x => x.id === id);
+    document.getElementById('product-modal-title').textContent = 'แก้ไขสินค้า';
+    document.getElementById('product-name').value      = p.name;
+    document.getElementById('product-cat').value       = p.cat_id;
+    document.getElementById('product-price').value     = p.price;
+    document.getElementById('product-unit').value      = p.unit || '';
+    document.getElementById('product-desc').value      = p.description || '';
+    document.getElementById('product-status').value    = p.status;
+    document.getElementById('product-featured').checked = p.featured;
+    const imgs = Array.isArray(p.images) ? p.images : [];
+    if (imgs.length > 0) {
+      const previewEl = document.getElementById('image-preview');
+      imgs.forEach((src, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'preview-wrap';
+        wrap.dataset.url = src;
+        wrap.innerHTML = `<img src="${src}" class="preview-img"><button class="preview-remove" onclick="app.removeExistingImg('${id}', ${i}, this.parentElement)">✕</button>`;
+        previewEl.appendChild(wrap);
+      });
+    }
+  } else {
+    document.getElementById('product-modal-title').textContent = 'เพิ่มสินค้าใหม่';
+    document.getElementById('product-name').value   = '';
+    document.getElementById('product-price').value  = '';
+    document.getElementById('product-unit').value   = 'ชิ้น';
+    document.getElementById('product-desc').value   = '';
+    document.getElementById('product-status').value = 'available';
+    document.getElementById('product-featured').checked = false;
+  }
+  modal.classList.add('open');
+}
+
+export function closeProductModal() {
+  document.getElementById('product-modal').classList.remove('open');
+  pendingImageFiles = [];
+}
+
+export function previewImages(event) {
+  const files     = Array.from(event.target.files);
+  const previewEl = document.getElementById('image-preview');
+  files.forEach(file => {
+    pendingImageFiles.push(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'preview-wrap pending';
+      const idx = pendingImageFiles.length - 1;
+      wrap.innerHTML = `<img src="${e.target.result}" class="preview-img"><button class="preview-remove" onclick="app.removePendingImg(${idx}, this.parentElement)">✕</button>`;
+      previewEl.appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+export function removePendingImg(idx, el) {
+  pendingImageFiles[idx] = null;
+  el.remove();
+}
+
+export function removeExistingImg(productId, imgIdx, el) {
+  const p = store.products.find(x => x.id === productId);
+  if (p && Array.isArray(p.images)) p.images.splice(imgIdx, 1);
+  el.remove();
+}
+
+export async function saveProduct() {
+  if (!requireAdmin()) return;
+  const name = document.getElementById('product-name').value.trim();
+  if (!name) { showToast('กรุณาระบุชื่อสินค้า', 'error'); return; }
+  const catId = document.getElementById('product-cat').value;
+  if (!catId) { showToast('กรุณาเลือกหมวดหมู่', 'error'); return; }
+
+  showLoading(true);
+  try {
+    const newUrls = [];
+    for (const file of pendingImageFiles.filter(Boolean)) {
+      const url = await uploadImage(file);
+      newUrls.push(url);
+    }
+
+    const id = document.getElementById('edit-product-id').value;
+    let existingImages = [];
+    if (id) {
+      const p = store.products.find(x => x.id === id);
+      existingImages = Array.isArray(p?.images) ? p.images : [];
+    }
+
+    const product = {
+      id:          id || null,
+      cat_id:      catId,
+      name,
+      price:       parseFloat(document.getElementById('product-price').value) || 0,
+      unit:        document.getElementById('product-unit').value || 'ชิ้น',
+      description: document.getElementById('product-desc').value.trim(),
+      status:      document.getElementById('product-status').value,
+      featured:    document.getElementById('product-featured').checked,
+      images:      [...existingImages, ...newUrls]
+    };
+
+    await apiSaveProduct(product);
+    store.products = await getProducts();
+    showToast(id ? '✅ อัปเดตสินค้าแล้ว' : '✅ เพิ่มสินค้าแล้ว', 'success');
+    closeProductModal();
+    renderProductAdminList();
+    updateDashboard();
+  } catch (err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+  showLoading(false);
+}
+
+export async function deleteProductConfirm(id) {
+  if (!requireAdmin()) return;
+  if (!confirm('ลบสินค้านี้?')) return;
+  showLoading(true);
+  try {
+    await apiDeleteProduct(id);
+    store.products = await getProducts();
+    showToast('ลบสินค้าแล้ว');
+    renderProductAdminList();
+    updateDashboard();
+  } catch (err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+  showLoading(false);
+}
+
+// ===========================
+// SETTINGS
+// ===========================
+function loadSettingsForm() {
+  const s = store.settings || {};
+  document.getElementById('setting-name').value    = s.shop_name || 'ป้ายพาณิชย์';
+  document.getElementById('setting-phone').value   = s.phone     || '081-234-5678';
+  document.getElementById('setting-line').value    = s.line_id   || 'paisign';
+  document.getElementById('setting-address').value = s.address   || '';
+  document.getElementById('setting-hero').value    = s.hero_text || '';
+}
+
+export async function saveSettingsForm() {
+  if (!requireAdmin()) return;
+  const settings = {
+    shop_name: document.getElementById('setting-name').value.trim(),
+    phone:     document.getElementById('setting-phone').value.trim(),
+    line_id:   document.getElementById('setting-line').value.trim(),
+    address:   document.getElementById('setting-address').value.trim(),
+    hero_text: document.getElementById('setting-hero').value.trim()
+  };
+  showLoading(true);
+  try {
+    await apiSaveSettings(settings);
+    store.settings = settings;
+    applySettings();
+    showToast('✅ บันทึกการตั้งค่าแล้ว', 'success');
+  } catch (err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+  showLoading(false);
+}
+
+// ===========================
+// TOAST & LOADING
+// ===========================
+export function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast ' + (type || '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function showLoading(show) {
+  document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+}
+
+// ===========================
+// GLOBAL EXPORT
+// ===========================
+window.app = {
+  showPage, goHome, showCategoryProducts,
+  filterProducts, searchProducts,
+  showProductDetail, switchDetailImg, closeDetailModal, inquireProduct, inquireProductId,
+  showAdminPanel, handleLogout,
+  openLoginModal, closeLoginModal, submitLogin,
+  openCategoryModal, closeCategoryModal, saveCategory, deleteCategoryConfirm,
+  openProductModal, closeProductModal, previewImages, removePendingImg, removeExistingImg, saveProduct, deleteProductConfirm,
+  saveSettingsForm
+};
+
+// Start
+init();
