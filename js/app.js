@@ -182,6 +182,34 @@ function renderHome() {
   featGrid.innerHTML = featured.length === 0
     ? '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><div class="empty-title">ยังไม่มีสินค้าแนะนำ</div></div>'
     : featured.map(p => productCard(p)).join('');
+
+  // Portfolio teaser — products with images, max 6
+  const portfolioGrid = document.getElementById('home-portfolio-grid');
+  if (portfolioGrid) {
+    const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0).slice(0, 6);
+    if (withImages.length === 0) {
+      portfolioGrid.innerHTML = `<div class="portfolio-empty" style="grid-column:1/-1;color:var(--cs-steel);">
+        <div class="portfolio-empty-icon">🖼️</div>
+        <div class="portfolio-empty-title" style="color:#CBD5E1;">ยังไม่มีผลงาน</div>
+        <div class="portfolio-empty-text">เพิ่มรูปภาพสินค้าผ่านระบบ Admin</div>
+      </div>`;
+    } else {
+      portfolioGrid.innerHTML = withImages.map(p => {
+        const cat = store.categories.find(c => c.id === p.cat_id);
+        const tag = cat ? cat.name : 'ผลงาน';
+        return `<div class="portfolio-card" onclick="app.showProductDetail('${p.id}')">
+          <div class="portfolio-img">
+            <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
+            <div class="portfolio-tag">${tag}</div>
+          </div>
+          <div class="portfolio-body">
+            <div class="portfolio-title">${p.name}</div>
+            <div class="portfolio-sub">${(p.description || '').substring(0, 60)}${(p.description || '').length > 60 ? '...' : ''}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
 }
 
 export function showCategoryProducts(catId) {
