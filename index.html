@@ -19,7 +19,7 @@
 <!-- ============================================================
      HEADER
      ============================================================ -->
-<header class="site-header">
+<header class="site-header header-transparent">
   <div class="header-inner">
     <div class="logo" onclick="app.goHome()">
       <img src="logo.png" alt="CS Sign Logo" class="logo-img">
@@ -52,52 +52,19 @@
 <div id="page-home" class="page active">
 
   <!-- HERO -->
-  <section class="hero">
-    <div class="hero-body">
-      <div class="hero-left">
-        <div class="hero-eyebrow">ผู้ผลิตป้ายมาตรฐาน มอก. · ประสบการณ์กว่า 20 ปี</div>
-        <h1 class="hero-heading">
-          ป้ายจราจร<br>
-          <em>&amp; ความปลอดภัย</em><br>
-          ครบวงจร
-        </h1>
-        <p class="hero-desc" data-setting="hero">
-          ผู้เชี่ยวชาญการผลิตป้ายเพื่อความปลอดภัย ป้ายจราจร สำหรับโรงงานอุตสาหกรรม
-          สถานประกอบการ และงานภาครัฐทั่วประเทศ พร้อมบริการให้คำปรึกษาและประเมินความเสี่ยง
-        </p>
-        <div class="hero-cta-row">
-          <button class="btn-primary-hero" onclick="app.showPage('portfolio')">ดูผลงาน</button>
-          <button class="btn-outline-hero" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">ติดต่อสอบถาม</button>
-        </div>
-      </div>
-      <div class="hero-right">
-        <div class="hero-stat">
-          <div class="hero-stat-num">20<span>+</span></div>
-          <div class="hero-stat-label">ปีประสบการณ์</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-num" id="stat-products">—</div>
-          <div class="hero-stat-label">รายการสินค้า</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-num">500<span>+</span></div>
-          <div class="hero-stat-label">ลูกค้าองค์กร</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-num" id="stat-cats">—</div>
-          <div class="hero-stat-label">หมวดหมู่สินค้า</div>
-        </div>
-      </div>
-    </div>
-    <!-- Cert strip -->
-    <div class="cert-wrap">
-      <div class="cert-item">มาตรฐาน มอก.</div>
-      <div class="cert-sep"></div>
-      <div class="cert-item">ISO 9001</div>
-      <div class="cert-sep"></div>
-      <div class="cert-item">โรงงานผลิตของตนเอง</div>
-      <div class="cert-sep"></div>
-      <div class="cert-item">20+ ปีในอุตสาหกรรม</div>
+  <section class="hero-slider">
+    <!-- TODO: เปลี่ยน background-image ตรงนี้เป็นรูปจริงของบริษัท -->
+    <div class="hero-slide-bg" style="background-image: linear-gradient(135deg, rgba(13,27,42,0.92), rgba(20,40,60,0.75)), url('https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=1920');"></div>
+    <div class="hero-slide-overlay"></div>
+
+    <button class="hero-nav-arrow hero-nav-left" aria-label="ก่อนหน้า">‹</button>
+    <button class="hero-nav-arrow hero-nav-right" aria-label="ต่อไป">›</button>
+
+    <div class="hero-center-content">
+      <div class="hero-eyebrow-center">CS.SIGN &amp; PRODUCTS</div>
+      <h1 class="hero-heading-center">ป้ายที่ใช่ เพื่อธุรกิจของคุณ</h1>
+      <p class="hero-sub-center">ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ด้วยบริการครบทุกขั้นตอน</p>
+      <button class="hero-outline-btn-center" onclick="app.showPage('products')">— บริการของเรา</button>
     </div>
   </section>
 
