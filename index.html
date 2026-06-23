@@ -159,37 +159,6 @@
     </div>
   </div>
 
-  <div class="section-block" style="padding-bottom: 0;">
-    <div class="wrap">
-      <div class="section-header-row">
-        <div class="section-title">ความสามารถ</div>
-        <div class="section-rule-line"></div>
-      </div>
-    </div>
-    <div class="pillars-grid">
-      <div class="pillar">
-        <div class="pillar-number">มาตรฐาน</div>
-        <div class="pillar-title">มอก.<br>แห่งชาติ</div>
-        <div class="pillar-text">สินค้าทุกชิ้นผ่านการรับรองมาตรฐานอุตสาหกรรมไทย รับประกันคุณภาพครบทุกรายการ ตอบโจทย์ทั้งงานภาครัฐและเอกชน</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-number">โรงงาน</div>
-        <div class="pillar-title">ผลิต<br>เองโดยตรง</div>
-        <div class="pillar-text">โรงงานผลิตของตนเอง ไม่ผ่านพ่อค้าคนกลาง ควบคุมคุณภาพตั้งแต่วัตถุดิบจนถึงมือลูกค้า ราคาโรงงานแท้จริง</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-number">บริการ</div>
-        <div class="pillar-title">ครบวงจร<br>ทุกขั้นตอน</div>
-        <div class="pillar-text">ตั้งแต่การออกแบบ ผลิต ประเมินความเสี่ยง จนถึงติดตั้งหน้างาน ทีมงานผู้เชี่ยวชาญพร้อมให้คำปรึกษาตลอดโครงการ</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-number">ประสบการณ์</div>
-        <div class="pillar-title">โครงการ<br>ขนาดใหญ่</div>
-        <div class="pillar-text">ประสบการณ์กว่า 20 ปีในโครงการขนาดใหญ่ระดับประเทศ นิคมอุตสาหกรรม ท่าอากาศยาน และงานภาครัฐทั่วไทย</div>
-      </div>
-    </div>
-  </div>
-
   <!-- CLIENTS -->
   <div class="clients-band" style="margin-top: 0;">
     <div class="clients-inner-wrap">
@@ -206,18 +175,23 @@
   </div>
 
   <!-- PROJECT PORTFOLIO -->
-  <div class="section-block">
-    <div class="wrap">
-      <div class="section-header-row">
-        <div class="section-title">ผลงาน</div>
-        <div class="section-rule-line"></div>
-        <button class="section-view-all" onclick="app.showPage('portfolio')">ดูผลงานทั้งหมด</button>
+  <div class="pf-section">
+    <div class="pf-header">
+      <div class="wrap pf-header-inner">
+        <div>
+          <div class="pf-eyebrow"><span>|</span> OUR PORTFOLIO</div>
+          <h2 class="pf-heading">ผลงานรับทำป้ายของเรา</h2>
+        </div>
+        <button class="pf-viewall-btn" onclick="app.showPage('portfolio')">— ผลงานทั้งหมด</button>
       </div>
     </div>
-    <div class="wrap" style="padding-top: 0;">
-      <div class="portfolio-marquee-wrap">
-        <div class="portfolio-track" id="home-portfolio-grid"></div>
+    <div class="wrap pf-body">
+      <div class="pf-carousel-wrap">
+        <button class="pf-arrow pf-arrow-left" id="pf-arrow-left" aria-label="เลื่อนก่อนหน้า">‹</button>
+        <div class="pf-carousel-track" id="home-portfolio-grid"></div>
+        <button class="pf-arrow pf-arrow-right" id="pf-arrow-right" aria-label="เลื่อนต่อไป">›</button>
       </div>
+      <div class="pf-dots" id="pf-dots"></div>
     </div>
   </div>
 
