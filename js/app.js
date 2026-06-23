@@ -195,12 +195,6 @@ function renderHome() {
 
   renderMegaDropdown();
 
-  const featured = store.products.filter(p => p.featured);
-  const featGrid = document.getElementById('home-featured-grid');
-  featGrid.innerHTML = featured.length === 0
-    ? '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><div class="empty-title">ยังไม่มีสินค้าแนะนำ</div></div>'
-    : featured.map(p => productCard(p)).join('');
-
   // Portfolio teaser — manual carousel, max 6 items with images
   const portfolioGrid = document.getElementById('home-portfolio-grid');
   if (portfolioGrid) {
@@ -216,6 +210,139 @@ function renderHome() {
     }
     initHomePortfolioCarousel(withImages.length);
   }
+
+  // Best Seller — products with featured flag
+  const bsTrack = document.getElementById('home-bestseller-track');
+  if (bsTrack) {
+    const bestSellers = store.products.filter(p => p.featured);
+    bsTrack.innerHTML = bestSellers.length === 0
+      ? '<div class="prod-empty"><div class="prod-empty-icon">🏆</div><div class="prod-empty-title">ยังไม่มีสินค้าขายดี</div><div class="prod-empty-sub">ตั้งค่าสินค้าแนะนำผ่าน Admin</div></div>'
+      : bestSellers.map(p => prodCarouselCard(p, 'bestseller')).join('');
+    initProdCarousel('bs', bestSellers.length);
+  }
+
+  // Latest Products — sorted by createdAt desc, take 8
+  const ltTrack = document.getElementById('home-latest-track');
+  if (ltTrack) {
+    const latest = [...store.products]
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      .slice(0, 8);
+    ltTrack.innerHTML = latest.length === 0
+      ? '<div class="prod-empty"><div class="prod-empty-icon">🆕</div><div class="prod-empty-title">ยังไม่มีสินค้า</div><div class="prod-empty-sub">เพิ่มสินค้าผ่านระบบ Admin</div></div>'
+      : latest.map(p => prodCarouselCard(p, 'latest')).join('');
+    initProdCarousel('lt', latest.length);
+  }
+}
+
+// ===========================
+// PRODUCT CAROUSEL CARD
+// ===========================
+function prodCarouselCard(p, context) {
+  const cat = store.categories.find(c => c.id === p.cat_id);
+  const imgs = Array.isArray(p.images) ? p.images : [];
+  const statusBadge = p.status === 'preorder'
+    ? '<div class="product-badge">สั่งผลิต</div>'
+    : p.status === 'out' ? '<div class="product-badge" style="background:var(--muted)">สินค้าหมด</div>' : '';
+  const imgContent = imgs.length > 0
+    ? `<img src="${imgs[0]}" alt="${p.name}" loading="lazy">`
+    : `<div class="product-img-placeholder">${cat ? cat.icon : '🏷️'}</div>`;
+  return `<div class="prod-carousel-card" onclick="app.showProductDetail('${p.id}')">
+    <div class="product-img">${imgContent}${statusBadge}</div>
+    <div class="product-body">
+      ${cat ? `<div class="product-cat-tag">${cat.icon} ${cat.name}</div>` : ''}
+      <div class="product-name">${p.name}</div>
+      <div class="product-footer">
+        <div class="product-price">${p.price > 0 ? p.price.toLocaleString() : 'สอบถาม'}<small>${p.price > 0 ? ' บาท/' + (p.unit || 'ชิ้น') : ''}</small></div>
+        <button class="inquiry-btn" onclick="event.stopPropagation();app.inquireProductId('${p.id}')">สอบถาม</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ===========================
+// PRODUCT CAROUSEL INIT (4-visible, auto 5s, arrows + dots)
+// ===========================
+const _carouselTimers = {};
+function initProdCarousel(prefix, count) {
+  const track   = document.getElementById(`home-${prefix === 'bs' ? 'bestseller' : 'latest'}-track`);
+  const dotsWrap = document.getElementById(`${prefix}-dots`);
+  const leftBtn  = document.getElementById(`${prefix}-arrow-left`);
+  const rightBtn = document.getElementById(`${prefix}-arrow-right`);
+  if (!track || !dotsWrap) return;
+
+  // Clear old timer
+  if (_carouselTimers[prefix]) { clearInterval(_carouselTimers[prefix]); delete _carouselTimers[prefix]; }
+
+  dotsWrap.innerHTML = '';
+  if (count === 0) {
+    if (leftBtn) leftBtn.style.display = 'none';
+    if (rightBtn) rightBtn.style.display = 'none';
+    return;
+  }
+  if (leftBtn) leftBtn.style.display = '';
+  if (rightBtn) rightBtn.style.display = '';
+
+  // Page count: show 4 cards at a time
+  const VISIBLE = 4;
+  const totalPages = Math.max(1, count - VISIBLE + 1);
+  let currentPage = 0;
+
+  // Build dots (one per page)
+  for (let i = 0; i < totalPages; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'prod-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'หน้า ' + (i + 1));
+    dot.addEventListener('click', () => goToPage(i));
+    dotsWrap.appendChild(dot);
+  }
+
+  function getCardWidth() {
+    const card = track.querySelector('.prod-carousel-card');
+    if (!card) return 280;
+    const style = window.getComputedStyle(track);
+    const gap = parseFloat(style.gap || style.columnGap || '24');
+    return card.getBoundingClientRect().width + gap;
+  }
+
+  function goToPage(page) {
+    page = Math.max(0, Math.min(page, totalPages - 1));
+    currentPage = page;
+    track.scrollTo({ left: page * getCardWidth(), behavior: 'smooth' });
+    dotsWrap.querySelectorAll('.prod-dot').forEach((d, i) => d.classList.toggle('active', i === page));
+  }
+
+  if (leftBtn) leftBtn.onclick = () => { goToPage(currentPage - 1); resetAutoplay(); };
+  if (rightBtn) rightBtn.onclick = () => { goToPage(currentPage + 1); resetAutoplay(); };
+
+  // Autoplay every 5s
+  function autoNext() {
+    const next = (currentPage + 1) >= totalPages ? 0 : currentPage + 1;
+    goToPage(next);
+  }
+
+  function startAutoplay() {
+    _carouselTimers[prefix] = setInterval(autoNext, 5000);
+  }
+  function resetAutoplay() {
+    if (_carouselTimers[prefix]) clearInterval(_carouselTimers[prefix]);
+    startAutoplay();
+  }
+
+  startAutoplay();
+
+  // Sync dot on manual scroll
+  let scrollTimeout;
+  track.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const w = getCardWidth();
+      if (w > 0) {
+        const p = Math.round(track.scrollLeft / w);
+        currentPage = Math.max(0, Math.min(p, totalPages - 1));
+        dotsWrap.querySelectorAll('.prod-dot').forEach((d, i) => d.classList.toggle('active', i === currentPage));
+      }
+    }, 80);
+  });
 }
 
 // ===========================
