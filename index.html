@@ -30,10 +30,27 @@
     </div>
     <nav class="header-nav">
       <button class="nav-btn active" data-page="home" onclick="app.showPage('home')">หน้าแรก</button>
-      <button class="nav-btn" data-page="about" onclick="app.showPage('about')">เกี่ยวกับ</button>
-      <button class="nav-btn" data-page="portfolio" onclick="app.showPage('portfolio')">ผลงาน</button>
-      <button class="nav-btn" data-page="categories" onclick="app.showPage('categories')">หมวดหมู่</button>
+
+      <!-- Mega Dropdown: สินค้าทั้งหมด -->
+      <div class="nav-dropdown-wrap" id="mega-dropdown-wrap">
+        <div class="nav-dropdown-trigger">
+          <button class="nav-btn nav-dropdown-btn" data-page="categories" onclick="app.showPage('categories')">
+            <span class="nav-dropdown-icon">▤</span> สินค้าทั้งหมด
+          </button>
+          <button class="nav-caret-btn" id="mega-caret-btn" aria-label="เปิดเมนูหมวดหมู่">
+            <span class="nav-caret" id="mega-caret">▾</span>
+          </button>
+        </div>
+        <div class="mega-dropdown" id="mega-dropdown">
+          <div class="mega-inner" id="mega-cat-list">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
       <button class="nav-btn" data-page="products" onclick="app.showPage('products')">สินค้า</button>
+      <button class="nav-btn" data-page="portfolio" onclick="app.showPage('portfolio')">ผลงานของเรา</button>
+      <button class="nav-btn" data-page="about" onclick="app.showPage('about')">เกี่ยวกับเรา</button>
       <button class="nav-btn" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">ติดต่อ</button>
       <div id="admin-badge" class="admin-badge" style="display:none;">
         <span class="admin-badge-dot"></span>
@@ -144,20 +161,6 @@
         <button class="pf-arrow pf-arrow-right" id="pf-arrow-right" aria-label="เลื่อนต่อไป">›</button>
       </div>
       <div class="pf-dots" id="pf-dots"></div>
-    </div>
-  </div>
-
-  <!-- PRODUCT CATEGORIES -->
-  <div class="section-block" style="padding-top: 0;">
-    <div class="wrap">
-      <div class="section-header-row">
-        <div class="section-title">หมวดหมู่สินค้า</div>
-        <div class="section-rule-line"></div>
-        <button class="section-view-all" onclick="app.showPage('categories')">ดูทั้งหมด</button>
-      </div>
-    </div>
-    <div class="wrap" style="padding-top: 0;">
-      <div class="cat-grid" id="home-cat-grid"></div>
     </div>
   </div>
 
@@ -746,6 +749,23 @@
   document.addEventListener('click', function(e){
     if(wrap.classList.contains('open') && !wrap.contains(e.target)){
       wrap.classList.remove('open');
+    }
+  });
+})();
+
+// Mega dropdown: caret toggles open/close; click outside closes
+(function(){
+  var megaWrap = document.getElementById('mega-dropdown-wrap');
+  var caretBtn = document.getElementById('mega-caret-btn');
+  if(caretBtn && megaWrap){
+    caretBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      megaWrap.classList.toggle('open');
+    });
+  }
+  document.addEventListener('click', function(e){
+    if(megaWrap && !megaWrap.contains(e.target)){
+      megaWrap.classList.remove('open');
     }
   });
 })();
