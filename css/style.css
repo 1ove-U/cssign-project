@@ -1689,11 +1689,10 @@ tr:hover td { background: var(--surface); }
 /* ============================================================
    HOME PORTFOLIO — dark header + manual carousel
    ============================================================ */
-.pf-section { background: var(--white); padding-bottom: 140px; }
+.pf-section { background: var(--navy); padding-bottom: 80px; }
 
 .pf-header {
-  background: var(--navy);
-  padding: 88px 0 120px;
+  padding: 88px 0 0;
 }
 .pf-header-inner {
   display: flex; align-items: flex-end; justify-content: space-between;
@@ -1724,7 +1723,7 @@ tr:hover td { background: var(--surface); }
 }
 .pf-viewall-btn:hover { background: var(--navy-light); }
 
-.pf-body { margin-top: -88px; }
+.pf-body { margin-top: 56px; }
 
 .pf-carousel-wrap {
   position: relative;
@@ -1795,17 +1794,17 @@ tr:hover td { background: var(--surface); }
 }
 .pf-dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--border);
+  background: rgba(255,255,255,0.25);
   transition: background 0.2s, transform 0.2s;
 }
-.pf-dot.active { background: var(--navy); transform: scale(1.25); }
+.pf-dot.active { background: var(--accent-light); transform: scale(1.25); }
 
 @media (max-width: 1100px) {
   .pf-card { flex: 0 0 calc(50% - 12px); }
 }
 @media (max-width: 640px) {
   .pf-card { flex: 0 0 82%; }
-  .pf-header { padding: 64px 0 96px; }
-  .pf-body { margin-top: -64px; }
+  .pf-header { padding: 64px 0 0; }
+  .pf-body { margin-top: 40px; }
   .pf-arrow { display: none; }
 }
