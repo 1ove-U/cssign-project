@@ -704,6 +704,70 @@
   </div>
 </footer>
 
+<!-- ============================================================
+     FLOATING CONTACT POPUP
+     ============================================================ -->
+<div class="chat-fab-wrap" id="chat-fab-wrap">
+  <div class="chat-fab-panel" id="chat-fab-panel">
+    <div class="chat-fab-panel-head">
+      <div class="chat-fab-panel-title">ติดต่อเรา</div>
+      <div class="chat-fab-panel-sub">เลือกช่องทางที่สะดวก ทีมงานพร้อมตอบกลับ</div>
+    </div>
+    <a href="tel:0628833880" class="chat-fab-item">
+      <span class="chat-fab-icon">📞</span>
+      <span class="chat-fab-item-body">
+        <span class="chat-fab-item-title">โทรศัพท์</span>
+        <span class="chat-fab-item-desc">062-883-3880</span>
+      </span>
+    </a>
+    <a href="#" class="chat-fab-item" onclick="alert('Line ID: @cssign'); return false;">
+      <span class="chat-fab-icon">💬</span>
+      <span class="chat-fab-item-body">
+        <span class="chat-fab-item-title">Line</span>
+        <span class="chat-fab-item-desc">@cssign</span>
+      </span>
+    </a>
+    <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" class="chat-fab-item">
+      <span class="chat-fab-icon">📘</span>
+      <span class="chat-fab-item-body">
+        <span class="chat-fab-item-title">Facebook</span>
+        <span class="chat-fab-item-desc">CS.SIGN Online</span>
+      </span>
+    </a>
+    <a href="mailto:info@cssign.co.th" class="chat-fab-item">
+      <span class="chat-fab-icon">✉️</span>
+      <span class="chat-fab-item-body">
+        <span class="chat-fab-item-title">อีเมล</span>
+        <span class="chat-fab-item-desc">info@cssign.co.th</span>
+      </span>
+    </a>
+  </div>
+
+  <div class="chat-fab-bubble" id="chat-fab-bubble">สอบถามเพิ่มเติม คลิก!</div>
+  <button class="chat-fab-btn" id="chat-fab-btn" aria-label="ติดต่อเรา">
+    <span class="chat-fab-icon-chat">💬</span>
+    <span class="chat-fab-icon-close">✕</span>
+  </button>
+</div>
+
+<script>
+(function(){
+  var btn = document.getElementById('chat-fab-btn');
+  var panel = document.getElementById('chat-fab-panel');
+  var wrap = document.getElementById('chat-fab-wrap');
+  var bubble = document.getElementById('chat-fab-bubble');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    wrap.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e){
+    if(wrap.classList.contains('open') && !wrap.contains(e.target)){
+      wrap.classList.remove('open');
+    }
+  });
+})();
+</script>
+
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
