@@ -484,12 +484,16 @@ input, select, textarea { font-family: inherit; }
 .section-block + .section-block {
   padding-top: 0;
 }
+/* First product section gets top breathing room from portfolio */
+.pf-section + .section-block {
+  padding-top: 100px;
+}
 
 .section-header-row {
   display: flex;
-  align-items: baseline;
-  gap: 32px;
-  margin-bottom: 88px;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 48px;
 }
 
 .section-code { display: none; }
@@ -502,7 +506,7 @@ input, select, textarea { font-family: inherit; }
   line-height: 1;
   color: var(--navy);
   text-transform: uppercase;
-  flex: 1;
+  flex: none;
 }
 
 .section-rule-line {
@@ -510,7 +514,7 @@ input, select, textarea { font-family: inherit; }
   height: 1px;
   background: var(--border);
   align-self: center;
-  max-width: 240px;
+  min-width: 40px;
 }
 
 .section-view-all {
@@ -520,7 +524,8 @@ input, select, textarea { font-family: inherit; }
   display: flex; align-items: center; gap: 8px;
   transition: color 0.15s;
   white-space: nowrap;
-  padding: 10px 0;
+  padding: 0;
+  flex: none;
 }
 .section-view-all:hover { color: var(--navy); }
 .section-view-all::after { content: '→'; }
