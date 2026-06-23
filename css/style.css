@@ -193,7 +193,7 @@ input, select, textarea { font-family: inherit; }
   position: absolute;
   top: calc(100% + 1px);
   left: 0;
-  min-width: 680px;
+  min-width: 260px;
   background: var(--white);
   border: 1px solid var(--border);
   border-top: 3px solid var(--accent);
@@ -211,8 +211,8 @@ input, select, textarea { font-family: inherit; }
 }
 
 .mega-inner {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0;
 }
 
@@ -286,6 +286,49 @@ input, select, textarea { font-family: inherit; }
 }
 .mega-footer-btn.outline:hover { background: var(--navy); color: var(--white); }
 
+
+/* Simple category dropdown list */
+.mega-cat-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+.mega-cat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border-radius: 4px;
+  margin: 1px 4px;
+}
+.mega-cat-item:hover {
+  background: var(--surface);
+  color: var(--navy);
+}
+.mega-cat-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+.mega-cat-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--navy);
+  flex: 1;
+}
+.mega-cat-count {
+  font-size: 11px;
+  color: var(--gray-light);
+  background: var(--surface);
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.mega-cat-item:hover .mega-cat-name { color: var(--accent); }
+.mega-cat-item:hover .mega-cat-count { background: var(--white); }
 /* ============================================================
    HERO
    ============================================================ */
@@ -1942,6 +1985,49 @@ tr:hover td { background: var(--surface); }
   .pf-arrow { display: none; }
 }
 
+
+/* Simple category dropdown list */
+.mega-cat-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+.mega-cat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border-radius: 4px;
+  margin: 1px 4px;
+}
+.mega-cat-item:hover {
+  background: var(--surface);
+  color: var(--navy);
+}
+.mega-cat-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+.mega-cat-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--navy);
+  flex: 1;
+}
+.mega-cat-count {
+  font-size: 11px;
+  color: var(--gray-light);
+  background: var(--surface);
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.mega-cat-item:hover .mega-cat-name { color: var(--accent); }
+.mega-cat-item:hover .mega-cat-count { background: var(--white); }
 /* ============================================================
    HERO SLIDER — full-bleed background image hero
    ============================================================ */
