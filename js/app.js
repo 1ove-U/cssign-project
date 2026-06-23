@@ -151,7 +151,7 @@ export function showPage(name) {
 
   if (name === 'home')       renderHome();
   if (name === 'products')   renderProductsPage();
-  if (name === 'categories') renderCategoriesPage();
+  // categories page removed
   if (name === 'portfolio')  renderPortfolioPage();
   if (name === 'admin')      renderAdmin();
   window.scrollTo(0, 0);
@@ -171,26 +171,19 @@ function renderMegaDropdown() {
     return;
   }
 
-  // Build columns — one column per category
-  const cols = store.categories.map(c => {
-    const products = store.products.filter(p => p.cat_id === c.id);
-    const items = products.slice(0, 6).map(p =>
-      `<div class="mega-item" onclick="app.showProductDetail('${p.id}');document.getElementById('mega-dropdown-wrap').classList.remove('open')">${p.name}</div>`
-    ).join('');
-    const moreCount = products.length > 6 ? products.length - 6 : 0;
-    return `<div class="mega-col">
-      <div class="mega-col-title" onclick="app.showCategoryProducts('${c.id}');document.getElementById('mega-dropdown-wrap').classList.remove('open')">
-        <span class="mega-col-icon">${c.icon || '📁'}</span>${c.name}
-      </div>
-      ${items}
-      ${moreCount > 0 ? `<div class="mega-item" onclick="app.showCategoryProducts('${c.id}');document.getElementById('mega-dropdown-wrap').classList.remove('open')" style="color:var(--accent);font-style:italic;">+ อีก ${moreCount} รายการ</div>` : ''}
+  // Build simple category list — one item per category, no sub-products
+  const items = store.categories.map(c => {
+    const count = store.products.filter(p => p.cat_id === c.id).length;
+    return `<div class="mega-cat-item" onclick="app.showCategoryProducts('${c.id}');document.getElementById('mega-dropdown-wrap').classList.remove('open')">
+      <span class="mega-cat-icon">${c.icon || '📁'}</span>
+      <span class="mega-cat-name">${c.name}</span>
+      <span class="mega-cat-count">${count}</span>
     </div>`;
   }).join('');
 
-  megaList.innerHTML = cols + `
+  megaList.innerHTML = `<div class="mega-cat-list">${items}</div>
     <div class="mega-footer">
-      <button class="mega-footer-btn" onclick="app.showPage('categories');document.getElementById('mega-dropdown-wrap').classList.remove('open')">ดูทุกหมวดหมู่</button>
-      <button class="mega-footer-btn outline" onclick="app.showPage('products');document.getElementById('mega-dropdown-wrap').classList.remove('open')">สินค้าทั้งหมด</button>
+      <button class="mega-footer-btn outline" onclick="app.showPage('products');document.getElementById('mega-dropdown-wrap').classList.remove('open')">ดูสินค้าทั้งหมด</button>
     </div>`;
 }
 
