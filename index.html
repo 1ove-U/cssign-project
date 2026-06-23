@@ -6,7 +6,7 @@
 <title>CS.SIGN — ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -30,10 +30,10 @@
     </div>
     <nav class="header-nav">
       <button class="nav-btn active" data-page="home" onclick="app.showPage('home')">หน้าแรก</button>
+      <button class="nav-btn" data-page="about" onclick="app.showPage('about')">เกี่ยวกับ</button>
+      <button class="nav-btn" data-page="portfolio" onclick="app.showPage('portfolio')">ผลงาน</button>
       <button class="nav-btn" data-page="categories" onclick="app.showPage('categories')">หมวดหมู่</button>
       <button class="nav-btn" data-page="products" onclick="app.showPage('products')">สินค้า</button>
-      <button class="nav-btn" data-page="portfolio" onclick="app.showPage('portfolio')">ผลงาน</button>
-      <button class="nav-btn" data-page="about" onclick="app.showPage('about')">เกี่ยวกับ</button>
       <button class="nav-btn" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">ติดต่อ</button>
       <div id="admin-badge" class="admin-badge" style="display:none;">
         <span class="admin-badge-dot"></span>
@@ -89,56 +89,65 @@
         </div>
       </div>
     </div>
-
     <!-- Cert strip -->
-    <div style="border-top: 1px solid rgba(255,255,255,0.08);">
-      <div class="cert-wrap" style="padding: 18px var(--gutter);">
-        <div class="cert-item">มาตรฐาน มอก.</div>
-        <div class="cert-sep"></div>
-        <div class="cert-item">ISO 9001</div>
-        <div class="cert-sep"></div>
-        <div class="cert-item">ป้ายจราจรแห่งชาติ</div>
-        <div class="cert-sep"></div>
-        <div class="cert-item">ป้ายความปลอดภัย</div>
-        <div class="cert-sep"></div>
-        <div class="cert-item">ป้ายโรงงานอุตสาหกรรม</div>
-        <div class="cert-sep"></div>
-        <div class="cert-item">We Are Manufacturers</div>
-      </div>
+    <div class="cert-wrap">
+      <div class="cert-item">มาตรฐาน มอก.</div>
+      <div class="cert-sep"></div>
+      <div class="cert-item">ISO 9001</div>
+      <div class="cert-sep"></div>
+      <div class="cert-item">ป้ายจราจรแห่งชาติ</div>
+      <div class="cert-sep"></div>
+      <div class="cert-item">ป้ายความปลอดภัย</div>
+      <div class="cert-sep"></div>
+      <div class="cert-item">ป้ายโรงงานอุตสาหกรรม</div>
+      <div class="cert-sep"></div>
+      <div class="cert-item">We Are Manufacturers</div>
     </div>
   </section>
 
   <!-- CAPABILITIES -->
-  <div class="section-block">
+  <div class="section-block" style="padding-bottom: 0;">
     <div class="wrap">
       <div class="section-header-row">
-        <div class="section-code">01</div>
         <div class="section-title">ความสามารถ</div>
         <div class="section-rule-line"></div>
       </div>
     </div>
-    <div style="padding-top: 0;">
-      <div class="pillars-grid">
-        <div class="pillar">
-          <div class="pillar-number">CAP.01</div>
-          <div class="pillar-title">มาตรฐาน<br>มอก.</div>
-          <div class="pillar-text">สินค้าทุกชิ้นผ่านการรับรองมาตรฐานอุตสาหกรรมไทย รับประกันคุณภาพครบทุกรายการ ตอบโจทย์ทั้งงานภาครัฐและเอกชน</div>
-        </div>
-        <div class="pillar">
-          <div class="pillar-number">CAP.02</div>
-          <div class="pillar-title">ผลิต<br>เองโดยตรง</div>
-          <div class="pillar-text">โรงงานผลิตของตนเอง ไม่ผ่านพ่อค้าคนกลาง ควบคุมคุณภาพตั้งแต่วัตถุดิบจนถึงมือลูกค้า ราคาโรงงานแท้จริง</div>
-        </div>
-        <div class="pillar">
-          <div class="pillar-number">CAP.03</div>
-          <div class="pillar-title">บริการ<br>ครบวงจร</div>
-          <div class="pillar-text">ตั้งแต่การออกแบบ ผลิต ประเมินความเสี่ยง จนถึงติดตั้งหน้างาน ทีมงานผู้เชี่ยวชาญพร้อมให้คำปรึกษาตลอดโครงการ</div>
-        </div>
-        <div class="pillar">
-          <div class="pillar-number">CAP.04</div>
-          <div class="pillar-title">โครงการ<br>ขนาดใหญ่</div>
-          <div class="pillar-text">ประสบการณ์กว่า 20 ปีในโครงการขนาดใหญ่ระดับประเทศ นิคมอุตสาหกรรม ท่าอากาศยาน และงานภาครัฐทั่วไทย</div>
-        </div>
+    <div class="pillars-grid">
+      <div class="pillar">
+        <div class="pillar-number">มาตรฐาน</div>
+        <div class="pillar-title">มอก.<br>แห่งชาติ</div>
+        <div class="pillar-text">สินค้าทุกชิ้นผ่านการรับรองมาตรฐานอุตสาหกรรมไทย รับประกันคุณภาพครบทุกรายการ ตอบโจทย์ทั้งงานภาครัฐและเอกชน</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-number">โรงงาน</div>
+        <div class="pillar-title">ผลิต<br>เองโดยตรง</div>
+        <div class="pillar-text">โรงงานผลิตของตนเอง ไม่ผ่านพ่อค้าคนกลาง ควบคุมคุณภาพตั้งแต่วัตถุดิบจนถึงมือลูกค้า ราคาโรงงานแท้จริง</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-number">บริการ</div>
+        <div class="pillar-title">ครบวงจร<br>ทุกขั้นตอน</div>
+        <div class="pillar-text">ตั้งแต่การออกแบบ ผลิต ประเมินความเสี่ยง จนถึงติดตั้งหน้างาน ทีมงานผู้เชี่ยวชาญพร้อมให้คำปรึกษาตลอดโครงการ</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-number">ประสบการณ์</div>
+        <div class="pillar-title">โครงการ<br>ขนาดใหญ่</div>
+        <div class="pillar-text">ประสบการณ์กว่า 20 ปีในโครงการขนาดใหญ่ระดับประเทศ นิคมอุตสาหกรรม ท่าอากาศยาน และงานภาครัฐทั่วไทย</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="clients-band" style="margin-top: 0;">
+    <div class="clients-inner-wrap">
+      <span class="clients-label">ลูกค้าองค์กร</span>
+      <div class="clients-list">
+        <span class="client-name">การนิคมอุตสาหกรรม</span>
+        <span class="client-name">กรมทางหลวง</span>
+        <span class="client-name">โรงงานอุตสาหกรรม</span>
+        <span class="client-name">ท่าอากาศยาน</span>
+        <span class="client-name">เขตอุตสาหกรรม WHA</span>
+        <span class="client-name">บริษัทก่อสร้างชั้นนำ</span>
       </div>
     </div>
   </div>
@@ -147,64 +156,44 @@
   <div class="section-block">
     <div class="wrap">
       <div class="section-header-row">
-        <div class="section-code">02</div>
         <div class="section-title">ผลงาน</div>
         <div class="section-rule-line"></div>
         <button class="section-view-all" onclick="app.showPage('portfolio')">ดูผลงานทั้งหมด</button>
       </div>
     </div>
-    <div style="margin-top: 48px;" class="portfolio-marquee-wrap">
-      <div class="portfolio-track" id="home-portfolio-grid"></div>
-    </div>
-    <div style="height: 80px;"></div>
-  </div>
-
-  <!-- CLIENTS -->
-  <div class="clients-band">
-    <div style="max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter);">
-      <div style="display: flex; align-items: center; gap: 48px; flex-wrap: wrap;">
-        <span class="clients-label">ลูกค้าองค์กร</span>
-        <div class="clients-list">
-          <span class="client-name">การนิคมอุตสาหกรรม</span>
-          <span class="client-name">กรมทางหลวง</span>
-          <span class="client-name">โรงงานอุตสาหกรรม</span>
-          <span class="client-name">ท่าอากาศยาน</span>
-          <span class="client-name">เขตอุตสาหกรรม WHA</span>
-          <span class="client-name">บริษัทก่อสร้างชั้นนำ</span>
-        </div>
+    <div class="wrap" style="padding-top: 0;">
+      <div class="portfolio-marquee-wrap">
+        <div class="portfolio-track" id="home-portfolio-grid"></div>
       </div>
     </div>
   </div>
 
   <!-- PRODUCT CATEGORIES -->
-  <div class="section-block">
+  <div class="section-block" style="padding-top: 0;">
     <div class="wrap">
       <div class="section-header-row">
-        <div class="section-code">03</div>
         <div class="section-title">หมวดหมู่สินค้า</div>
         <div class="section-rule-line"></div>
         <button class="section-view-all" onclick="app.showPage('categories')">ดูทั้งหมด</button>
       </div>
     </div>
-    <div style="margin-top: 48px;">
+    <div class="wrap" style="padding-top: 0;">
       <div class="cat-grid" id="home-cat-grid"></div>
     </div>
   </div>
 
   <!-- FEATURED PRODUCTS -->
-  <div class="section-block">
+  <div class="section-block" style="padding-top: 0;">
     <div class="wrap">
       <div class="section-header-row">
-        <div class="section-code">04</div>
         <div class="section-title">สินค้าแนะนำ</div>
         <div class="section-rule-line"></div>
         <button class="section-view-all" onclick="app.showPage('products')">ดูสินค้าทั้งหมด</button>
       </div>
     </div>
-    <div style="margin-top: 48px;">
+    <div class="wrap" style="padding-top: 0;">
       <div class="product-grid" id="home-featured-grid"></div>
     </div>
-    <div style="height: 80px;"></div>
   </div>
 
 </div><!-- end home -->
@@ -216,14 +205,16 @@
   <div class="page-header-section">
     <div class="page-header-inner">
       <div>
-        <div class="page-header-eyebrow">สินค้าทั้งหมด</div>
+        <div class="page-header-eyebrow">CS.SIGN — สินค้าทั้งหมด</div>
         <div class="page-header-title">หมวดหมู่</div>
         <div class="page-header-sub">เลือกหมวดหมู่เพื่อดูสินค้า</div>
       </div>
       <button class="back-btn" onclick="app.showPage('home')">กลับหน้าแรก</button>
     </div>
   </div>
-  <div class="cat-full-grid" id="categories-full-grid"></div>
+  <div style="padding: 60px 0;">
+    <div class="cat-full-grid" id="categories-full-grid"></div>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -244,12 +235,14 @@
     <span class="filter-label">หมวดหมู่</span>
     <button class="filter-chip active" onclick="app.filterProducts('all', this)">ทั้งหมด</button>
     <div class="search-box">
-      <span style="font-size:13px; color: var(--muted);">⌕</span>
+      <span style="font-size:13px; color: var(--gray-light);">⌕</span>
       <input type="text" placeholder="ค้นหาสินค้า..." id="search-input" oninput="app.searchProducts()">
     </div>
   </div>
   <div class="products-section">
-    <div class="product-grid" id="products-grid"></div>
+    <div class="wrap" style="padding-top: 0; padding-bottom: 0;">
+      <div class="product-grid" id="products-grid"></div>
+    </div>
   </div>
 </div>
 
@@ -267,7 +260,9 @@
       <button class="back-btn" onclick="app.showPage('home')">กลับหน้าแรก</button>
     </div>
   </div>
-  <div class="portfolio-grid-layout" id="portfolio-grid"></div>
+  <div style="padding: 60px 0;">
+    <div class="portfolio-grid-layout" id="portfolio-grid"></div>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -292,7 +287,7 @@
           ด้วยความมุ่งมั่นของผู้บริหารที่ต้องการช่วยผลักดันให้แรงงานไทยทำงานบนความตระหนักเรื่องความปลอดภัย
           ต่อชีวิตและทรัพย์สิน เน้นให้คำปรึกษา ประเมินความเสี่ยง และพร้อมแบ่งปันประสบการณ์กว่า 20 ปี
         </p>
-        <p style="font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 20px; font-family: var(--font-display); letter-spacing: 0.14em; text-transform: uppercase;">
+        <p style="font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 24px; font-family: var(--font-display); letter-spacing: 0.16em; text-transform: uppercase;">
           We Are Manufacturers — Specializing in Quality Industrial Signage
         </p>
       </div>
@@ -306,7 +301,7 @@
           <div class="about-stat-label">ลูกค้าองค์กร</div>
         </div>
         <div class="about-stat">
-          <div class="about-stat-num" style="font-size: 32px;">มอก.</div>
+          <div class="about-stat-num" style="font-size: 34px;">มอก.</div>
           <div class="about-stat-label">มาตรฐานแห่งชาติ</div>
         </div>
         <div class="about-stat">
@@ -340,25 +335,25 @@
       <div class="about-two-col">
         <div class="about-label">มาตรฐาน<br>และการรับรอง</div>
         <div>
-          <div class="pillars-grid" style="grid-template-columns: repeat(2, 1fr); border-left: 1px solid var(--rule);">
-            <div class="pillar" style="padding: 32px;">
+          <div class="pillars-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="pillar">
               <div class="pillar-number">TIS</div>
-              <div class="pillar-title" style="font-size: 18px;">มอก.</div>
+              <div class="pillar-title" style="font-size: 20px;">มอก.</div>
               <div class="pillar-text">มาตรฐานผลิตภัณฑ์อุตสาหกรรมไทย ผ่านการรับรองทุกรายการ</div>
             </div>
-            <div class="pillar" style="padding: 32px;">
+            <div class="pillar">
               <div class="pillar-number">QUALITY</div>
-              <div class="pillar-title" style="font-size: 18px;">ISO 9001</div>
+              <div class="pillar-title" style="font-size: 20px;">ISO 9001</div>
               <div class="pillar-text">ระบบการจัดการคุณภาพระดับสากล ควบคุมกระบวนการผลิตทุกขั้นตอน</div>
             </div>
-            <div class="pillar" style="padding: 32px;">
+            <div class="pillar">
               <div class="pillar-number">SAFETY</div>
-              <div class="pillar-title" style="font-size: 18px;">ป้ายความปลอดภัย</div>
+              <div class="pillar-title" style="font-size: 20px;">ป้ายความปลอดภัย</div>
               <div class="pillar-text">ตรงตามมาตรฐานสากล ISO 7010 และกฎหมายไทยทุกประการ</div>
             </div>
-            <div class="pillar" style="padding: 32px;">
+            <div class="pillar">
               <div class="pillar-number">TRAFFIC</div>
-              <div class="pillar-title" style="font-size: 18px;">ป้ายจราจร</div>
+              <div class="pillar-title" style="font-size: 20px;">ป้ายจราจร</div>
               <div class="pillar-text">ผ่านมาตรฐานกรมทางหลวงและกรมทางหลวงชนบท</div>
             </div>
           </div>
@@ -538,7 +533,7 @@
           <input type="file" id="product-images" accept="image/*" multiple onchange="app.previewImages(event)">
           <div class="upload-icon">📷</div>
           <div class="upload-text">คลิกเพื่อเลือกรูปภาพ<br><strong>หรือลากวางไฟล์ที่นี่</strong></div>
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;">PNG, JPG ขนาดไม่เกิน 5MB</div>
+          <div style="font-size:11px;color:var(--gray-light);margin-top:8px;">PNG, JPG ขนาดไม่เกิน 5MB</div>
         </label>
         <div class="img-preview-list" id="image-preview"></div>
       </div>
@@ -592,9 +587,9 @@
       <div class="modal-title">เข้าสู่ระบบผู้ดูแล</div>
       <button class="modal-close" onclick="app.closeLoginModal()">✕</button>
     </div>
-    <div class="modal-body" style="padding:32px;">
-      <div style="text-align:center;margin-bottom:28px;">
-        <div style="font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);">CS.SIGN Admin System</div>
+    <div class="modal-body" style="padding:40px;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--gray-light);">CS.SIGN Admin System</div>
       </div>
       <div class="form-group">
         <label class="form-label">อีเมล</label>
@@ -610,7 +605,7 @@
       <button id="login-btn" class="btn-primary" style="width:100%;margin-top:16px;" onclick="app.submitLogin()">
         เข้าสู่ระบบ
       </button>
-      <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--muted);letter-spacing:0.08em;">
+      <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--gray-light);letter-spacing:0.08em;">
         ระบบนี้สำหรับผู้ดูแลเท่านั้น
       </div>
     </div>
@@ -634,7 +629,7 @@
         <p class="footer-brand-desc">ผู้จำหน่ายป้ายจราจรและป้ายความปลอดภัยครบวงจร<br>มาตรฐาน มอก. กว่า 20 ปี</p>
         <div>
           <div class="footer-map-label">แผนที่การเดินทาง</div>
-          <a href="https://www.google.com/maps/place/%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B8%8B%E0%B8%B5%E0%B9%80%E0%B8%AD%E0%B8%AA.%E0%B9%84%E0%B8%8B%E0%B8%99%E0%B9%8C+%E0%B9%81%E0%B8%AD%E0%B8%99%E0%B8%94%E0%B9%8C+%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B8%94%E0%B8%B1%E0%B8%81%E0%B8%AA%E0%B9%8C+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94/@13.6380405,100.3974057,14z/"
+          <a href="https://www.google.com/maps/place/%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B8%8B%E0%B8%B5%E0%B9%80%E0%B8%AD%E0%B8%AA.%E0%B9%84%E0%B8%8B%E0%B8%99%E0%B9%8C/"
              target="_blank" rel="noopener" class="footer-map-frame-link" aria-label="เปิด Google Maps">
             <iframe
               src="https://www.google.com/maps?q=13.6314934,100.4014834&hl=th&z=16&output=embed"
@@ -697,10 +692,10 @@
             <div class="flc-desc">info@cssign.co.th</div>
           </div>
         </a>
-        <div style="margin-top: 32px; padding: 24px; background: rgba(200,16,46,0.1); border-left: 2px solid var(--red);">
-          <div style="font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px;">ขอใบเสนอราคา</div>
-          <div style="font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 16px;">ติดต่อทีมงานเพื่อรับใบเสนอราคาโครงการ ตอบกลับภายใน 24 ชั่วโมง</div>
-          <a href="tel:0628833880" style="display:inline-block; padding: 10px 20px; background: var(--red); font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: white;">โทรเลย →</a>
+        <div class="footer-cta-box">
+          <div class="footer-cta-label">ขอใบเสนอราคา</div>
+          <div class="footer-cta-desc">ติดต่อทีมงานเพื่อรับใบเสนอราคาโครงการ ตอบกลับภายใน 24 ชั่วโมง</div>
+          <a href="tel:0628833880" class="footer-cta-btn">โทรเลย →</a>
         </div>
       </div>
 
