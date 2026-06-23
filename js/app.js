@@ -146,6 +146,9 @@ export function showPage(name) {
   const navBtn = document.querySelector(`.nav-btn[data-page="${name}"]`);
   if (navBtn) navBtn.classList.add('active');
 
+  const headerEl = document.querySelector('.site-header');
+  if (headerEl) headerEl.classList.toggle('header-transparent', name === 'home');
+
   if (name === 'home')       renderHome();
   if (name === 'products')   renderProductsPage();
   if (name === 'categories') renderCategoriesPage();
@@ -160,8 +163,10 @@ export function goHome() { showPage('home'); }
 // RENDER HOME
 // ===========================
 function renderHome() {
-  document.getElementById('stat-products').textContent = store.products.length;
-  document.getElementById('stat-cats').textContent     = store.categories.length;
+  const statProductsEl = document.getElementById('stat-products');
+  const statCatsEl = document.getElementById('stat-cats');
+  if (statProductsEl) statProductsEl.textContent = store.products.length;
+  if (statCatsEl) statCatsEl.textContent = store.categories.length;
 
   const catGrid = document.getElementById('home-cat-grid');
   catGrid.innerHTML = store.categories.map(c => {
