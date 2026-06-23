@@ -488,12 +488,29 @@ input, select, textarea { font-family: inherit; }
 .pf-section + .section-block {
   padding-top: 100px;
 }
+.section-block--product {
+  padding-top: 100px !important;
+  padding-bottom: 80px;
+}
+.section-block--product + .section-block--product {
+  padding-top: 0 !important;
+}
 
 .section-header-row {
   display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-bottom: 48px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+.section-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  width: 100%;
+}
+.section-title-row .section-title {
+  flex: none;
 }
 
 .section-code { display: none; }
@@ -518,28 +535,29 @@ input, select, textarea { font-family: inherit; }
 }
 
 .section-view-all {
+  flex-shrink: 0;
+  padding: 14px 24px;
   font-family: var(--font-display);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--gray-mid);
-  display: flex; align-items: center; gap: 8px;
-  transition: color 0.15s;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--white);
+  background: var(--accent);
+  transition: background 0.2s;
   white-space: nowrap;
-  padding: 0;
-  flex: none;
 }
-.section-view-all:hover { color: var(--navy); }
-.section-view-all::after { content: '→'; }
+.section-view-all:hover { background: var(--navy); }
 
 
 /* ============================================================
    SECTION EYEBROW (for Best Seller / Latest)
    ============================================================ */
 .section-eyebrow {
+  display: flex; align-items: center; gap: 10px;
   font-family: var(--font-display);
-  font-size: 10px; font-weight: 700; letter-spacing: 0.22em;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
   text-transform: uppercase; color: var(--accent);
   margin-bottom: 6px;
 }
+.section-eyebrow span { color: var(--accent); font-weight: 800; }
 
 /* ============================================================
    PRODUCT CAROUSEL (Best Seller + Latest)
@@ -639,13 +657,14 @@ input, select, textarea { font-family: inherit; }
 }
 .prod-dot {
   width: 8px; height: 8px;
+  border-radius: 50%;
   background: var(--border);
   border: none; cursor: pointer; padding: 0;
-  transition: background 0.2s, width 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 .prod-dot.active {
   background: var(--navy);
-  width: 24px;
+  transform: scale(1.3);
 }
 
 /* Empty state */
