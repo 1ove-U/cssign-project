@@ -162,22 +162,45 @@ export function goHome() { showPage('home'); }
 // ===========================
 // RENDER HOME
 // ===========================
+function renderMegaDropdown() {
+  const megaList = document.getElementById('mega-cat-list');
+  if (!megaList) return;
+
+  if (store.categories.length === 0) {
+    megaList.innerHTML = `<div style="padding:24px;color:var(--gray-light);font-size:13px;">ยังไม่มีหมวดหมู่</div>`;
+    return;
+  }
+
+  // Build columns — one column per category
+  const cols = store.categories.map(c => {
+    const products = store.products.filter(p => p.cat_id === c.id);
+    const items = products.slice(0, 6).map(p =>
+      `<div class="mega-item" onclick="app.showProductDetail('${p.id}');document.getElementById('mega-dropdown-wrap').classList.remove('open')">${p.name}</div>`
+    ).join('');
+    const moreCount = products.length > 6 ? products.length - 6 : 0;
+    return `<div class="mega-col">
+      <div class="mega-col-title" onclick="app.showCategoryProducts('${c.id}');document.getElementById('mega-dropdown-wrap').classList.remove('open')">
+        <span class="mega-col-icon">${c.icon || '📁'}</span>${c.name}
+      </div>
+      ${items}
+      ${moreCount > 0 ? `<div class="mega-item" onclick="app.showCategoryProducts('${c.id}');document.getElementById('mega-dropdown-wrap').classList.remove('open')" style="color:var(--accent);font-style:italic;">+ อีก ${moreCount} รายการ</div>` : ''}
+    </div>`;
+  }).join('');
+
+  megaList.innerHTML = cols + `
+    <div class="mega-footer">
+      <button class="mega-footer-btn" onclick="app.showPage('categories');document.getElementById('mega-dropdown-wrap').classList.remove('open')">ดูทุกหมวดหมู่</button>
+      <button class="mega-footer-btn outline" onclick="app.showPage('products');document.getElementById('mega-dropdown-wrap').classList.remove('open')">สินค้าทั้งหมด</button>
+    </div>`;
+}
+
 function renderHome() {
   const statProductsEl = document.getElementById('stat-products');
   const statCatsEl = document.getElementById('stat-cats');
   if (statProductsEl) statProductsEl.textContent = store.products.length;
   if (statCatsEl) statCatsEl.textContent = store.categories.length;
 
-  const catGrid = document.getElementById('home-cat-grid');
-  catGrid.innerHTML = store.categories.map(c => {
-    const count = store.products.filter(p => p.cat_id === c.id).length;
-    return `<div class="cat-card" onclick="app.showCategoryProducts('${c.id}')">
-      <div class="cat-icon">${c.icon}</div>
-      <div class="cat-name">${c.name}</div>
-      <div class="cat-count">${count} รายการ</div>
-      ${c.description ? `<div class="cat-desc-text">${c.description}</div>` : ''}
-    </div>`;
-  }).join('');
+  renderMegaDropdown();
 
   const featured = store.products.filter(p => p.featured);
   const featGrid = document.getElementById('home-featured-grid');
@@ -594,6 +617,7 @@ export async function saveCategory() {
     showToast(id ? '✅ อัปเดตหมวดหมู่แล้ว' : '✅ เพิ่มหมวดหมู่แล้ว', 'success');
     closeCategoryModal();
     renderCategoryList();
+    renderMegaDropdown();
     updateDashboard();
   } catch (err) {
     showToast('❌ ' + err.message, 'error');
@@ -612,6 +636,7 @@ export async function deleteCategoryConfirm(id) {
     store.categories = await getCategories();
     showToast('ลบหมวดหมู่แล้ว');
     renderCategoryList();
+    renderMegaDropdown();
   } catch (err) {
     showToast('❌ ' + err.message, 'error');
   }
