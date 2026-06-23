@@ -109,12 +109,6 @@ input, select, textarea { font-family: inherit; }
   color: var(--gray-light); text-transform: none;
   margin-top: 3px;
 }
-.logo-cs { color: #1B4FD8; }
-.logo-dot { color: #1B4FD8; }
-.logo-sign { color: #8A8F9E; }
-.site-header.header-transparent .logo-cs { color: #5B8AF5; }
-.site-header.header-transparent .logo-dot { color: #5B8AF5; }
-.site-header.header-transparent .logo-sign { color: rgba(255,255,255,0.55); }
 
 .header-nav {
   display: flex; align-items: center; gap: 4px;
@@ -1654,15 +1648,6 @@ tr:hover td { background: var(--surface); }
   transition: background 0.2s;
 }
 .welcome-cta-btn:hover { background: var(--navy-light); }
-.welcome-cta-sm {
-  margin-top: 28px;
-  padding: 11px 22px;
-  font-size: 11px;
-}
-
-.welcome-right-col {
-  display: flex; flex-direction: column;
-}
 
 .welcome-divider {
   width: 1px;
@@ -1924,9 +1909,6 @@ tr:hover td { background: var(--surface); }
 }
 .site-header.header-transparent .logo-text { color: var(--white); }
 .site-header.header-transparent .logo-sub { color: rgba(255,255,255,0.5); }
-.site-header.header-transparent .logo-cs { color: #5B8AF5; }
-.site-header.header-transparent .logo-dot { color: #5B8AF5; }
-.site-header.header-transparent .logo-sign { color: rgba(255,255,255,0.55); }
 .site-header.header-transparent .nav-btn { color: rgba(255,255,255,0.75); }
 .site-header.header-transparent .nav-btn:hover { color: var(--white); }
 .site-header.header-transparent .nav-btn.active { color: var(--white); border-bottom-color: var(--accent-light); }
