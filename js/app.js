@@ -168,12 +168,9 @@ function renderHome() {
     const count = store.products.filter(p => p.cat_id === c.id).length;
     return `<div class="cat-card" onclick="app.showCategoryProducts('${c.id}')">
       <div class="cat-icon">${c.icon}</div>
-      <div class="cat-info">
-        <div class="cat-name">${c.name}</div>
-        <div class="cat-count">${count} รายการ</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;">${c.description || ''}</div>
-      </div>
-      <div class="cat-arrow">›</div>
+      <div class="cat-name">${c.name}</div>
+      <div class="cat-count">${count} รายการ</div>
+      ${c.description ? `<div class="cat-desc-text">${c.description}</div>` : ''}
     </div>`;
   }).join('');
 
@@ -202,7 +199,7 @@ function renderHome() {
       portfolioGrid.style.width = '';
       const dur = Math.max(18, withImages.length * 4);
       // Set full animation shorthand so the browser knows both name + duration.
-      portfolioGrid.style.animation = `portfolio-scroll ${dur}s linear infinite`;
+      portfolioGrid.style.animation = `marquee-scroll ${dur}s linear infinite`;
       // Duplicate the set so the track can loop seamlessly from -50% back to 0.
       portfolioGrid.innerHTML = cards + cards;
     }
@@ -305,8 +302,9 @@ function productCard(p) {
   return `<div class="product-card" onclick="app.showProductDetail('${p.id}')">
     <div class="product-img">${imgContent}${statusBadge}</div>
     <div class="product-body">
+      ${cat ? `<div class="product-cat-tag">${cat.icon} ${cat.name}</div>` : ''}
       <div class="product-name">${p.name}</div>
-      <div class="product-desc">${(p.description || '').substring(0, 70)}${(p.description || '').length > 70 ? '...' : ''}</div>
+      <div class="product-desc">${(p.description || '').substring(0, 80)}${(p.description || '').length > 80 ? '...' : ''}</div>
       <div class="product-footer">
         <div class="product-price">${p.price > 0 ? p.price.toLocaleString() : 'สอบถาม'}<small>${p.price > 0 ? ' บาท/' + (p.unit || 'ชิ้น') : ''}</small></div>
         <button class="inquiry-btn" onclick="event.stopPropagation();app.inquireProductId('${p.id}')">สอบถาม</button>
