@@ -161,17 +161,47 @@
     </div>
   </div>
 
-  <!-- FEATURED PRODUCTS -->
+  <!-- BEST SELLER SECTION -->
   <div class="section-block" style="padding-top: 0;">
     <div class="wrap">
       <div class="section-header-row">
-        <div class="section-title">สินค้าแนะนำ</div>
+        <div>
+          <div class="section-eyebrow">BEST SELLER</div>
+          <div class="section-title">สินค้าขายดี</div>
+        </div>
         <div class="section-rule-line"></div>
         <button class="section-view-all" onclick="app.showPage('products')">ดูสินค้าทั้งหมด</button>
       </div>
     </div>
-    <div class="wrap" style="padding-top: 0;">
-      <div class="product-grid" id="home-featured-grid"></div>
+    <div class="wrap prod-carousel-wrap-outer" style="padding-top: 0;">
+      <div class="prod-carousel-wrap">
+        <button class="prod-arrow prod-arrow-left" id="bs-arrow-left" aria-label="ก่อนหน้า">‹</button>
+        <div class="prod-carousel-track" id="home-bestseller-track"></div>
+        <button class="prod-arrow prod-arrow-right" id="bs-arrow-right" aria-label="ต่อไป">›</button>
+      </div>
+      <div class="prod-dots" id="bs-dots"></div>
+    </div>
+  </div>
+
+  <!-- LATEST PRODUCTS SECTION -->
+  <div class="section-block" style="padding-top: 0; padding-bottom: 80px;">
+    <div class="wrap">
+      <div class="section-header-row">
+        <div>
+          <div class="section-eyebrow">THE LATEST AND GREATEST PRODUCTS</div>
+          <div class="section-title">ผลิตภัณฑ์ล่าสุดของเรา</div>
+        </div>
+        <div class="section-rule-line"></div>
+        <button class="section-view-all" onclick="app.showPage('products')">ดูสินค้าทั้งหมด</button>
+      </div>
+    </div>
+    <div class="wrap prod-carousel-wrap-outer" style="padding-top: 0;">
+      <div class="prod-carousel-wrap">
+        <button class="prod-arrow prod-arrow-left" id="lt-arrow-left" aria-label="ก่อนหน้า">‹</button>
+        <div class="prod-carousel-track" id="home-latest-track"></div>
+        <button class="prod-arrow prod-arrow-right" id="lt-arrow-right" aria-label="ต่อไป">›</button>
+      </div>
+      <div class="prod-dots" id="lt-dots"></div>
     </div>
   </div>
 
