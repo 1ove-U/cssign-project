@@ -120,7 +120,7 @@ export async function uploadImage(file) {
   );
   if (!res.ok) throw new Error("อัปโหลดรูปไม่สำเร็จ");
   const data = await res.json();
-  return data.secure_url.replace("/upload/", "/upload/f_auto,q_auto,w_800/");
+  return data.secure_url.replace("/upload/", "/upload/f_auto,q_auto,w_900,h_900,c_limit/");
 }
 
 export async function deleteImage(url) {
