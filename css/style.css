@@ -1517,10 +1517,11 @@ tr:hover td { background: var(--surface); }
    WELCOME STRIP — Stats + CTA (home, below hero)
    ============================================================ */
 .welcome-strip {
-  background: var(--surface);
-  padding: 64px 0 0;
+  background: transparent;
+  padding: 0;
+  margin-top: -64px;
   position: relative;
-  z-index: 2;
+  z-index: 3;
 }
 .welcome-stats-row {
   display: grid;
@@ -1807,4 +1808,115 @@ tr:hover td { background: var(--surface); }
   .pf-header { padding: 64px 0 0; }
   .pf-body { margin-top: 40px; }
   .pf-arrow { display: none; }
+}
+
+/* ============================================================
+   HERO SLIDER — full-bleed background image hero
+   ============================================================ */
+.hero-slider {
+  position: relative;
+  min-height: 760px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  padding-bottom: 90px;
+}
+
+.hero-slide-bg {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.hero-slide-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(13,27,42,0.15) 0%, rgba(13,27,42,0.1) 50%, rgba(13,27,42,0.85) 100%);
+  z-index: 1;
+}
+
+.hero-nav-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  z-index: 2;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.7);
+  font-size: 28px; line-height: 1;
+  transition: color 0.2s;
+}
+.hero-nav-arrow:hover { color: var(--white); }
+.hero-nav-left { left: 24px; }
+.hero-nav-right { right: 24px; }
+
+.hero-center-content {
+  position: relative; z-index: 2;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  text-align: center;
+}
+
+.hero-eyebrow-center {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 600; letter-spacing: 0.3em;
+  text-transform: uppercase; color: rgba(255,255,255,0.6);
+  margin-bottom: 28px;
+}
+
+.hero-heading-center {
+  font-family: var(--font-display);
+  font-size: clamp(34px, 5vw, 64px);
+  font-weight: 800; text-transform: uppercase;
+  letter-spacing: -0.01em; line-height: 1.1;
+  color: var(--white);
+  margin-bottom: 28px;
+}
+
+.hero-sub-center {
+  font-size: 16px; font-weight: 300;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+
+.hero-outline-btn-center {
+  display: inline-block;
+  padding: 16px 36px;
+  font-family: var(--font-display);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.35);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.hero-outline-btn-center:hover {
+  border-color: var(--white); color: var(--navy); background: var(--white);
+}
+
+@media (max-width: 768px) {
+  .hero-slider { min-height: 600px; padding-bottom: 64px; }
+  .hero-nav-arrow { display: none; }
+}
+
+/* ============================================================
+   TRANSPARENT HEADER — overlays the hero on home page
+   ============================================================ */
+.site-header.header-transparent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: transparent;
+  border-bottom: none;
+  z-index: 50;
+}
+.site-header.header-transparent .logo-text { color: var(--white); }
+.site-header.header-transparent .logo-sub { color: rgba(255,255,255,0.5); }
+.site-header.header-transparent .nav-btn { color: rgba(255,255,255,0.75); }
+.site-header.header-transparent .nav-btn:hover { color: var(--white); }
+.site-header.header-transparent .nav-btn.active { color: var(--white); border-bottom-color: var(--accent-light); }
+.site-header.header-transparent .login-btn { background: var(--accent); }
+.site-header.header-transparent .login-btn:hover { background: var(--accent-light); }
+
+@media (max-width: 768px) {
+  .site-header.header-transparent { position: sticky; background: var(--white); border-bottom: 1px solid var(--border); }
+  .site-header.header-transparent .logo-text { color: var(--navy); }
+  .site-header.header-transparent .logo-sub { color: var(--gray-light); }
+  .site-header.header-transparent .nav-btn { color: var(--gray-mid); }
 }
