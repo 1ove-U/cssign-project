@@ -180,28 +180,19 @@ function renderHome() {
     ? '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><div class="empty-title">ยังไม่มีสินค้าแนะนำ</div></div>'
     : featured.map(p => productCard(p)).join('');
 
-  // Portfolio teaser — products with images, auto-scrolling loop, max 5
+  // Portfolio teaser — static grid, max 6 items with images
   const portfolioGrid = document.getElementById('home-portfolio-grid');
   if (portfolioGrid) {
-    const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0).slice(0, 5);
+    const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0).slice(0, 6);
+    portfolioGrid.style.animation = 'none';
     if (withImages.length === 0) {
-      portfolioGrid.style.animation = 'none';
-      portfolioGrid.style.display = 'block';
-      portfolioGrid.style.width = '100%';
-      portfolioGrid.innerHTML = `<div class="portfolio-empty">
+      portfolioGrid.innerHTML = `<div class="portfolio-empty" style="grid-column:1/-1">
         <div class="portfolio-empty-icon">🖼️</div>
         <div class="portfolio-empty-title">ยังไม่มีผลงาน</div>
         <div class="portfolio-empty-text">เพิ่มรูปภาพสินค้าผ่านระบบ Admin</div>
       </div>`;
     } else {
-      const cards = withImages.map(portfolioCardHTML).join('');
-      portfolioGrid.style.display = '';
-      portfolioGrid.style.width = '';
-      const dur = Math.max(18, withImages.length * 4);
-      // Set full animation shorthand so the browser knows both name + duration.
-      portfolioGrid.style.animation = `marquee-scroll ${dur}s linear infinite`;
-      // Duplicate the set so the track can loop seamlessly from -50% back to 0.
-      portfolioGrid.innerHTML = cards + cards;
+      portfolioGrid.innerHTML = withImages.map(portfolioCardHTML).join('');
     }
   }
 }
