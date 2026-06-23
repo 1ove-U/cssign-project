@@ -24,7 +24,7 @@
     <div class="logo" onclick="app.goHome()">
       <img src="logo.png" alt="CS Sign Logo" class="logo-img">
       <div class="logo-text">
-        CS.SIGN
+        <span class="logo-cs">CS</span><span class="logo-sign">SIGN</span>
         <span class="logo-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
       </div>
     </div>
@@ -61,7 +61,7 @@
     <button class="hero-nav-arrow hero-nav-right" aria-label="ต่อไป">›</button>
 
     <div class="hero-center-content">
-      <div class="hero-eyebrow-center">CS.SIGN &amp; PRODUCTS</div>
+      <div class="hero-eyebrow-center">CSSIGN &amp; PRODUCTS</div>
       <h1 class="hero-heading-center">ป้ายที่ใช่ เพื่อธุรกิจของคุณ</h1>
       <p class="hero-sub-center">ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ด้วยบริการครบทุกขั้นตอน</p>
       <button class="hero-outline-btn-center" onclick="app.showPage('products')">— บริการของเรา</button>
@@ -113,16 +113,18 @@
           ด้วยโรงงานผลิตของตนเอง มาตรฐาน มอก. และทีมงานผู้เชี่ยวชาญ เราพร้อมให้คำปรึกษาและประเมินความเสี่ยง
           เพื่อให้ลูกค้าได้รับป้ายที่ถูกต้องตามมาตรฐานและตอบโจทย์การใช้งานจริง
         </p>
-        <button class="welcome-cta-btn" onclick="app.showPage('about')">— เกี่ยวกับเรา</button>
       </div>
       <div class="welcome-divider"></div>
-      <ul class="welcome-checklist">
-        <li class="check-item"><span class="check-icon">✓</span> ประสบการณ์ด้านงานป้ายมากกว่า 20 ปี</li>
-        <li class="check-item"><span class="check-icon">✓</span> รับรองโดยมาตรฐาน มอก. ดูแลโดยทีมงานมืออาชีพ</li>
-        <li class="check-item"><span class="check-icon">✓</span> มีโรงงานผลิตของตนเอง ได้มาตรฐาน</li>
-        <li class="check-item"><span class="check-icon">✓</span> ผลิตงานที่มีคุณภาพและรวดเร็ว</li>
-        <li class="check-item"><span class="check-icon">✓</span> สามารถปรับแผนงานตามงบประมาณของลูกค้า</li>
-      </ul>
+      <div class="welcome-right-col">
+        <ul class="welcome-checklist">
+          <li class="check-item"><span class="check-icon">✓</span> ประสบการณ์ด้านงานป้ายมากกว่า 20 ปี</li>
+          <li class="check-item"><span class="check-icon">✓</span> รับรองโดยมาตรฐาน มอก. ดูแลโดยทีมงานมืออาชีพ</li>
+          <li class="check-item"><span class="check-icon">✓</span> มีโรงงานผลิตของตนเอง ได้มาตรฐาน</li>
+          <li class="check-item"><span class="check-icon">✓</span> ผลิตงานที่มีคุณภาพและรวดเร็ว</li>
+          <li class="check-item"><span class="check-icon">✓</span> สามารถปรับแผนงานตามงบประมาณของลูกค้า</li>
+        </ul>
+        <button class="welcome-cta-btn welcome-cta-sm" onclick="app.showPage('about')">— เกี่ยวกับเรา</button>
+      </div>
     </div>
   </div>
 
@@ -144,20 +146,6 @@
         <button class="pf-arrow pf-arrow-right" id="pf-arrow-right" aria-label="เลื่อนต่อไป">›</button>
       </div>
       <div class="pf-dots" id="pf-dots"></div>
-    </div>
-  </div>
-
-  <!-- PRODUCT CATEGORIES -->
-  <div class="section-block" style="padding-top: 0;">
-    <div class="wrap">
-      <div class="section-header-row">
-        <div class="section-title">หมวดหมู่สินค้า</div>
-        <div class="section-rule-line"></div>
-        <button class="section-view-all" onclick="app.showPage('categories')">ดูทั้งหมด</button>
-      </div>
-    </div>
-    <div class="wrap" style="padding-top: 0;">
-      <div class="cat-grid" id="home-cat-grid"></div>
     </div>
   </div>
 
