@@ -168,7 +168,16 @@ function renderHome() {
   if (statProductsEl) statProductsEl.textContent = store.products.length;
   if (statCatsEl) statCatsEl.textContent = store.categories.length;
 
-  // home-cat-grid removed from home page — skip rendering
+  const catGrid = document.getElementById('home-cat-grid');
+  catGrid.innerHTML = store.categories.map(c => {
+    const count = store.products.filter(p => p.cat_id === c.id).length;
+    return `<div class="cat-card" onclick="app.showCategoryProducts('${c.id}')">
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-name">${c.name}</div>
+      <div class="cat-count">${count} รายการ</div>
+      ${c.description ? `<div class="cat-desc-text">${c.description}</div>` : ''}
+    </div>`;
+  }).join('');
 
   const featured = store.products.filter(p => p.featured);
   const featGrid = document.getElementById('home-featured-grid');
