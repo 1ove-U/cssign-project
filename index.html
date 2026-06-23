@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด
-</title>
+<title>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -35,15 +34,12 @@
       <button class="nav-btn" data-page="portfolio" onclick="app.showPage('portfolio')">ผลงานของเรา</button>
       <button class="nav-btn" data-page="about" onclick="app.showPage('about')">เกี่ยวกับเรา</button>
       <button class="nav-btn" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">ติดต่อเรา</button>
-      <!-- Admin badge (แสดงเมื่อ login แล้ว) -->
       <div id="admin-badge" class="admin-badge" style="display:none;">
         <span class="admin-badge-dot"></span>
         <span id="admin-user-email" class="admin-badge-email">admin</span>
         <button class="admin-badge-out" onclick="app.handleLogout()" title="ออกจากระบบ">✕</button>
       </div>
-      <!-- ปุ่ม Admin (แสดงเมื่อ login แล้ว) -->
       <button id="admin-nav-btn" class="nav-btn admin-btn" style="display:none;" onclick="app.showPage('admin')">⚙ จัดการระบบ</button>
-      <!-- ปุ่ม Login (แสดงเสมอ ซ่อนอยู่จนกว่าจะ logout) -->
       <button class="nav-btn login-btn" onclick="app.openLoginModal()" id="login-nav-btn">🔐 Admin</button>
     </nav>
   </div>
@@ -52,7 +48,7 @@
 <!-- ===== HOME PAGE ===== -->
 <div id="page-home" class="page active">
 
-  <!-- HERO: full-bleed dark with big heading -->
+  <!-- HERO -->
   <div class="hero">
     <div class="hero-bg-overlay"></div>
     <div class="hero-content">
@@ -76,36 +72,67 @@
   </div>
 
   <!-- CATEGORIES STRIP -->
-  <div class="section home-cat-section">
-    <div class="section-header">
-      <div class="section-title">หมวดหมู่สินค้า<span>เลือกหมวดหมู่ที่ต้องการ</span></div>
-      <button class="view-all-btn" onclick="app.showPage('categories')">ดูทั้งหมด →</button>
+  <div class="home-cat-section">
+    <div class="section" style="padding-bottom:0;">
+      <div class="section-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:4px;height:22px;background:var(--red);border-radius:2px;flex-shrink:0;"></div>
+          <div>
+            <div class="section-title" style="padding:0;border:none;">หมวดหมู่สินค้า</div>
+            <div style="font-size:14px;color:var(--text-muted);margin-top:4px;">เลือกหมวดหมู่ที่ต้องการ</div>
+          </div>
+        </div>
+        <button class="view-all-btn" onclick="app.showPage('categories')">ดูทั้งหมด →</button>
+      </div>
+      <div class="cat-grid" id="home-cat-grid"></div>
     </div>
-    <div class="cat-grid" id="home-cat-grid"></div>
+    <div style="height:56px;"></div>
   </div>
 
   <!-- FEATURED PRODUCTS -->
-  <div class="section home-featured-section">
-    <div class="section-header">
-      <div class="section-title">สินค้าแนะนำ<span>สินค้าขายดีและได้รับความนิยม</span></div>
-      <button class="view-all-btn" onclick="app.showPage('products')">ดูทั้งหมด →</button>
+  <div class="home-featured-section">
+    <div class="section" style="padding-bottom:0;">
+      <div class="section-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:4px;height:22px;background:var(--red);border-radius:2px;flex-shrink:0;"></div>
+          <div>
+            <div class="section-title" style="padding:0;border:none;">สินค้าแนะนำ</div>
+            <div style="font-size:14px;color:var(--text-muted);margin-top:4px;">สินค้าขายดีและได้รับความนิยม</div>
+          </div>
+        </div>
+        <button class="view-all-btn" onclick="app.showPage('products')">ดูทั้งหมด →</button>
+      </div>
+      <div class="product-grid" id="home-featured-grid"></div>
     </div>
-    <div class="product-grid" id="home-featured-grid"></div>
+    <div style="height:56px;"></div>
   </div>
 
   <!-- PORTFOLIO TEASER -->
   <div class="home-portfolio-band">
-    <div class="section">
+    <div class="section" style="padding-bottom:0;">
       <div class="section-header">
-        <div class="section-title" style="color:white;">ผลงานของเรา<span style="color:var(--cs-steel);">ตัวอย่างงานที่ผ่านมา</span></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:4px;height:22px;background:var(--red);border-radius:2px;flex-shrink:0;"></div>
+          <div>
+            <div class="section-title" style="padding:0;border:none;">ผลงานของเรา</div>
+            <div style="font-size:14px;color:var(--text-muted);margin-top:4px;">ตัวอย่างงานที่ผ่านมา</div>
+          </div>
+        </div>
         <button class="view-all-btn-light" onclick="app.showPage('portfolio')">ดูผลงานทั้งหมด →</button>
       </div>
       <div class="portfolio-grid" id="home-portfolio-grid"></div>
     </div>
+    <div style="height:56px;"></div>
   </div>
 
-  <!-- WHY US STRIP -->
+  <!-- WHY US -->
   <div class="section">
+    <div class="section-header" style="margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:4px;height:22px;background:var(--red);border-radius:2px;"></div>
+        <div class="section-title" style="padding:0;border:none;">ทำไมต้องเลือกเรา</div>
+      </div>
+    </div>
     <div class="why-grid">
       <div class="why-card">
         <div class="why-icon">🏆</div>
@@ -147,11 +174,11 @@
     <span class="filter-label">หมวดหมู่:</span>
     <button class="filter-chip active" onclick="app.filterProducts('all', this)">ทั้งหมด</button>
     <div class="search-box">
-      <span>🔍</span>
+      <span style="color:var(--text-muted);font-size:14px;">🔍</span>
       <input type="text" placeholder="ค้นหาสินค้า..." id="search-input" oninput="app.searchProducts()">
     </div>
   </div>
-  <div class="section" style="padding-top:8px">
+  <div class="section" style="padding-top:24px;">
     <div class="product-grid" id="products-grid"></div>
   </div>
 </div>
@@ -190,27 +217,27 @@
 
 <!-- ===== ABOUT PAGE ===== -->
 <div id="page-about" class="page">
-  <div style="max-width:860px;margin:52px auto;padding:0 28px;">
+  <div class="about-wrap">
     <div style="margin-bottom:32px;">
-      <div style="font-size:11px;font-weight:700;color:var(--cs-blue);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">ABOUT CS.SIGN</div>
-      <h2 style="font-size:30px;font-weight:700;color:var(--text-dark);letter-spacing:-0.03em;margin-bottom:10px;line-height:1.2;">ผู้เชี่ยวชาญด้านป้ายความปลอดภัย<br>และป้ายจราจรครบวงจร</h2>
-      <p style="color:var(--text-muted);font-size:15px;">We Are Manufacturers — Specializing in Quality Industrial Signage</p>
+      <div class="about-label">ABOUT CS.SIGN</div>
+      <h2 class="about-heading">ผู้เชี่ยวชาญด้านป้ายความปลอดภัย<br>และป้ายจราจรครบวงจร</h2>
+      <p class="about-sub">We Are Manufacturers — Specializing in Quality Industrial Signage</p>
     </div>
-    <div style="background:var(--bg-white);border:1px solid var(--border-light);border-left:3px solid var(--cs-blue);border-radius:var(--radius);padding:28px 32px;margin-bottom:24px;box-shadow:var(--shadow-sm);">
-      <p style="color:var(--text-body);line-height:1.9;font-size:14.5px;">เราคือผู้เชี่ยวชาญการผลิตป้ายเพื่อความปลอดภัย ป้ายเซฟตี้ ป้ายห้าม ป้ายเตือน ป้ายบังคับ สำหรับโรงงานอุตสาหกรรม และสถานประกอบการทุกประเภท รวมถึงป้ายจราจร อุปกรณ์จราจร สำหรับงานจราจรทั่วประเทศ ด้วยความมุ่งมั่นของผู้บริหารที่ต้องการช่วยผลักดันให้แรงงานไทยทำงานบนความตระหนักเรื่องความปลอดภัยต่อชีวิตและทรัพย์สินเป็นสำคัญ จึงเน้นให้คำปรึกษา ประเมินความเสี่ยงจุดที่มีโอกาสจะเกิดอุบัติเหตุ และพร้อมแบ่งปันประสบการณ์กว่า 20 ปี ช่วยให้ลูกค้าได้รับสินค้าที่มีคุณภาพในราคาที่เหมาะสม</p>
+    <div class="about-card" style="margin-bottom:24px;">
+      <p>เราคือผู้เชี่ยวชาญการผลิตป้ายเพื่อความปลอดภัย ป้ายเซฟตี้ ป้ายห้าม ป้ายเตือน ป้ายบังคับ สำหรับโรงงานอุตสาหกรรม และสถานประกอบการทุกประเภท รวมถึงป้ายจราจร อุปกรณ์จราจร สำหรับงานจราจรทั่วประเทศ ด้วยความมุ่งมั่นของผู้บริหารที่ต้องการช่วยผลักดันให้แรงงานไทยทำงานบนความตระหนักเรื่องความปลอดภัยต่อชีวิตและทรัพย์สินเป็นสำคัญ จึงเน้นให้คำปรึกษา ประเมินความเสี่ยงจุดที่มีโอกาสจะเกิดอุบัติเหตุ และพร้อมแบ่งปันประสบการณ์กว่า 20 ปี ช่วยให้ลูกค้าได้รับสินค้าที่มีคุณภาพในราคาที่เหมาะสม</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
-      <div style="background:var(--bg-white);border:1px solid var(--border-light);border-top:3px solid var(--cs-blue);border-radius:var(--radius);padding:24px 20px;text-align:center;box-shadow:var(--shadow-sm);">
-        <div style="font-size:36px;font-weight:800;color:var(--cs-blue-dark);letter-spacing:-0.03em;line-height:1;">20+</div>
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-top:8px;letter-spacing:0.06em;text-transform:uppercase;">ปีประสบการณ์</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;">
+      <div class="cert-card" style="border-top:3px solid var(--red);">
+        <div style="font-size:32px;font-weight:900;color:white;letter-spacing:-0.03em;line-height:1;margin-bottom:8px;">20+</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;">ปีประสบการณ์</div>
       </div>
-      <div style="background:var(--bg-white);border:1px solid var(--border-light);border-top:3px solid var(--cs-blue-mid);border-radius:var(--radius);padding:24px 20px;text-align:center;box-shadow:var(--shadow-sm);">
-        <div style="font-size:36px;font-weight:800;color:var(--cs-blue-dark);letter-spacing:-0.03em;line-height:1;">500+</div>
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-top:8px;letter-spacing:0.06em;text-transform:uppercase;">ลูกค้าองค์กร</div>
+      <div class="cert-card" style="border-top:3px solid var(--gold);">
+        <div style="font-size:32px;font-weight:900;color:white;letter-spacing:-0.03em;line-height:1;margin-bottom:8px;">500+</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;">ลูกค้าองค์กร</div>
       </div>
-      <div style="background:var(--bg-white);border:1px solid var(--border-light);border-top:3px solid var(--cs-gold);border-radius:var(--radius);padding:24px 20px;text-align:center;box-shadow:var(--shadow-sm);">
-        <div style="font-size:28px;font-weight:800;color:var(--cs-blue-dark);letter-spacing:-0.01em;line-height:1;">มอก.</div>
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-top:8px;letter-spacing:0.06em;text-transform:uppercase;">มาตรฐานแห่งชาติ</div>
+      <div class="cert-card" style="border-top:3px solid var(--green);">
+        <div style="font-size:26px;font-weight:900;color:white;letter-spacing:-0.01em;line-height:1;margin-bottom:8px;">มอก.</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;">มาตรฐานแห่งชาติ</div>
       </div>
     </div>
   </div>
@@ -218,43 +245,36 @@
 
 <!-- ===== ADMIN PAGE ===== -->
 <div id="page-admin" class="page">
-  <div class="admin-layout">
+  <div class="admin-wrap">
     <aside class="admin-sidebar">
-      <div class="sidebar-section">
-        <span class="sidebar-label">ภาพรวม</span>
+      <div style="margin-bottom:20px;">
+        <div class="admin-sidebar-title">ภาพรวม</div>
         <button class="sidebar-item active" onclick="app.showAdminPanel('dashboard', this)">
-          <span class="sidebar-icon">📊</span> Dashboard
+          📊 Dashboard
         </button>
       </div>
-      <div class="sidebar-section">
-        <span class="sidebar-label">จัดการข้อมูล</span>
+      <div style="margin-bottom:20px;">
+        <div class="admin-sidebar-title">จัดการข้อมูล</div>
         <button class="sidebar-item" onclick="app.showAdminPanel('categories', this)">
-          <span class="sidebar-icon">📁</span> หมวดหมู่
+          📁 หมวดหมู่
         </button>
         <button class="sidebar-item" onclick="app.showAdminPanel('products-admin', this)">
-          <span class="sidebar-icon">🏷️</span> สินค้า
+          🏷️ สินค้า
         </button>
       </div>
-      <div class="sidebar-section">
-        <span class="sidebar-label">การตั้งค่า</span>
+      <div style="margin-bottom:20px;">
+        <div class="admin-sidebar-title">การตั้งค่า</div>
         <button class="sidebar-item" onclick="app.showAdminPanel('settings', this)">
-          <span class="sidebar-icon">⚙️</span> ตั้งค่าร้าน
+          ⚙️ ตั้งค่าร้าน
         </button>
       </div>
-      <div class="sidebar-section" style="margin-top:16px;">
+      <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--card-border);">
         <button class="sidebar-item" onclick="app.showPage('home')">
-          <span class="sidebar-icon">🌐</span> ดูหน้าเว็บ
+          🌐 ดูหน้าเว็บ
         </button>
-        <button class="sidebar-item sidebar-logout" onclick="app.handleLogout()">
-          <span class="sidebar-icon">🚪</span> ออกจากระบบ
+        <button class="sidebar-item" onclick="app.handleLogout()" style="color:var(--red);">
+          🚪 ออกจากระบบ
         </button>
-      </div>
-      <div class="sidebar-user">
-        <div class="sidebar-user-icon">👤</div>
-        <div class="sidebar-user-info">
-          <div class="sidebar-user-role">Administrator</div>
-          <div class="sidebar-user-email-sm" id="admin-user-email"></div>
-        </div>
       </div>
     </aside>
 
@@ -315,7 +335,7 @@
         <div class="admin-header">
           <div><div class="admin-title">ตั้งค่าร้านค้า</div><div class="admin-sub">ข้อมูลติดต่อและรายละเอียดร้าน</div></div>
         </div>
-        <div style="background:var(--white);border:1px solid var(--border-light);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);max-width:600px;">
+        <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px;max-width:580px;">
           <div class="form-row"><label class="form-label">ชื่อร้าน</label><input class="form-input" id="setting-name" value="ป้ายพาณิชย์"></div>
           <div class="form-row"><label class="form-label">เบอร์โทรศัพท์</label><input class="form-input" id="setting-phone" value="081-234-5678"></div>
           <div class="form-row"><label class="form-label">Line ID</label><input class="form-input" id="setting-line" value="paisign"></div>
@@ -337,8 +357,8 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-product-id">
-      <div class="form-row"><label class="form-label">ชื่อสินค้า <sup>*</sup></label><input class="form-input" id="product-name" placeholder="เช่น ป้ายหยุด มอก."></div>
-      <div class="form-row"><label class="form-label">หมวดหมู่ <sup>*</sup></label><select class="form-select" id="product-cat"></select></div>
+      <div class="form-row"><label class="form-label">ชื่อสินค้า <sup style="color:var(--red)">*</sup></label><input class="form-input" id="product-name" placeholder="เช่น ป้ายหยุด มอก."></div>
+      <div class="form-row"><label class="form-label">หมวดหมู่ <sup style="color:var(--red)">*</sup></label><select class="form-select" id="product-cat"></select></div>
       <div class="form-row-2">
         <div class="form-row" style="margin-bottom:0"><label class="form-label">ราคา (บาท)</label><input class="form-input" id="product-price" type="number" placeholder="0"></div>
         <div class="form-row" style="margin-bottom:0"><label class="form-label">หน่วย</label><input class="form-input" id="product-unit" placeholder="ชิ้น / ชุด / แผ่น"></div>
@@ -352,7 +372,7 @@
           <input type="file" id="product-images" accept="image/*" multiple onchange="app.previewImages(event)">
           <div class="upload-icon">📷</div>
           <div class="upload-text">คลิกเพื่อเลือกรูปภาพ<br><strong>หรือลากวางไฟล์ที่นี่</strong></div>
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;">PNG, JPG ขนาดไม่เกิน 5MB</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">PNG, JPG ขนาดไม่เกิน 5MB</div>
         </label>
         <div class="preview-imgs" id="image-preview"></div>
       </div>
@@ -373,7 +393,7 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-cat-id">
-      <div class="form-row"><label class="form-label">ชื่อหมวดหมู่ <sup>*</sup></label><input class="form-input" id="cat-name" placeholder="เช่น ป้ายสัญญาณเตือนจราจร"></div>
+      <div class="form-row"><label class="form-label">ชื่อหมวดหมู่ <sup style="color:var(--red)">*</sup></label><input class="form-input" id="cat-name" placeholder="เช่น ป้ายสัญญาณเตือนจราจร"></div>
       <div class="form-row"><label class="form-label">ไอคอน (Emoji)</label><input class="form-input" id="cat-icon" placeholder="🚦" style="font-size:20px;" maxlength="4"></div>
       <div class="form-row"><label class="form-label">คำอธิบาย</label><textarea class="form-textarea" id="cat-desc" placeholder="อธิบายหมวดหมู่สั้นๆ"></textarea></div>
     </div>
@@ -384,7 +404,7 @@
   </div>
 </div>
 
-<!-- ===== MODAL: PRODUCT DETAIL (PUBLIC) ===== -->
+<!-- ===== MODAL: PRODUCT DETAIL ===== -->
 <div class="modal-overlay" id="detail-modal">
   <div class="modal" style="max-width:560px">
     <div class="modal-header">
@@ -407,9 +427,9 @@
       <button class="modal-close" onclick="app.closeLoginModal()">✕</button>
     </div>
     <div class="modal-body" style="padding:24px;">
-      <div class="login-logo">
-        <div style="font-size:48px;text-align:center;margin-bottom:8px;">🚦</div>
-        <div style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:24px;">ระบบจัดการร้านค้า</div>
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:48px;margin-bottom:8px;">🚦</div>
+        <div style="color:var(--text-muted);font-size:14px;">ระบบจัดการร้านค้า</div>
       </div>
       <div class="form-group">
         <label class="form-label">อีเมล</label>
@@ -425,7 +445,7 @@
       <button id="login-btn" class="btn-primary" style="width:100%;margin-top:8px;" onclick="app.submitLogin()">
         เข้าสู่ระบบ
       </button>
-      <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--muted);">
+      <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--text-muted);">
         🔒 ระบบนี้สำหรับผู้ดูแลเท่านั้น
       </div>
     </div>
@@ -447,19 +467,19 @@
         <p class="footer-brand-desc">ผู้จำหน่ายป้ายจราจรและป้ายความปลอดภัยครบวงจร มาตรฐาน มอก. กว่า 20 ปี</p>
         <div class="footer-map-wrap">
           <div class="footer-map-label">แผนที่การเดินทาง</div>
-          <a href="https://www.google.com/maps/place/%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B8%8B%E0%B8%B5%E0%B9%80%E0%B8%AD%E0%B8%AA.%E0%B9%84%E0%B8%8B%E0%B8%99%E0%B9%8C+%E0%B9%81%E0%B8%AD%E0%B8%99%E0%B8%94%E0%B9%8C+%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B8%94%E0%B8%B1%E0%B8%81%E0%B8%AA%E0%B9%8C+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94/@13.6380405,100.3974057,14z/data=!4m10!1m2!2m1!1scs.sign+and+product+co.+ltd!3m6!1s0x30e2bcf72f018b75:0x99f3a37f0d29dfe5!8m2!3d13.6314934!4d100.4014834!15sChtjcy5zaWduIGFuZCBwcm9kdWN0IGNvLiBsdGRaHCIaY3Mgc2lnbiBhbmQgcHJvZHVjdCBjbyBsdGSSAQxtYW51ZmFjdHVyZXKaASRDaGREU1VoTk1HOW5TMFZKUTBGblNVTTNMVXBMVGpKblJSQULgAQD6AQQIABBB!16s%2Fg%2F11bxb9v06_?entry=ttu&g_ep=EgoyMDI2MDYxNi4wIKXMDSoASAFQAw%3D%3D"
+          <a href="https://www.google.com/maps/place/%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B8%8B%E0%B8%B5%E0%B9%80%E0%B8%AD%E0%B8%AA.%E0%B9%84%E0%B8%8B%E0%B8%99%E0%B9%8C+%E0%B9%81%E0%B8%AD%E0%B8%99%E0%B8%94%E0%B9%8C+%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B8%94%E0%B8%B1%E0%B8%81%E0%B8%AA%E0%B9%8C+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94/@13.6380405,100.3974057,14z"
              target="_blank" rel="noopener" class="footer-map-frame-link" aria-label="เปิด Google Maps">
             <iframe
               src="https://www.google.com/maps?q=13.6314934,100.4014834&hl=th&z=16&output=embed"
               width="100%" height="110" style="border:0;" loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade" title="แผนที่บริษัท CS. SIGN AND PRODUCT CO., LTD."></iframe>
+              referrerpolicy="no-referrer-when-downgrade" title="แผนที่บริษัท CS. SIGN"></iframe>
           </a>
-          <a href="https://www.google.com/maps/place/%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B8%8B%E0%B8%B5%E0%B9%80%E0%B8%AD%E0%B8%AA.%E0%B9%84%E0%B8%8B%E0%B8%99%E0%B9%8C+%E0%B9%81%E0%B8%AD%E0%B8%99%E0%B8%94%E0%B9%8C+%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B8%94%E0%B8%B1%E0%B8%81%E0%B8%AA%E0%B9%8C+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94/@13.6380405,100.3974057,14z/data=!4m10!1m2!2m1!1scs.sign+and+product+co.+ltd!3m6!1s0x30e2bcf72f018b75:0x99f3a37f0d29dfe5!8m2!3d13.6314934!4d100.4014834!15sChtjcy5zaWduIGFuZCBwcm9kdWN0IGNvLiBsdGRaHCIaY3Mgc2lnbiBhbmQgcHJvZHVjdCBjbyBsdGSSAQxtYW51ZmFjdHVyZXKaASRDaGREU1VoTk1HOW5TMFZKUTBGblNVTTNMVXBMVGpKblJSQULgAQD6AQQIABBB!16s%2Fg%2F11bxb9v06_?entry=ttu&g_ep=EgoyMDI2MDYxNi4wIKXMDSoASAFQAw%3D%3D"
+          <a href="https://www.google.com/maps/place/%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97+%E0%B8%8B%E0%B8%B5%E0%B9%80%E0%B8%AD%E0%B8%AA.%E0%B9%84%E0%B8%8B%E0%B8%99%E0%B9%8C+%E0%B9%81%E0%B8%AD%E0%B8%99%E0%B8%94%E0%B9%8C+%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B8%94%E0%B8%B1%E0%B8%81%E0%B8%AA%E0%B9%8C+%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94/@13.6380405,100.3974057,14z"
              target="_blank" rel="noopener" class="footer-map-open-link">เปิดใน Google Maps →</a>
         </div>
       </div>
 
-      <!-- คอลัมน์ 2: ติดต่อเรา (รวม TH/EN) -->
+      <!-- คอลัมน์ 2: ติดต่อเรา -->
       <div class="footer-col">
         <h4 class="footer-heading">ติดต่อเรา</h4>
 
@@ -497,11 +517,11 @@
         </div>
       </div>
 
-      <!-- คอลัมน์ 4: ช่องทางอื่น -->
+      <!-- คอลัมน์ 3: ช่องทางอื่น -->
       <div class="footer-col">
         <h4 class="footer-heading">ช่องทางอื่นๆ</h4>
 
-        <a href="https://www.facebook.com/cssignonline/?ref=embed_page#"
+        <a href="https://www.facebook.com/cssignonline/"
            target="_blank" rel="noopener" class="footer-link-card footer-link-fb">
           <div class="flc-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
@@ -513,7 +533,7 @@
           <div class="flc-arrow">→</div>
         </a>
 
-        <a href="mailto:info@cssignonline.com" class="footer-link-card footer-link-mail">
+        <a href="mailto:cssigngroup@gmail.com" class="footer-link-card footer-link-mail">
           <div class="flc-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M2 4h20v16H2V4zm2 2v.01L12 12l8-5.99V6H4zm16 2.24-7.42 5.57a1 1 0 0 1-1.16 0L4 8.24V18h16V8.24z"/></svg>
           </div>
@@ -537,8 +557,8 @@
 
         <div class="footer-hours">
           <div class="footer-hours-title">⏰ เวลาทำการ</div>
-          <div class="footer-hours-row"><span>จันทร์ – เสาร์</span><span class="footer-hours-time">08:00 -17:00 น.</span></div>
-          <div class="footer-hours-row footer-hours-closed"><span>วันอาทิตย์</span><span>ปิดทำการ</span></div>
+          <div class="footer-hours-row"><span>จันทร์ – เสาร์</span><span class="footer-hours-time">08:00 – 17:00 น.</span></div>
+          <div class="footer-hours-row footer-hours-closed"><span>วันอาทิตย์</span><span style="color:var(--red);">ปิดทำการ</span></div>
         </div>
       </div>
 
