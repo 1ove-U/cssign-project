@@ -183,33 +183,48 @@ function renderHome() {
     ? '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><div class="empty-title">ยังไม่มีสินค้าแนะนำ</div></div>'
     : featured.map(p => productCard(p)).join('');
 
-  // Portfolio teaser — products with images, max 6
+  // Portfolio teaser — products with images, auto-scrolling loop, max 10
   const portfolioGrid = document.getElementById('home-portfolio-grid');
   if (portfolioGrid) {
-    const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0).slice(0, 6);
+    const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0).slice(0, 10);
     if (withImages.length === 0) {
-      portfolioGrid.innerHTML = `<div class="portfolio-empty" style="grid-column:1/-1;color:var(--cs-steel);">
+      portfolioGrid.style.animation = 'none';
+      portfolioGrid.style.display = 'block';
+      portfolioGrid.style.width = '100%';
+      portfolioGrid.innerHTML = `<div class="portfolio-empty">
         <div class="portfolio-empty-icon">🖼️</div>
-        <div class="portfolio-empty-title" style="color:#CBD5E1;">ยังไม่มีผลงาน</div>
+        <div class="portfolio-empty-title">ยังไม่มีผลงาน</div>
         <div class="portfolio-empty-text">เพิ่มรูปภาพสินค้าผ่านระบบ Admin</div>
       </div>`;
     } else {
-      portfolioGrid.innerHTML = withImages.map(p => {
-        const cat = store.categories.find(c => c.id === p.cat_id);
-        const tag = cat ? cat.name : 'ผลงาน';
-        return `<div class="portfolio-card" onclick="app.showProductDetail('${p.id}')">
-          <div class="portfolio-img">
-            <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
-            <div class="portfolio-tag">${tag}</div>
-          </div>
-          <div class="portfolio-body">
-            <div class="portfolio-title">${p.name}</div>
-            <div class="portfolio-sub">${(p.description || '').substring(0, 60)}${(p.description || '').length > 60 ? '...' : ''}</div>
-          </div>
-        </div>`;
-      }).join('');
+      const cards = withImages.map(portfolioCardHTML).join('');
+      portfolioGrid.style.display = '';
+      portfolioGrid.style.width = '';
+      portfolioGrid.style.animation = '';
+      portfolioGrid.style.animationDuration = Math.max(18, withImages.length * 4) + 's';
+      // Duplicate the set so the track can loop seamlessly from -50% back to 0.
+      portfolioGrid.innerHTML = cards + cards;
     }
   }
+}
+
+// ===========================
+// PORTFOLIO CARD (shared by home teaser + portfolio page)
+// ===========================
+function portfolioCardHTML(p) {
+  const cat = store.categories.find(c => c.id === p.cat_id);
+  const tag = cat ? cat.name : 'ผลงาน';
+  const desc = p.description || '';
+  return `<div class="portfolio-card" onclick="app.showProductDetail('${p.id}')">
+    <div class="portfolio-img">
+      <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
+      <div class="portfolio-tag">${tag}</div>
+    </div>
+    <div class="portfolio-body">
+      <div class="portfolio-title">${p.name}</div>
+      <div class="portfolio-sub">${desc.substring(0, 80)}${desc.length > 80 ? '...' : ''}</div>
+    </div>
+  </div>`;
 }
 
 export function showCategoryProducts(catId) {
@@ -270,20 +285,7 @@ function renderPortfolioPage() {
     return;
   }
 
-  grid.innerHTML = withImages.map(p => {
-    const cat = store.categories.find(c => c.id === p.cat_id);
-    const tag = cat ? cat.name : 'ผลงาน';
-    return `<div class="portfolio-card" onclick="app.showProductDetail('${p.id}')">
-      <div class="portfolio-img">
-        <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
-        <div class="portfolio-tag">${tag}</div>
-      </div>
-      <div class="portfolio-body">
-        <div class="portfolio-title">${p.name}</div>
-        <div class="portfolio-sub">${(p.description || '').substring(0, 80)}${(p.description || '').length > 80 ? '...' : ''}</div>
-      </div>
-    </div>`;
-  }).join('');
+  grid.innerHTML = withImages.map(portfolioCardHTML).join('');
 }
 
 // ===========================
@@ -619,9 +621,9 @@ export function openProductModal(id) {
       const previewEl = document.getElementById('image-preview');
       imgs.forEach((src, i) => {
         const wrap = document.createElement('div');
-        wrap.className = 'preview-wrap';
+        wrap.className = 'img-preview-item';
         wrap.dataset.url = src;
-        wrap.innerHTML = `<img src="${src}" class="preview-img"><button class="preview-remove" onclick="app.removeExistingImg('${id}', ${i}, this.parentElement)">✕</button>`;
+        wrap.innerHTML = `<img src="${src}"><button class="img-preview-del" onclick="app.removeExistingImg('${id}', ${i}, this.parentElement)">✕</button>`;
         previewEl.appendChild(wrap);
       });
     }
@@ -650,9 +652,9 @@ export function previewImages(event) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const wrap = document.createElement('div');
-      wrap.className = 'preview-wrap pending';
+      wrap.className = 'img-preview-item pending';
       const idx = pendingImageFiles.length - 1;
-      wrap.innerHTML = `<img src="${e.target.result}" class="preview-img"><button class="preview-remove" onclick="app.removePendingImg(${idx}, this.parentElement)">✕</button>`;
+      wrap.innerHTML = `<img src="${e.target.result}"><button class="img-preview-del" onclick="app.removePendingImg(${idx}, this.parentElement)">✕</button>`;
       previewEl.appendChild(wrap);
     };
     reader.readAsDataURL(file);
