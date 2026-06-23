@@ -31,14 +31,11 @@
     <nav class="header-nav">
       <button class="nav-btn active" data-page="home" onclick="app.showPage('home')">หน้าแรก</button>
 
-      <!-- Mega Dropdown: สินค้าทั้งหมด -->
+      <!-- Dropdown: หมวดหมู่ -->
       <div class="nav-dropdown-wrap" id="mega-dropdown-wrap">
         <div class="nav-dropdown-trigger">
-          <button class="nav-btn nav-dropdown-btn" data-page="categories" onclick="app.showPage('categories')">
-            <span class="nav-dropdown-icon">▤</span> สินค้าทั้งหมด
-          </button>
-          <button class="nav-caret-btn" id="mega-caret-btn" aria-label="เปิดเมนูหมวดหมู่">
-            <span class="nav-caret" id="mega-caret">▾</span>
+          <button class="nav-btn nav-dropdown-btn" id="mega-caret-btn" aria-label="เปิดเมนูหมวดหมู่">
+            <span class="nav-dropdown-icon">▤</span> หมวดหมู่ <span class="nav-caret" id="mega-caret">▾</span>
           </button>
         </div>
         <div class="mega-dropdown" id="mega-dropdown">
@@ -183,21 +180,6 @@
 <!-- ============================================================
      CATEGORIES PAGE
      ============================================================ -->
-<div id="page-categories" class="page">
-  <div class="page-header-section">
-    <div class="page-header-inner">
-      <div>
-        <div class="page-header-eyebrow">CS.SIGN — สินค้าทั้งหมด</div>
-        <div class="page-header-title">หมวดหมู่</div>
-        <div class="page-header-sub">เลือกหมวดหมู่เพื่อดูสินค้า</div>
-      </div>
-      <button class="back-btn" onclick="app.showPage('home')">กลับหน้าแรก</button>
-    </div>
-  </div>
-  <div style="padding: 60px 0;">
-    <div class="cat-full-grid" id="categories-full-grid"></div>
-  </div>
-</div>
 
 <!-- ============================================================
      PRODUCTS PAGE
