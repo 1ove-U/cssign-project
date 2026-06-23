@@ -180,11 +180,10 @@ function renderHome() {
     ? '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><div class="empty-title">ยังไม่มีสินค้าแนะนำ</div></div>'
     : featured.map(p => productCard(p)).join('');
 
-  // Portfolio teaser — static grid, max 6 items with images
+  // Portfolio teaser — manual carousel, max 6 items with images
   const portfolioGrid = document.getElementById('home-portfolio-grid');
   if (portfolioGrid) {
     const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0).slice(0, 6);
-    portfolioGrid.style.animation = 'none';
     if (withImages.length === 0) {
       portfolioGrid.innerHTML = `<div class="portfolio-empty" style="grid-column:1/-1">
         <div class="portfolio-empty-icon">🖼️</div>
@@ -192,9 +191,71 @@ function renderHome() {
         <div class="portfolio-empty-text">เพิ่มรูปภาพสินค้าผ่านระบบ Admin</div>
       </div>`;
     } else {
-      portfolioGrid.innerHTML = withImages.map(portfolioCardHTML).join('');
+      portfolioGrid.innerHTML = withImages.map(pfCardHTML).join('');
     }
+    initHomePortfolioCarousel(withImages.length);
   }
+}
+
+// ===========================
+// HOME PORTFOLIO CARD (overlapping caption style)
+// ===========================
+function pfCardHTML(p) {
+  const desc = p.description || '';
+  const caption = desc ? desc.substring(0, 40) : p.name;
+  return `<div class="pf-card" onclick="app.showProductDetail('${p.id}')">
+    <div class="pf-card-img">
+      <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
+    </div>
+    <div class="pf-card-caption">ผลงาน${p.name}</div>
+  </div>`;
+}
+
+// ===========================
+// HOME PORTFOLIO CAROUSEL (manual scroll: arrows + dots)
+// ===========================
+function initHomePortfolioCarousel(count) {
+  const track = document.getElementById('home-portfolio-grid');
+  const dotsWrap = document.getElementById('pf-dots');
+  const leftBtn = document.getElementById('pf-arrow-left');
+  const rightBtn = document.getElementById('pf-arrow-right');
+  if (!track || !dotsWrap) return;
+
+  dotsWrap.innerHTML = '';
+  if (count === 0) { if (leftBtn) leftBtn.style.display = 'none'; if (rightBtn) rightBtn.style.display = 'none'; return; }
+
+  for (let i = 0; i < count; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'pf-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'ไปยังผลงานที่ ' + (i + 1));
+    dot.addEventListener('click', () => {
+      const card = track.children[i];
+      if (card) track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: 'smooth' });
+    });
+    dotsWrap.appendChild(dot);
+  }
+
+  function scrollByCard(dir) {
+    const card = track.querySelector('.pf-card');
+    const step = card ? (card.getBoundingClientRect().width + 24) : 320;
+    track.scrollBy({ left: dir * step, behavior: 'smooth' });
+  }
+  if (leftBtn) leftBtn.onclick = () => scrollByCard(-1);
+  if (rightBtn) rightBtn.onclick = () => scrollByCard(1);
+
+  let scrollTimeout;
+  track.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const cards = Array.from(track.children);
+      let closest = 0, minDist = Infinity;
+      cards.forEach((c, i) => {
+        const dist = Math.abs(c.offsetLeft - track.offsetLeft - track.scrollLeft);
+        if (dist < minDist) { minDist = dist; closest = i; }
+      });
+      dotsWrap.querySelectorAll('.pf-dot').forEach((d, i) => d.classList.toggle('active', i === closest));
+    }, 80);
+  });
 }
 
 // ===========================
