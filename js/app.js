@@ -183,10 +183,10 @@ function renderHome() {
     ? '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📦</div><div class="empty-title">ยังไม่มีสินค้าแนะนำ</div></div>'
     : featured.map(p => productCard(p)).join('');
 
-  // Portfolio teaser — products with images, auto-scrolling loop, max 10
+  // Portfolio teaser — products with images, auto-scrolling loop, max 5
   const portfolioGrid = document.getElementById('home-portfolio-grid');
   if (portfolioGrid) {
-    const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0).slice(0, 10);
+    const withImages = store.products.filter(p => Array.isArray(p.images) && p.images.length > 0).slice(0, 5);
     if (withImages.length === 0) {
       portfolioGrid.style.animation = 'none';
       portfolioGrid.style.display = 'block';
