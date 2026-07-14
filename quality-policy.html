@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>นโยบายคุณภาพ — CS.SIGN</title>
+<meta name="description" content="นโยบายคุณภาพของ CS.SIGN ผู้ผลิตป้ายจราจรและป้ายความปลอดภัย ผลิตตามมาตรฐาน มอก.635-2547 และ ISO 7010 ทุกขั้นตอนการผลิต">
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://cssign.co.th/quality-policy.html">
+<meta property="og:title"       content="นโยบายคุณภาพ — CS.SIGN">
+<meta property="og:description" content="นโยบายคุณภาพและมาตรฐานการผลิตของ CS.SIGN ตามข้อกำหนด มอก.635-2547 และ ISO 7010">
+
+<meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale"      content="th_TH">
+<link rel="canonical" href="https://cssign.co.th/quality-policy.html">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Perf: preconnect above already warms the connection; this actually
+     loads the webfont CSS, moved out of style.css's @import (which is
+     render-blocking and only discoverable after style.css itself loads,
+     costing an extra round trip before Thai/Latin text paints). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+
+<link rel="stylesheet" href="css/style.css?v=20260711a">
+<link rel="stylesheet" href="css/shared-widgets.css">
+<link rel="stylesheet" href="css/track-modal.css">
+<style>
+/* ── Quality Policy page ── */
+.qp-hero{ position:relative; overflow:hidden; padding:var(--page-hero-pad-top) 0 var(--page-hero-pad-bottom); background:var(--gray-25); border-bottom:1px solid var(--gray-100); }
+.qp-hero::before{ content:''; position:absolute; width:600px; height:600px; border-radius:50%; background:radial-gradient(circle, rgba(var(--primary-rgb),0.07), transparent 70%); top:-220px; right:-120px; pointer-events:none; }
+/* ---- Second decorative layer (matches .article-hero/.contact-hero mesh
+   treatment in style.css): a soft opposite-corner accent wash to pair with
+   the existing top-right primary blob, purely additive depth. ---- */
+.qp-hero::after{ content:''; position:absolute; inset:0; z-index:0; pointer-events:none; background: radial-gradient(480px 300px at 0% 100%, rgba(var(--accent-rgb),0.05), transparent 65%); }
+.qp-hero-inner{ position:relative; z-index:1; max-width:760px; margin:0 auto; text-align:center; }
+.qp-hero-inner h1{ font-family:var(--font-display); font-weight: 700; font-size:clamp(30px,4vw,46px); color:var(--text-heading); line-height:1.2; letter-spacing:-0.02em; margin:14px 0 18px; }
+.qp-hero-inner p{ font-size:16.5px; line-height:1.75; color:var(--gray-500); }
+.qp-hero .eyebrow{ justify-content:center; width:100%; }
+
+.qp-policy-card{ background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); padding:40px; box-shadow:var(--shadow-sm); }
+.qp-policy-card h2{ font-family:var(--font-display); font-weight: 700; font-size:22px; color:var(--secondary); margin-bottom:16px; }
+.qp-policy-card p{ color:var(--gray-500); font-size:15px; line-height:1.85; margin-bottom:14px; }
+.qp-policy-pillars{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:28px; }
+.qp-pillar{ background:var(--gray-25); border:1px solid var(--gray-100); border-radius:var(--r-md); padding:18px; text-align:center; }
+.qp-pillar-num{ font-family:var(--font-mono); font-size:11px; color:var(--primary); font-weight:700; letter-spacing:.08em; }
+.qp-pillar-title{ font-family:var(--font-display); font-weight:700; font-size:14px; color:var(--secondary); margin:6px 0 4px; }
+.qp-pillar-desc{ font-size:12.5px; color:var(--gray-400); line-height:1.5; }
+
+.qp-doc-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+.qp-doc-card{ background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); padding:28px; display:flex; gap:20px; align-items:flex-start; transition:box-shadow .3s var(--ease), transform .3s var(--ease); }
+.qp-doc-card:hover{ box-shadow:var(--shadow-lg); transform:translateY(-3px); }
+.qp-doc-icon{ position:relative; width:56px; height:56px; border-radius:var(--r-md); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; flex-shrink:0; background:var(--gray-25); border:1px solid var(--gray-200); font-family:var(--font-display); font-weight:700; font-size:10.5px; text-align:center; line-height:1.15; }
+.qp-doc-icon svg{ width:18px; height:18px; }
+.qp-doc-icon--tis{ color:var(--primary); }
+.qp-doc-icon--iso9{ color:var(--primary); }
+.qp-doc-icon--iso7{ color:var(--success); }
+.qp-doc-icon--doh{ color:var(--accent); }
+.qp-doc-body h3{ font-family:var(--font-display); font-weight:700; font-size:15.5px; color:var(--secondary); margin-bottom:6px; }
+.qp-doc-body p{ font-size:13px; color:var(--gray-500); line-height:1.6; margin-bottom:12px; }
+.qp-doc-meta{ display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.qp-doc-badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--success); background:rgba(var(--success-rgb),0.08); padding:4px 10px; border-radius:99px; }
+.qp-doc-badge svg{ width:11px; height:11px; }
+.qp-doc-issuer{ font-size:11.5px; color:var(--gray-400); }
+.qp-doc-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+.qp-doc-dl{ display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700; color:#fff; background:var(--secondary); padding:9px 16px; border-radius:var(--r-md); text-decoration:none; transition:background .2s; }
+.qp-doc-dl:hover{ background:var(--primary); }
+.qp-doc-dl svg{ width:14px; height:14px; }
+.qp-doc-note{ font-size:11px; color:var(--gray-400); margin-top:10px; }
+
+.qp-bundle{ margin-top:32px; background:linear-gradient(135deg, var(--secondary), var(--gray-800)); border-radius:var(--r-lg); padding:32px 36px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+.qp-bundle-text h3{ color:#fff; font-family:var(--font-display); font-weight:700; font-size:18px; margin-bottom:6px; }
+.qp-bundle-text p{ color:rgba(255,255,255,0.65); font-size:13px; }
+.qp-bundle-dl{ display:inline-flex; align-items:center; gap:8px; background:#fff; color:var(--secondary); font-weight:700; font-size:14px; padding:12px 22px; border-radius:var(--r-md); text-decoration:none; white-space:nowrap; transition:transform .2s; }
+.qp-bundle-dl:hover{ transform:translateY(-2px); }
+.qp-bundle-dl svg{ width:16px; height:16px; }
+
+.qp-disclaimer{ background:var(--gray-25); border:1px dashed var(--gray-200); border-radius:var(--r-md); padding:16px 20px; font-size:12.5px; color:var(--gray-400); line-height:1.7; margin-top:28px; }
+
+/* ── Warranty section ── */
+.qp-warranty-card{ background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); padding:40px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden; }
+.qp-warranty-badge{ display:inline-flex; align-items:center; gap:8px; background:rgba(var(--primary-rgb),0.08); color:var(--primary); font-family:var(--font-mono); font-weight:700; font-size:12.5px; letter-spacing:.04em; padding:7px 16px; border-radius:999px; margin-bottom:18px; }
+.qp-warranty-badge svg{ width:15px; height:15px; }
+.qp-warranty-card h2{ font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--secondary); margin-bottom:14px; }
+.qp-warranty-card > p{ color:var(--gray-500); font-size:15px; line-height:1.85; margin-bottom:22px; max-width:680px; }
+.qp-warranty-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.qp-warranty-item{ display:flex; gap:14px; background:var(--gray-25); border:1px solid var(--gray-100); border-radius:var(--r-md); padding:18px 20px; }
+.qp-warranty-icon{ width:36px; height:36px; border-radius:var(--r-sm); background:#fff; border:1px solid var(--gray-200); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.qp-warranty-icon svg{ width:18px; height:18px; }
+.qp-warranty-icon--x{ color:var(--gray-400); }
+.qp-warranty-item h3{ font-family:var(--font-display); font-weight:700; font-size:14.5px; color:var(--secondary); margin-bottom:5px; }
+.qp-warranty-item p{ font-size:13px; color:var(--gray-500); line-height:1.6; }
+.qp-warranty-claim{ margin-top:24px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; background:var(--gray-25); border:1px solid var(--gray-100); border-radius:var(--r-md); padding:18px 22px; }
+.qp-warranty-claim p{ font-size:13.5px; color:var(--gray-500); margin:0; }
+.qp-warranty-claim strong{ color:var(--secondary); }
+@media (max-width:860px){ .qp-warranty-grid{ grid-template-columns:1fr; } }
+
+@media (max-width: 860px){
+  .qp-policy-pillars{ grid-template-columns:repeat(2,1fr); }
+  .qp-doc-grid{ grid-template-columns:1fr; }
+  .qp-doc-card{ flex-direction:column; }
+  .qp-bundle{ flex-direction:column; align-items:flex-start; }
+}
+</style>
+<link rel="stylesheet" href="css/fancy-effects.css">
+</head>
+<body>
+<a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
+
+<!-- ============================================================
+     STICKY NAVIGATION
+     ============================================================ -->
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        062-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="แชทผ่าน LINE" title="แชทผ่าน LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>แอด LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="ค้นหาในเว็บไซต์">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="#" class="is-active">TH</a>
+        <a href="en/index.html">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">หน้าแรก</a>
+
+      <div class="nav-item-dropdown">
+        <button class="nav-link nav-dd-trigger" type="button">
+          หมวดหมู่
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown nav-megamenu">
+          <div class="nav-mega-grid">
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายความปลอดภัย</div>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+              </a>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายจราจร</div>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายจราจรสะท้อนแสง HI</strong><span>ผลิตตามมาตรฐานกรมทางหลวง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / เขตก่อสร้าง</strong><span>เพิ่มความปลอดภัยพื้นที่ก่อสร้าง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายชี้ทาง / บอกทิศทาง</strong><span>ออกแบบตามผังพื้นที่จริง</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">อุปกรณ์จราจร</div>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>กรวยจราจร / แบริเออร์</strong><span>วัสดุคุณภาพ ทนทาน ใช้งานยาวนาน</span></span>
+              </a>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>เสาล้มลุก / แท่งกั้นถนน</strong><span>ติดตั้งง่าย ปรับตามพื้นที่ใช้งาน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ตามอุตสาหกรรม</div>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงงานอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>หน่วยงานราชการ</strong></a>
+              <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>นิคมอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงพยาบาล / สถานพยาบาล</strong></a>
+            </div>
+          </div>
+          <a href="products.html" class="nav-mega-foot">
+            ดูสินค้าทั้งหมด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="portfolio.html" class="nav-link">ผลงาน</a>
+      <a href="about.html" class="nav-link">เกี่ยวกับเรา</a>
+      <a href="blog.html" class="nav-link">บทความ</a>
+      <a href="contact.html" class="nav-link">ติดต่อ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">ขอใบเสนอราคา</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="เช็คสถานะคำสั่งผลิต" title="เช็คสถานะคำสั่งผลิต">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">หน้าแรก</a>
+    <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
+      หมวดหมู่
+      <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="mobile-dd-panel" id="mobile-dd-panel">
+      <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+      <a href="products.html?cat=traffic">ป้ายจราจร</a>
+      <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+      <a href="products.html">ดูสินค้าทั้งหมด</a>
+    </div>
+    <a href="portfolio.html">ผลงาน</a>
+    <a href="about.html">เกี่ยวกับเรา</a>
+    <a href="blog.html">บทความ</a>
+    <a href="#" data-track-modal-open>เช็คสถานะคำสั่งผลิต</a>
+    <a href="contact.html">ติดต่อ</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="#" class="is-active">TH · ไทย</a>
+    <a href="en/index.html">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>แอด LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">ขอใบเสนอราคา</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">โทร 062-883-3880</a>
+  </div>
+</div>
+
+<main id="top">
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="qp-hero" data-reveal="fade">
+  <div class="wrap">
+    <div class="qp-hero-inner">
+      <div class="article-breadcrumb">
+        <a href="index.html">หน้าแรก</a> / นโยบายคุณภาพ
+      </div>
+      <div class="eyebrow">QUALITY POLICY</div>
+      <h1>นโยบายคุณภาพ<br>ของ CS.SIGN</h1>
+      <p>เราผลิตป้ายความปลอดภัยและป้ายจราจรตามข้อกำหนดของมาตรฐาน มอก.635-2547 และ ISO 7010 ในทุกขั้นตอน หากต้องการเอกสารประกอบมาตรฐานสำหรับงานจัดซื้อ ทีมงานยินดีจัดเตรียมให้ตามคำขอ</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     QUALITY POLICY STATEMENT
+     ============================================================ -->
+<section class="section">
+  <div class="wrap" style="max-width:920px;margin:0 auto;">
+    <div class="qp-policy-card" data-reveal>
+      <h2>นโยบายคุณภาพ CS.SIGN</h2>
+      <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด มุ่งมั่นผลิตและส่งมอบป้ายความปลอดภัย ป้ายจราจร และอุปกรณ์ด้านความปลอดภัย ที่ได้มาตรฐานอุตสาหกรรมไทยและมาตรฐานสากลในทุกขั้นตอน ตั้งแต่การให้คำปรึกษา ออกแบบ จัดหาวัตถุดิบ ผลิต ตรวจสอบคุณภาพ จนถึงติดตั้งหน้างาน โดยยึดหลักการพัฒนาอย่างต่อเนื่อง (Continuous Improvement) เพื่อสร้างความพึงพอใจสูงสุดให้กับลูกค้า และยกระดับความปลอดภัยในสถานที่ทำงานของทุกองค์กรที่ไว้วางใจเรา</p>
+      <p>สำหรับเอกสารประกอบมาตรฐานที่ใช้ในงานจัดซื้อ กรุณาติดต่อทีมงานเพื่อขอเอกสารที่เกี่ยวข้องตามความต้องการของแต่ละโครงการ</p>
+      <div class="qp-policy-pillars">
+        <div class="qp-pillar">
+          <div class="qp-pillar-num">01</div>
+          <div class="qp-pillar-title">มาตรฐานผลิตภัณฑ์</div>
+          <div class="qp-pillar-desc">ผลิตตามข้อกำหนด มอก.635-2547 และ ISO 7010 ทุกรายการ</div>
+        </div>
+        <div class="qp-pillar">
+          <div class="qp-pillar-num">02</div>
+          <div class="qp-pillar-title">ควบคุมคุณภาพ</div>
+          <div class="qp-pillar-desc">ตรวจสอบวัสดุและงานผลิตทุกล็อตก่อนส่งมอบ</div>
+        </div>
+        <div class="qp-pillar">
+          <div class="qp-pillar-num">03</div>
+          <div class="qp-pillar-title">ตรวจสอบย้อนกลับได้</div>
+          <div class="qp-pillar-desc">มีบันทึกการผลิตของทุกออเดอร์ พร้อมชี้แจงเมื่อลูกค้าสอบถาม</div>
+        </div>
+        <div class="qp-pillar">
+          <div class="qp-pillar-num">04</div>
+          <div class="qp-pillar-title">พัฒนาต่อเนื่อง</div>
+          <div class="qp-pillar-desc">ทบทวนและปรับปรุงกระบวนการผลิตอย่างสม่ำเสมอ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     WARRANTY
+     ============================================================ -->
+<section class="section" id="warranty">
+  <div class="wrap" style="max-width:920px;margin:0 auto;">
+    <div class="qp-warranty-card" data-reveal>
+      <span class="qp-warranty-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+        รับประกันสินค้า 6 เดือน
+      </span>
+      <h2>การรับประกันสินค้า</h2>
+      <p>ป้ายทุกชิ้นที่ผลิตโดย CS.SIGN รับประกันคุณภาพวัสดุและงานผลิตเป็นระยะเวลา 6 เดือน นับจากวันที่ส่งมอบหรือติดตั้งแล้วเสร็จ หากพบความชำรุดบกพร่องจากขั้นตอนการผลิตภายในระยะเวลาดังกล่าว ทีมงานยินดีตรวจสอบและแก้ไขให้โดยไม่มีค่าใช้จ่าย</p>
+
+      <div class="qp-warranty-grid">
+        <div class="qp-warranty-item">
+          <span class="qp-warranty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <h3>ครอบคลุม</h3>
+            <p>ความชำรุดจากวัสดุหรืองานผลิต เช่น สีลอก หลุดล่อน หรือโครงสร้างบิดเบี้ยวจากการผลิตที่ไม่ได้มาตรฐาน</p>
+          </div>
+        </div>
+        <div class="qp-warranty-item">
+          <span class="qp-warranty-icon qp-warranty-icon--x">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </span>
+          <div>
+            <h3>ไม่ครอบคลุม</h3>
+            <p>ความเสียหายจากอุบัติเหตุ การใช้งานผิดประเภท ภัยธรรมชาติ การดัดแปลงโดยบุคคลอื่น หรือความเสื่อมสภาพตามปกติจากการใช้งานกลางแจ้งเป็นเวลานาน</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="qp-warranty-claim">
+        <p>ต้องการแจ้งเคลมสินค้า? เตรียม<strong>เลขที่ใบสั่งซื้อ</strong>และ<strong>ภาพถ่ายความเสียหาย</strong> แล้วติดต่อทีมงานได้ทันที</p>
+        <div class="cert-cta-btns">
+          <a href="contact.html" class="btn btn-primary btn-sm">ติดต่อแจ้งเคลม</a>
+          <a href="tel:0628833880" class="btn btn-secondary btn-sm">โทร 062-883-3880</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     STANDARDS WE PRODUCE TO
+     ============================================================ -->
+<section class="section section--tint" id="documents">
+  <div class="wrap">
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">MANUFACTURING STANDARDS</div>
+      <h2 class="h-section">มาตรฐานที่เราผลิตตาม</h2>
+      <p style="max-width:560px;margin:0 auto;">ป้ายทุกชิ้นออกแบบและผลิตตามข้อกำหนดของมาตรฐานด้านล่าง หากต้องการเอกสารประกอบสำหรับงานจัดซื้อ กรุณาติดต่อทีมงาน</p>
+    </div>
+
+    <div class="qp-doc-grid" data-reveal>
+
+      <!-- มอก. 635 -->
+      <div class="qp-doc-card">
+        <div class="qp-doc-icon qp-doc-icon--tis">
+          <span>มอก.<br>635</span>
+        </div>
+        <div class="qp-doc-body">
+          <h3>มาตรฐานผลิตภัณฑ์อุตสาหกรรม มอก. 635-2547</h3>
+          <p>ป้ายความปลอดภัยผลิตตามข้อกำหนดรูปแบบ สี และสัญลักษณ์ของมาตรฐานผลิตภัณฑ์อุตสาหกรรม มอก. 635-2547</p>
+        </div>
+      </div>
+
+      <!-- ISO 7010 -->
+      <div class="qp-doc-card">
+        <div class="qp-doc-icon qp-doc-icon--iso7">
+          <span>ISO<br>7010</span>
+        </div>
+        <div class="qp-doc-body">
+          <h3>ISO 7010:2019 — สัญลักษณ์ความปลอดภัย</h3>
+          <p>ป้ายทุกแบบออกแบบตามมาตรฐานสัญลักษณ์สากล ISO 7010 เพื่อให้สื่อความหมายได้ตรงกันทั่วโลก</p>
+        </div>
+      </div>
+
+      <!-- DOH -->
+      <div class="qp-doc-card">
+        <div class="qp-doc-icon qp-doc-icon--doh">
+          <span>DOH<br>STD</span>
+        </div>
+        <div class="qp-doc-body">
+          <h3>มาตรฐานกรมทางหลวง — ป้ายจราจร</h3>
+          <p>ป้ายจราจรทุกประเภทผลิตตามข้อกำหนดของกรมทางหลวง ทั้งด้านวัสดุ สี ขนาด และฟิล์มสะท้อนแสง</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="qp-disclaimer">
+      หมายเหตุ: ข้อความข้างต้นอธิบายมาตรฐานทางเทคนิคที่ใช้อ้างอิงในการออกแบบและผลิตสินค้า หากต้องการเอกสารหรือหนังสือรับรองที่เกี่ยวข้องสำหรับยื่นประกอบการจัดซื้อจัดจ้าง กรุณาติดต่อทีมงานผ่านหน้า
+      <a href="contact.html" style="color:var(--primary);font-weight:600;">ติดต่อเรา</a> หรือโทร 062-883-3880
+    </div>
+
+    <!-- Secondary actions -->
+    <div class="cert-cta" data-reveal style="margin-top:32px;">
+      <div class="cert-cta-actions" style="width:100%;">
+        <p>ต้องการเอกสารเพิ่มเติมสำหรับงานจัดซื้อ?</p>
+        <div class="cert-cta-btns">
+          <a href="contact.html" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            ติดต่อขอเอกสาร
+          </a>
+          <a href="tel:0628833880" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3.65 3.18 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.09a16 16 0 0 0 5.93 5.93l1.16-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            โทรสอบถาม
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+</main>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์มากกว่า 20 ปี</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ผลิตภัณฑ์</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+          <a href="products.html?cat=traffic">ป้ายจราจร</a>
+          <a href="products.html?cat=safety">ป้ายโรงงานอุตสาหกรรม</a>
+          <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">บริษัท</div>
+        <div class="footer-links">
+          <a href="about.html">เกี่ยวกับเรา</a>
+          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="portfolio.html">ผลงานของเรา</a>
+          <a href="quality-policy.html">นโยบายคุณภาพ</a>
+          <a href="blog.html">บทความ</a>
+          <a href="about.html#faq">คำถามที่พบบ่อย</a>
+          <a href="contact.html">ติดต่อเรา</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ติดต่อเรา</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">ที่อยู่</div>
+          <div class="footer-contact-val">17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรศัพท์ / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">062-883-3880, 063-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรสาร (Fax)</div>
+          <span class="footer-contact-val">02-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">อีเมล</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN — บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">นโยบายความเป็นส่วนตัว</a> · <a href="terms.html" style="color:inherit;">ข้อกำหนดการใช้บริการ</a> &middot; <a href="accessibility.html" style="color:inherit;">การเข้าถึงเว็บไซต์ (WCAG)</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/tabs-overflow.js"></script>
+<script src="js/main.js"></script>
+<script src="js/cookie-consent.js"></script>
+<script src="js/site-search.js"></script>
+<script type="module" src="js/site-settings.js"></script>
+<script type="module" src="js/nav-menu.js"></script>
+<script type="module" src="js/home-dynamic.js"></script>
+<!-- FAB trigger button -->
+<script src="js/track-modal-template.js"></script>
+<script type="module" src="js/track-modal.js"></script>
+<script src="js/chat-widget-template.js"></script>
+
+<!-- ============================================================
+     QUOTATION POPUP MODAL
+     ============================================================ -->
+<!-- ============================================================
+     QUOTATION POPUP MODAL — redesigned, full-width estimator
+     ============================================================ -->
+<script src="js/qmodal-template.js"></script>
+
+<script src="js/qmodal.js"></script>
+<script type="module" src="js/chat-widget.js"></script>
+<script type="module" src="js/lead-quote-modal.js"></script>
+<script src="js/fancy-effects.js" defer></script>
+</body>
+</html>

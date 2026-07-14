@@ -1,0 +1,8 @@
+name = "cssign-cloudinary-delete"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+# ค่า secret (CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) ตั้งผ่านคำสั่ง
+#   npx wrangler secret put CLOUDINARY_API_KEY
+#   npx wrangler secret put CLOUDINARY_API_SECRET
+# ไม่ใส่ในไฟล์นี้ตรงๆ เพราะเป็นความลับ ห้าม commit ขึ้น git

@@ -1,0 +1,843 @@
+/* ===========================================================
+   admin.html — จัดการเนื้อหาเว็บไซต์ (Products / Categories)
+   =========================================================== */
+
+/* ===========================================================
+   Admin dashboard — grouped sidebar navigation
+   Restructures the flat 10-tab row into labeled groups so staff
+   can scan by task ("แคตตาล็อกสินค้า", "การตลาด & ลูกค้า", "ระบบ")
+   instead of hunting through one long scrolling pill bar.
+   Markup/IDs/data-tab attributes are unchanged — admin-page.js
+   keeps working exactly as before; this is layout/CSS only.
+   =========================================================== */
+.cp-main--wide{ max-width:1360px; }
+
+@media (min-width: 900px){
+  .cp-shell{ display:flex; align-items:flex-start; gap:28px; }
+
+  .cp-tabs.cp-tabs--grouped{
+    display:flex; flex-direction:column; gap:20px;
+    flex:0 0 236px; width:236px; max-width:236px;
+    background:#fff; padding:18px 16px; border-radius:var(--r-xl); overflow:visible;
+    border:1px solid var(--gray-200); box-shadow:var(--shadow-sm);
+    position:sticky; top:88px;
+  }
+  .cp-sidebar-group{ display:flex; flex-direction:column; gap:3px; }
+  .cp-sidebar-group-label{
+    font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--text-meta); padding:0 12px 7px;
+  }
+  .cp-tabs--grouped .cp-tab{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:10px 12px; border-radius:var(--r-md); white-space:normal;
+    font-weight:600; color:var(--gray-600);
+  }
+  .cp-tabs--grouped .cp-tab:hover{ background:var(--gray-50); }
+  .cp-tabs--grouped .cp-tab.active{
+    background:rgba(var(--primary-rgb),0.09); color:var(--primary-dark); box-shadow:none; font-weight:700;
+  }
+  .cp-tab-ic{ width:17px; height:17px; flex:none; opacity:.75; }
+  .cp-tabs--grouped .cp-tab.active .cp-tab-ic{ opacity:1; }
+
+  .cp-content{ flex:1; min-width:0; }
+}
+
+/* Mobile: fall back to a horizontal scrolling group of pills, grouped
+   visually with slightly larger gaps so it still reads as sections. */
+@media (max-width:899px){
+  .cp-tabs.cp-tabs--grouped{
+    display:flex; flex-direction:row; flex-wrap:nowrap; gap:16px;
+    background:transparent; padding:2px 2px 10px; width:100%; max-width:100%;
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+  }
+  .cp-sidebar-group{ display:flex; flex-direction:column; gap:6px; flex:none; }
+  .cp-sidebar-group-label{
+    font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--text-meta); padding:0 2px; white-space:nowrap;
+  }
+  .cp-tabs--grouped .cp-tab{
+    display:flex; align-items:center; gap:6px; white-space:nowrap;
+    background:var(--gray-100); border-radius:var(--r-pill); padding:8px 14px;
+  }
+  .cp-tabs--grouped .cp-tab.active{ background:#fff; color:var(--primary-dark); box-shadow:var(--shadow-sm); }
+  .cp-tab-ic{ width:15px; height:15px; flex:none; }
+}
+
+/* Focus-visible: ให้เห็นชัดตอนไล่เมนูด้วยคีย์บอร์ด (Tab / ลูกศร) */
+.cp-tabs--grouped .cp-tab:focus-visible{
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ── Sidebar quick-filter: กรอง/ไฮไลต์เมนูตามคำค้น เผื่อเมนูยาวขึ้นในอนาคต ──
+   ทำงานเฉพาะจอกว้าง (sidebar แนวตั้ง) — บนมือถือ sidebar ยุบเป็นแถบเลื่อน
+   แนวนอนอยู่แล้วซึ่งสั้นพอไม่จำเป็นต้องมีช่องค้นหา */
+.cp-sidebar-search{
+  display:flex; align-items:center; gap:8px;
+  border:1px solid var(--gray-200); border-radius:var(--r-md);
+  padding:8px 10px; margin-bottom:4px; background:var(--gray-25);
+  transition:border-color .2s var(--ease);
+}
+.cp-sidebar-search:focus-within{ border-color:var(--primary); background:#fff; }
+.cp-sidebar-search svg{ width:14px; height:14px; color:var(--gray-400); flex:none; }
+.cp-sidebar-search input{
+  border:none; background:none; outline:none; width:100%;
+  font-size:12.5px; font-family:inherit; color:var(--secondary);
+}
+.cp-sidebar-search input::placeholder{ color:var(--gray-400); }
+.cp-sidebar-search input::-webkit-search-cancel-button{ cursor:pointer; }
+
+.cp-sidebar-group.ad-nav-hidden,
+.cp-tabs--grouped .cp-tab.ad-nav-hidden{ display:none; }
+
+@media (max-width:899px){
+  .cp-sidebar-search{ display:none; }
+}
+
+/* ===========================================================
+   Sidebar collapse — พับเมนูซ้ายให้เหลือแค่ไอคอน (แบบ Linear/Notion)
+   จำสถานะไว้ที่ localStorage (ดู admin-page.js: SIDEBAR_COLLAPSE_KEY)
+   ทำงานเฉพาะจอกว้าง — บนมือถือ sidebar เป็นแถบเลื่อนแนวนอนอยู่แล้ว
+   ไม่มีที่ให้พับ จึงซ่อนปุ่มนี้ไปเลย
+   =========================================================== */
+.cp-sidebar-collapse-btn{
+  display:none; align-self:flex-end; width:26px; height:26px; margin-bottom:2px;
+  align-items:center; justify-content:center; border:none; background:transparent;
+  color:var(--gray-400); border-radius:var(--r-sm); cursor:pointer;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.cp-sidebar-collapse-btn:hover{ background:var(--gray-100); color:var(--gray-600); }
+.cp-sidebar-collapse-btn svg{ width:15px; height:15px; }
+
+@media (min-width:900px){
+  .cp-sidebar-collapse-btn{ display:flex; }
+
+  .cp-tabs--grouped.is-collapsed{
+    flex:0 0 60px; width:60px; max-width:60px; padding:18px 10px;
+  }
+  .cp-tabs--grouped.is-collapsed .cp-sidebar-collapse-btn{ align-self:center; transform:rotate(180deg); }
+  .cp-tabs--grouped.is-collapsed .cp-sidebar-search,
+  .cp-tabs--grouped.is-collapsed .cp-sidebar-group-label,
+  .cp-tabs--grouped.is-collapsed .cp-tab span{
+    display:none;
+  }
+  .cp-tabs--grouped.is-collapsed .cp-sidebar-group{
+    padding-bottom:10px; margin-bottom:2px; border-bottom:1px solid var(--gray-100);
+  }
+  .cp-tabs--grouped.is-collapsed .cp-sidebar-group:last-child{ border-bottom:none; }
+  .cp-tabs--grouped.is-collapsed .cp-tab{
+    position:relative; justify-content:center; padding:10px 0;
+  }
+  .cp-tabs--grouped.is-collapsed .cp-tab-ic{ width:18px; height:18px; }
+  /* ป้ายเลขแจ้งเตือน (ลีดใหม่ ฯลฯ): ตอนพับเมนูไม่มีที่พอให้แสดงตัวเลข
+     ย่อเหลือจุดเล็กๆ ทับมุมไอคอนแทนการซ่อนไปเลย จะได้ยังรู้ว่ามีของค้างอยู่ */
+  .cp-tabs--grouped.is-collapsed .ad-tab-badge{
+    position:absolute; top:6px; right:14px; min-width:0; width:8px; height:8px;
+    padding:0; font-size:0; line-height:0; border-radius:50%; overflow:hidden;
+  }
+  /* ลบ left-rule ของ active tab ตอนพับ (พื้นที่แคบเกินจะให้ดูดี ใช้พื้นหลังทึบแทน) */
+  .cp-tabs--grouped.is-collapsed .cp-tab.active{
+    border-left:none; padding-left:0; border-radius:var(--r-md);
+  }
+}
+
+.ad-nav-link{
+  font-size:12px; font-weight:700; color:var(--gray-500); background:var(--gray-100);
+  border-radius:var(--r-pill); padding:7px 14px; text-decoration:none;
+  transition:background .2s var(--ease), color .2s var(--ease);
+}
+.ad-nav-link:hover{ background:rgba(var(--primary-rgb),0.1); color:var(--primary-dark); }
+
+/* ===========================================================
+   Overview — Quick action cards ("+ เพิ่มสินค้า" / "+ เพิ่มคำสั่งผลิต")
+   เดิมเป็นปุ่มธรรมดาเรียงกันบนแถบเดียว ปรับเป็นการ์ดขนาดใหญ่ มีไอคอน + คำอธิบาย
+   สั้นๆ ให้เห็นชัดว่ากดแล้วจะเกิดอะไรขึ้น และดูเด่นเป็นจุดเริ่มงานของหน้าภาพรวม
+   =========================================================== */
+.cp-ov-actions{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:26px;
+}
+.cp-ov-action-card{
+  display:flex; align-items:center; gap:14px; text-align:left; width:100%;
+  background:#fff; border:1.5px solid var(--gray-200); border-radius:var(--r-lg);
+  padding:16px 18px; cursor:pointer; box-shadow:var(--shadow-sm); font-family:inherit;
+  transition:box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease);
+}
+.cp-ov-action-card:hover{ box-shadow:none; border-color:var(--gray-300); }
+.cp-ov-action-card:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+.cp-ov-action-icon{
+  flex:none; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  background:var(--gray-100); color:var(--gray-600);
+}
+.cp-ov-action-icon svg{ width:21px; height:21px; }
+.cp-ov-action-text{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
+.cp-ov-action-text strong{ font-size:14.5px; font-weight:700; color:var(--secondary); }
+.cp-ov-action-text small{ font-size:12px; color:var(--text-meta); line-height:1.4; }
+.cp-ov-action-arrow{ flex:none; width:17px; height:17px; color:var(--gray-300); transition:transform .2s var(--ease), color .2s var(--ease); }
+.cp-ov-action-card:hover .cp-ov-action-arrow{ transform:translateX(3px); color:var(--gray-500); }
+.cp-ov-action-card--primary{ background:linear-gradient(180deg,#fff,rgba(var(--primary-rgb),0.04)); border-color:rgba(var(--primary-rgb),0.28); }
+.cp-ov-action-card--primary .cp-ov-action-icon{ background:rgba(var(--primary-rgb),0.12); color:var(--primary-dark); }
+.cp-ov-action-card--primary:hover{ border-color:var(--primary); }
+.cp-ov-action-card--primary:hover .cp-ov-action-arrow{ color:var(--primary-dark); }
+
+/* หัวข้อ section แรกสุดของหน้าภาพรวม (ต่อจากการ์ด quick action เลย) — ไม่ต้องมีเส้นคั่นด้านบน
+   ซ้ำกับ divider ระหว่าง section เพราะอยู่ติดกับ quick actions อยู่แล้ว */
+.cp-ov-section-head--first{ margin-top:0; padding-top:0; border-top:none; }
+
+@media (max-width:640px){
+  .cp-ov-actions{ grid-template-columns:1fr; }
+}
+
+/* ── Product cards grid (ใช้ภาษาดีไซน์เดียวกับการ์ดผลงาน — port-card/port-visual) ── */
+.ad-grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(236px,1fr)); gap:20px;
+}
+.ad-card{ position:relative; }
+/* การ์ดทั้งใบคลิกได้เพื่อแก้ไข (ดู js/admin-page.js) — ใส่ ring ตอน focus ให้กดคีย์บอร์ดได้ด้วย */
+.ad-card:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+.ad-card .port-visual{
+  aspect-ratio:1/1; min-height:0; background:var(--gray-50); cursor:pointer;
+}
+/* การ์ดในหน้าแอดมิน (สินค้า/ผลงาน/บทความ/โลโก้ลูกค้า) — แสดงรูปเต็มภาพเสมอ ไม่ครอบ/ไม่ซูมแบบหน้าเว็บสาธารณะ
+   (หน้าเว็บสาธารณะยังคง object-fit:cover + ซูมตอน hover ตามเดิม เพราะเป็นดีไซน์ที่ตั้งใจไว้สำหรับผู้ชมทั่วไป) */
+.ad-card .port-photo, .ad-pf-card .port-photo{
+  object-fit:contain !important; transition:none !important;
+}
+.ad-card:hover .port-photo, .ad-pf-card:hover .port-photo{ transform:none !important; }
+.ad-card .port-visual[data-action="gallery"]{ cursor:zoom-in; }
+.ad-card .port-visual.no-photo{ cursor:pointer; }
+.ad-card .port-visual svg{ width:36px; height:36px; color:var(--gray-300); position:relative; z-index:1; }
+.ad-card .port-visual.no-photo::after{ content:none; }
+.ad-card .port-visual.no-photo .port-badge{
+  background:#fff; color:var(--gray-500); border-color:var(--gray-200);
+}
+.ad-card--hidden{ opacity:.68; }
+.ad-card--hidden:hover{ opacity:1; }
+/* ปุ่มแก้ไข/ทำซ้ำ/ลบ: ซ่อนไว้ก่อน แสดงเมื่อเอาเมาส์ไปชี้การ์ด (ให้พฤติกรรมเดียวกับการ์ดผลงาน) */
+.ad-card-actions{
+  position:absolute; top:10px; right:10px; z-index:6; display:flex; gap:6px; opacity:0;
+  transition:opacity .2s var(--ease);
+}
+.ad-card:hover .ad-card-actions, .ad-card:focus-within .ad-card-actions{ opacity:1; }
+.ad-card-actions .cp-icon-btn{
+  width:32px; height:32px; background:rgba(15,23,42,0.72); border:1px solid rgba(255,255,255,0.3); color:#fff;
+  box-shadow:0 2px 6px rgba(15,23,42,0.25);
+}
+.ad-card-actions .cp-icon-btn:hover{ background:rgba(15,23,42,0.9); }
+.ad-card-actions .cp-icon-btn.danger:hover{ background:#DC2626; }
+.ad-card-actions .cp-icon-btn.is-starred{ background: var(--accent); border-color: var(--accent); color:#fff; }
+.ad-card-actions .cp-icon-btn.is-starred:hover{ background:#d9973a; }
+/* เช็คบ็อกซ์เลือกหลายรายการ: ซ่อนไว้ก่อนเช่นกัน แสดงเมื่อชี้การ์ด หรือติ๊กเลือกอยู่แล้ว */
+.ad-card-check{
+  position:absolute; top:10px; left:10px; z-index:7; width:22px; height:22px; cursor:pointer;
+  accent-color:var(--primary); opacity:0; transition:opacity .2s var(--ease);
+  box-shadow:0 0 0 4px rgba(15,23,42,0.35); border-radius:5px;
+}
+.ad-card:hover .ad-card-check, .ad-card-check:checked, .ad-card--checked .ad-card-check{ opacity:1; }
+/* วางใต้เช็คบ็อกซ์ กันไม่ให้ซ้อนทับกันตอนที่ทั้งคู่แสดงพร้อมกัน (hover / ซ่อนอยู่) */
+.ad-card-status{
+  position:absolute; top:48px; left:10px; z-index:5; font-size:10.5px; font-weight:700; padding:4px 10px;
+  border-radius:var(--r-pill); background:#DC2626; color:#fff; box-shadow:0 2px 6px rgba(220,38,38,0.3);
+}
+.ad-card-feat-flag{
+  position:absolute; bottom:10px; left:10px; z-index:5; display:flex; align-items:center; gap:4px;
+  background:rgba(255,255,255,0.88); color:#B45309; font-size:9.5px; font-weight:700; padding:3px 8px;
+  border-radius:var(--r-pill); box-shadow:0 1px 4px rgba(0,0,0,0.12); cursor:zoom-in;
+}
+.ad-card-feat-flag svg{ width:10px; height:10px; }
+.ad-card-imgcount{
+  position:absolute; bottom:14px; right:14px; z-index:3; font-family:var(--font-mono); font-size:10px;
+  color:#fff; background:rgba(15,23,42,0.55); padding:3px 9px; border-radius:var(--r-pill);
+}
+.ad-card-body{ padding:14px 16px 16px; display:flex; flex-direction:column; gap:6px; flex:1; cursor:pointer; }
+.ad-card-toprow{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.ad-card-cat{ font-size:10.5px; color:var(--primary-dark); font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+  background:rgba(var(--primary-rgb),0.08); padding:2px 8px; border-radius:var(--r-pill); }
+.ad-card-code{
+  font-family:var(--font-mono); font-size:12.5px; font-weight:800; color:var(--primary-dark);
+  background:rgba(var(--primary-rgb),0.08); padding:2px 8px; border-radius:var(--r-pill);
+  letter-spacing:.02em; flex-shrink:0;
+}
+.ad-card-name{ font-size:14.5px; font-weight:700; color:var(--secondary); line-height:1.4; }
+.ad-card-price{ font-size:13.5px; color:var(--primary-dark); font-weight:800; margin-top:2px; }
+
+/* ── Modal: wider for product form (extra room = easier data entry) ── */
+.ad-modal-wide{ max-width:820px; }
+.ad-modal-wide.cp-modal{ padding:32px; gap:16px; }
+
+/* ── Product form: bigger, easier-to-hit fields than the rest of admin ── */
+#ad-p-form .cl-input{ font-size:15px; }
+#ad-p-form input.cl-input, #ad-p-form select.cl-input{ height:46px; }
+#ad-p-form textarea.cl-input{ padding:12px 14px; }
+#ad-p-form .cp-modal-row{ gap:14px; }
+#ad-p-form .ad-form-section{ gap:14px; }
+
+/* ── Product form: grouped sections so a long form scans faster ── */
+.ad-form-section{
+  display:flex; flex-direction:column; gap:10px;
+  padding:16px; border:1px solid var(--gray-100); border-radius:var(--r-md); background:var(--gray-25);
+}
+.ad-form-section-title{
+  display:flex; align-items:center; gap:6px;
+  font-size:12.5px; font-weight:700; color:var(--gray-500);
+}
+.ad-form-section-title svg{ width:14px; height:14px; flex-shrink:0; color:var(--primary); }
+
+/* ── Featured/star toggle: was a plain small checkbox easy to miss at the
+   bottom of a long form — turn it into a clearly-tappable highlighted chip
+   that visibly fills gold when checked, matching the star button on the
+   product card so the two controls read as the same action. ── */
+.ad-p-featured-toggle{
+  display:flex; align-items:center; gap:10px;
+  padding:12px 16px; border-radius:var(--r-md);
+  border:1px solid var(--gray-200); background:#fff;
+  font-size:13.5px; font-weight:600; color:var(--gray-600);
+  cursor:pointer; transition: border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
+}
+.ad-p-featured-toggle svg{ width:18px; height:18px; flex-shrink:0; color:var(--gray-300); transition: color .2s var(--ease); }
+.ad-p-featured-toggle:hover{ border-color: rgba(var(--accent-rgb),0.4); }
+.ad-p-featured-toggle:has(input:checked){
+  border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); color: var(--secondary);
+}
+.ad-p-featured-toggle:has(input:checked) svg{ color: var(--accent); fill: var(--accent); }
+.ad-p-featured-toggle input{ width:16px; height:16px; flex-shrink:0; accent-color: var(--accent); }
+
+@media (max-width:860px){
+  .ad-modal-wide{ max-width:560px; }
+  .ad-modal-wide.cp-modal{ padding:26px; gap:12px; }
+  #ad-p-form input.cl-input, #ad-p-form select.cl-input{ height:38px; }
+  #ad-p-form .cl-input{ font-size:13.5px; }
+}
+
+/* ── Product form: price becomes read-only once option axes take over ── */
+#ad-p-price-wrap.is-auto .cl-input{ background:var(--gray-100); color:var(--gray-400); }
+
+/* ── Product form: collapsible advanced (slug / SEO) section ── */
+.ad-advanced-details{
+  border:1px dashed var(--gray-200); border-radius:var(--r-md); padding:0;
+}
+.ad-advanced-summary{
+  list-style:none; cursor:pointer; user-select:none;
+  display:flex; align-items:center; gap:7px;
+  padding:11px 14px; font-size:12.5px; font-weight:700; color:var(--gray-500);
+}
+.ad-advanced-summary::-webkit-details-marker{ display:none; }
+.ad-advanced-summary svg{ width:14px; height:14px; flex-shrink:0; transition:transform .2s var(--ease); }
+.ad-advanced-details[open] .ad-advanced-summary svg{ transform:rotate(75deg); }
+.ad-advanced-summary::after{
+  content:'▾'; margin-left:auto; font-size:11px; color:var(--gray-300);
+}
+.ad-advanced-details[open] .ad-advanced-summary::after{ content:'▴'; }
+.ad-advanced-body{
+  display:flex; flex-direction:column; gap:8px;
+  padding:2px 14px 14px;
+}
+
+/* ── Image manager inside product modal ── */
+.ad-img-label{ font-size:12px; font-weight:700; color:var(--gray-500); margin-top:2px; }
+.ad-char-count{ font-size:11px; color:var(--gray-400); text-align:right; margin-top:-10px; }
+.ad-char-count.is-near-limit{ color:#B45309; }
+.ad-char-count.is-over-limit{ color:#DC2626; font-weight:700; }
+.ad-img-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:8px; }
+.ad-img-item{
+  position:relative; aspect-ratio:1/1; border-radius:var(--r-sm); overflow:hidden;
+  border:1px solid var(--gray-200); background:var(--gray-50);
+}
+.ad-img-item img{ width:100%; height:100%; object-fit:cover; }
+.ad-img-remove{
+  position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%;
+  background:rgba(15,23,42,0.75); color:#fff; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:12px; line-height:1;
+}
+.ad-img-remove:hover{ background:#DC2626; }
+.ad-img-empty{ font-size:11.5px; color:var(--text-meta); padding:6px 2px; }
+.ad-img-cell{ display:flex; flex-direction:column; gap:4px; }
+.ad-img-tag-input{
+  width:100%; font-size:10.5px; padding:4px 6px; border:1px solid var(--gray-200); border-radius:6px;
+  color:var(--secondary); background:#fff; box-sizing:border-box; font-family:inherit;
+}
+.ad-img-tag-input::placeholder{ color:var(--gray-300); }
+.ad-img-tag-input:focus{ outline:none; border-color:var(--primary); }
+
+/* โปรโมชั่น/ข่าวอัพเดตหน้าแรก — การ์ดกว้างกว่ารูปสินค้าปกติ เพราะแต่ละรูป
+   มี 2 ช่องกรอก (ชื่อหัวข้อ + ลิงก์) ต่อ 1 รูป ไม่ใช่แค่ป้ายกำกับเดียว */
+.ad-promo-grid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+.ad-promo-grid .ad-img-item{ aspect-ratio:16/9; }
+.ad-video-current{ font-size:12px; color:var(--text-meta); margin:2px 0 8px; }
+.ad-video-current a{ color:var(--primary); font-weight:600; }
+
+.ad-video-item{
+  border:1px solid var(--gray-100); border-radius:var(--r-md); padding:14px;
+  margin-top:12px; display:flex; flex-direction:column; gap:10px; background:#fbfbfc;
+}
+.ad-video-item-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.ad-video-item-num{ font-size:12.5px; font-weight:700; color:var(--gray-500); }
+.ad-video-item-actions{ display:flex; align-items:center; gap:6px; }
+.ad-video-item-move,
+.ad-video-item-remove{
+  width:26px; height:26px; border-radius:50%; border:1px solid var(--gray-200); background:#fff;
+  color:var(--gray-500); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:14px; line-height:1; transition: border-color .2s var(--ease), color .2s var(--ease);
+}
+.ad-video-item-move:hover{ border-color:var(--primary); color:var(--primary); }
+.ad-video-item-move:disabled{ opacity:.35; cursor:not-allowed; }
+.ad-video-item-remove:hover{ border-color:#DC2626; color:#DC2626; }
+.ad-video-item .ad-img-grid{ grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); max-width:220px; }
+.ad-videos-empty{ font-size:12.5px; color:var(--text-meta); padding:10px 2px; }
+
+.ad-upload-btn{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  border:1.5px dashed var(--gray-300); border-radius:var(--r-sm); padding:10px;
+  font-size:12.5px; font-weight:700; color:var(--gray-500); cursor:pointer; background:var(--gray-25);
+  transition:border-color .2s var(--ease), color .2s var(--ease), background .2s var(--ease);
+}
+.ad-upload-btn:hover{ border-color:var(--primary); color:var(--primary); background:rgba(var(--primary-rgb),0.04); }
+.ad-upload-btn svg{ width:14px; height:14px; }
+.ad-upload-btn.is-disabled{ opacity:.5; cursor:not-allowed; pointer-events:none; }
+.ad-upload-status{ font-size:11.5px; color:var(--text-meta); min-height:14px; }
+
+/* ── Product option axes (ชนิดของป้าย / แผ่นรองหลัง / ขนาด ฯลฯ) + auto price table ── */
+.ad-axes-section{ display:flex; flex-direction:column; gap:8px; }
+.ad-axes-box{ display:flex; flex-direction:column; gap:10px; }
+.ad-axis-card{
+  border:1px solid var(--gray-200); border-radius:var(--r-md); background:#fff; padding:12px;
+  display:flex; flex-direction:column; gap:9px;
+  transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.ad-axis-card:focus-within{ border-color:rgba(var(--primary-rgb),0.4); box-shadow:0 0 0 3px rgba(var(--primary-rgb),0.08); }
+.ad-axis-head{ display:flex; align-items:center; gap:8px; }
+.ad-axis-head .cl-input{ flex:1; height:34px; font-weight:700; }
+.ad-axis-remove{
+  flex-shrink:0; width:28px; height:28px; border-radius:50%; border:none; cursor:pointer;
+  background:rgba(220,38,38,0.08); color:#DC2626; display:flex; align-items:center; justify-content:center; font-size:14px;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.ad-axis-remove:hover{ background:#DC2626; color:#fff; }
+.ad-axis-options{ display:flex; flex-wrap:wrap; gap:7px; }
+.ad-axis-option{
+  display:flex; align-items:center; gap:0; background:var(--gray-25); border:1px solid var(--gray-200);
+  border-radius:var(--r-pill); padding:5px 6px 5px 2px;
+  transition:border-color .15s var(--ease), background .15s var(--ease);
+}
+.ad-axis-option:focus-within{ border-color:var(--primary); background:#fff; }
+.ad-axis-option input{
+  border:none; background:transparent; font-size:12.5px; color:var(--secondary); font-family:inherit;
+  padding:2px 0; box-sizing:border-box;
+}
+.ad-axis-option input:focus{ outline:none; }
+.ad-axis-option .ad-opt-code{
+  width:42px; flex-shrink:0; text-align:center; text-transform:uppercase; font-weight:700; font-size:11.5px;
+  color:var(--primary); border-right:1px solid var(--gray-200); padding:2px 4px 2px 10px !important;
+}
+.ad-axis-option .ad-opt-code::placeholder{ color:var(--gray-300); text-transform:none; font-weight:400; }
+.ad-axis-option .ad-opt-label{ width:150px; padding-left:10px !important; }
+.ad-axis-option .ad-opt-remove{
+  flex-shrink:0; width:19px; height:19px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--gray-100); color:var(--gray-500); font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
+  margin-left:4px;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.ad-axis-option .ad-opt-remove:hover{ background:#DC2626; color:#fff; }
+.ad-axis-option-add{
+  border:1.5px dashed var(--gray-300); border-radius:var(--r-pill); padding:5px 14px; font-size:12.5px; font-weight:700;
+  color:var(--gray-500); background:transparent; cursor:pointer;
+  transition:border-color .15s var(--ease), color .15s var(--ease);
+}
+.ad-axis-option-add:hover{ border-color:var(--primary); color:var(--primary); }
+.ad-axis-add-btn{ align-self:flex-start; padding:8px 16px; }
+
+/* ── Manual variant-combo builder: pick one value per axis, then add that row ── */
+.ad-variant-builder{ display:flex; flex-direction:column; gap:8px; }
+.ad-vb-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.ad-vb-select{ flex:1; min-width:140px; height:38px; font-size:13px; }
+.ad-vb-add-btn{ flex-shrink:0; padding:9px 16px; width:auto; }
+.ad-vb-fillall-btn{
+  align-self:flex-start; border:none; background:none; padding:2px 2px; font-size:12px; font-weight:700;
+  color:var(--primary); cursor:pointer; text-decoration:underline; text-underline-offset:2px;
+}
+.ad-vb-fillall-btn:hover{ color:var(--primary-dark); }
+
+.ad-variant-table-wrap{ overflow:auto; max-height:360px; border:1px solid var(--gray-200); border-radius:var(--r-sm); margin-top:4px; }
+.ad-variant-table{ width:100%; border-collapse:collapse; font-size:13px; }
+.ad-variant-table th{ position:sticky; top:0; z-index:1; background:var(--gray-50); color:var(--gray-500); text-align:left; padding:10px 12px; font-weight:700; white-space:nowrap; }
+.ad-variant-table th.ad-variant-th-num, .ad-variant-table td.ad-variant-td-num{ text-align:center; width:36px; color:var(--gray-400); font-size:12px; }
+.ad-variant-table th.ad-variant-th-price{ text-align:right; }
+.ad-variant-table th.ad-variant-th-del{ width:32px; }
+.ad-variant-na{ color:var(--gray-300); }
+.ad-variant-table td{ padding:8px 12px; border-top:1px solid var(--gray-100); vertical-align:middle; }
+.ad-variant-table tbody tr:nth-child(even) td{ background:var(--gray-25); }
+.ad-variant-table tr:hover td{ background:rgba(var(--primary-rgb),0.05); }
+.ad-variant-sku{ font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--primary); font-size:12px; background:rgba(var(--primary-rgb),0.07); padding:2px 6px; border-radius:6px; white-space:nowrap; }
+.ad-variant-price-wrap{ display:flex; align-items:center; justify-content:flex-end; gap:6px; }
+.ad-variant-currency{ font-size:12.5px; color:var(--gray-400); font-weight:700; }
+.ad-variant-price-input{ width:110px; height:34px; border:1px solid var(--gray-200); border-radius:6px; padding:0 8px; font-size:13.5px; font-family:inherit; text-align:right; font-weight:700; color:var(--secondary); }
+.ad-variant-price-input:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(var(--primary-rgb),0.12); }
+.ad-variant-copy-btn{
+  flex-shrink:0; width:26px; height:26px; border-radius:6px; border:1px solid var(--gray-200); background:#fff;
+  color:var(--gray-400); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px;
+  transition:border-color .15s var(--ease), color .15s var(--ease), background .15s var(--ease);
+}
+.ad-variant-copy-btn:hover{ border-color:var(--primary); color:var(--primary); background:rgba(var(--primary-rgb),0.06); }
+.ad-variant-del-btn{
+  flex-shrink:0; width:24px; height:24px; border-radius:50%; border:none; cursor:pointer;
+  background:rgba(220,38,38,0.08); color:#DC2626; font-size:13px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.ad-variant-del-btn:hover{ background:#DC2626; color:#fff; }
+.ad-variant-empty{ font-size:11.5px; color:var(--text-meta); padding:10px; }
+
+@media (max-width:768px){
+  .ad-grid{ grid-template-columns:repeat(auto-fill,minmax(165px,1fr)); gap:14px; }
+}
+
+.ad-pf-pinned-hint{ font-size:11.5px; color:var(--text-meta); margin-top:-4px; }
+
+/* ── Portfolio admin cards: reuse site .port-card look (image2 style) ── */
+#ad-pf-grid.ad-grid{ grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+.ad-pf-card{ position:relative; }
+.ad-pf-card .port-visual{ min-height:190px; aspect-ratio:4/3; }
+.ad-pf-card .port-info{ padding:18px 20px; }
+.ad-pf-card .port-info h3{ font-size:15.5px; }
+.ad-pf-card .port-info p{ font-size:12.5px; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; }
+.ad-pf-card-actions{
+  position:absolute; top:12px; right:12px; z-index:6; display:flex; gap:6px; opacity:0;
+  transition:opacity .2s var(--ease);
+}
+.ad-pf-card:hover .ad-pf-card-actions{ opacity:1; }
+.ad-pf-card-actions .cp-icon-btn{
+  width:30px; height:30px; background:rgba(15,23,42,0.65); border:1px solid rgba(255,255,255,0.25); color:#fff;
+}
+.ad-pf-card-actions .cp-icon-btn:hover{ background:rgba(15,23,42,0.85); }
+.ad-pf-card-actions .cp-icon-btn.danger:hover{ background:#DC2626; }
+.ad-pf-card-check{
+  position:absolute; top:12px; left:12px; z-index:7; width:20px; height:20px; cursor:pointer;
+  accent-color:var(--primary); opacity:0; transition:opacity .2s var(--ease);
+  box-shadow:0 0 0 4px rgba(15,23,42,0.35); border-radius:4px;
+}
+.ad-pf-card:hover .ad-pf-card-check, .ad-pf-card-check:checked{ opacity:1; }
+.ad-pf-card-imgcount{
+  position:absolute; bottom:12px; right:14px; z-index:3; font-family:var(--font-mono); font-size:10px;
+  color:#fff; background:rgba(15,23,42,0.55); padding:3px 9px; border-radius:var(--r-pill);
+}
+
+/* ── Portfolio view popup (gallery + details) ── */
+.ad-pf-view{ position:relative; padding:0; gap:0; overflow:hidden; max-width:640px; }
+.ad-pf-view-close{
+  position:absolute; top:14px; right:14px; z-index:5; width:34px; height:34px; border-radius:50%;
+  background:rgba(15,23,42,0.55); color:#fff; border:1px solid rgba(255,255,255,0.2);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.ad-pf-view-close:hover{ background:rgba(15,23,42,0.78); }
+.ad-pf-view-media{ position:relative; background:var(--secondary); aspect-ratio:16/10; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.ad-pf-view-media img{ width:100%; height:100%; object-fit:contain; }
+.ad-pf-view-badge{
+  position:absolute; top:14px; left:14px; background:rgba(255,255,255,0.16); color:#fff;
+  font-family:var(--font-mono); font-size:10.5px; letter-spacing:.08em; padding:5px 12px;
+  border-radius:var(--r-pill); border:1px solid rgba(255,255,255,0.22);
+}
+.ad-pf-view-pin{
+  position:absolute; bottom:14px; left:14px; display:flex; align-items:center; gap:6px;
+  background:rgba(245,158,11,0.92); color:#fff; font-size:11px; font-weight:700; padding:5px 12px;
+  border-radius:var(--r-pill);
+}
+.ad-pf-view-thumbs{ display:flex; gap:8px; padding:14px 22px 0; flex-wrap:wrap; }
+.ad-pf-view-thumb{
+  width:52px; height:52px; border-radius:8px; overflow:hidden; padding:0; border:2px solid transparent;
+  cursor:pointer; opacity:.6; background:none;
+}
+.ad-pf-view-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.ad-pf-view-thumb.active{ opacity:1; border-color:var(--primary); }
+.ad-pf-view-info{ padding:18px 22px 22px; }
+.ad-pf-view-client{ font-family:var(--font-mono); font-size:11px; color:var(--primary); letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px; }
+.ad-pf-view-info h3{ font-family:var(--font-display); font-weight: 700; font-size:17px; color:var(--secondary); margin-bottom:8px; }
+.ad-pf-view-info p{ font-size:13px; color:var(--gray-500); line-height:1.65; }
+.ad-pf-view-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+.ad-pf-view-tags span{ font-family:var(--font-mono); font-size:10px; color:var(--primary); background:rgba(var(--primary-rgb),0.08); padding:4px 10px; border-radius:var(--r-pill); }
+
+/* ── Settings tab — catalog PDF ── */
+#ad-tab-settings{ display:flex; flex-direction:column; gap:18px; }
+.ad-settings-card{
+  background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-md);
+  padding:22px 24px; max-width:560px; display:flex; flex-direction:column; gap:12px;
+  box-shadow:none;
+}
+.ad-settings-title{
+  font-family:var(--font-display); font-weight: 700; font-size:15px; color:var(--secondary);
+  display:flex; align-items:center; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--gray-100);
+}
+.ad-settings-desc{ font-size:12.5px; color:var(--gray-500); line-height:1.6; }
+.ad-settings-desc a{ color:var(--primary); font-weight:700; }
+.ad-settings-current{
+  display:flex; align-items:center; gap:8px; font-size:12.5px; background:var(--gray-50);
+  border:1px solid var(--gray-200); border-radius:var(--r-sm); padding:10px 12px;
+}
+.ad-team-list{ display:flex; flex-wrap:wrap; gap:8px; }
+.ad-team-chip{
+  display:flex; align-items:center; gap:6px; background:var(--gray-50); border:1px solid var(--gray-200);
+  border-radius:var(--r-pill); padding:6px 8px 6px 14px; font-size:12.5px; color:var(--secondary);
+}
+.ad-team-chip button{
+  display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%;
+  border:none; background:transparent; color:var(--gray-400); cursor:pointer; padding:0;
+}
+.ad-team-chip button:hover{ background:var(--gray-200); color:var(--danger, #DC2626); }
+.ad-team-chip button svg{ width:12px; height:12px; }
+.ad-team-empty{ font-size:12.5px; color:var(--text-meta); }
+.ad-settings-current-label{ color:var(--text-meta); font-weight:700; flex-shrink:0; }
+#ad-catalog-current-name{ color:var(--secondary); font-weight:700; word-break:break-all; }
+
+/* ── Settings tab — บัญชีผู้ใช้ทีมงาน (staff/role) + ประวัติการทำงาน (audit log) ── */
+#ad-tab-settings .ad-settings-card:has(#ad-staff-list),
+#ad-tab-settings .ad-settings-card:has(#ad-audit-list){ max-width:760px; }
+.ad-staff-row, .ad-audit-row{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:var(--gray-50); border:1px solid var(--gray-200); border-radius:var(--r-sm);
+  padding:9px 12px; font-size:12.5px; color:var(--secondary);
+}
+.ad-staff-row + .ad-staff-row, .ad-audit-row + .ad-audit-row{ margin-top:8px; }
+.ad-staff-row .ad-staff-name{ font-weight:700; }
+.ad-staff-row .ad-staff-email{ color:var(--text-meta); }
+.ad-staff-role-badge{
+  font-size:10.5px; font-weight:800; letter-spacing:.02em; text-transform:uppercase;
+  padding:3px 9px; border-radius:var(--r-pill); background:rgba(var(--primary-rgb),0.1); color:var(--primary);
+}
+.ad-staff-role-badge.role-staff{ background:var(--gray-200); color:var(--gray-600); }
+.ad-staff-row button{
+  margin-left:auto; border:none; background:transparent; color:var(--gray-400); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%;
+}
+.ad-staff-row button:hover{ background:var(--gray-200); color:var(--danger, #DC2626); }
+.ad-staff-row button svg{ width:14px; height:14px; }
+.ad-audit-list{ display:flex; flex-direction:column; max-height:420px; overflow-y:auto; }
+.ad-audit-row .ad-audit-meta{ color:var(--text-meta); font-size:11.5px; }
+.ad-audit-row .ad-audit-action{ font-weight:700; }
+
+/* ── Leads tab ── */
+.ad-tab-badge{
+  display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px;
+  padding:0 5px; margin-left:6px; border-radius:var(--r-pill); background:#DC2626; color:#fff;
+  font-size:10.5px; font-weight:800; line-height:1; box-shadow:0 0 0 3px rgba(220,38,38,0.14);
+}
+.cp-subtext{ color:var(--text-meta); font-size:11.5px; }
+.ad-l-row{ cursor:pointer; }
+.ad-l-row-new{ background:rgba(var(--primary-rgb),0.04); }
+.ad-l-row-new td:first-child{ position:relative; }
+.ad-l-row-new td:first-child::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--primary);
+}
+.ad-l-msg{ max-width:260px; font-size:12.3px; line-height:1.5; }
+.ad-l-status{ min-width:104px; }
+
+/* ── Settings tab: ข้อมูลติดต่อทั้งเว็บไซต์ ── */
+.ad-settings-form{ display:flex; flex-direction:column; gap:12px; margin-top:14px; }
+.ad-settings-form textarea{ resize:vertical; }
+
+/* ── Blog cards (reuse ad-card visual language) ── */
+#ad-b-grid.ad-grid{ grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+.ad-b-card{ transition:box-shadow .25s var(--ease), transform .25s var(--ease); }
+.ad-b-card .port-visual{ min-height:150px; aspect-ratio:16/10; }
+.ad-b-status-draft{
+  position:absolute; top:10px; left:10px; z-index:2; display:inline-flex; align-items:center; gap:5px;
+  background:rgba(15,23,42,.82); backdrop-filter:blur(3px); color:#fff;
+  font-size:10.5px; font-weight:700; padding:4px 10px 4px 8px; border-radius:var(--r-pill);
+}
+.ad-b-status-draft::before{
+  content:""; width:6px; height:6px; border-radius:50%; background:#F59E0B; flex-shrink:0;
+}
+.ad-b-card .ad-card-cat{
+  display:inline-flex; align-items:center; gap:5px; color:var(--primary); background:rgba(var(--primary-rgb),0.08);
+  padding:2px 9px; border-radius:var(--r-pill); width:fit-content; letter-spacing:0; font-size:10px;
+}
+.ad-b-card .ad-card-name{ font-size:14px; margin-top:2px; }
+
+/* ── Partner logo cards: smaller, centered logo tile ── */
+#ad-pt-grid.ad-grid{ grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; }
+.ad-pt-card .port-visual{
+  min-height:110px; aspect-ratio:16/9; background:linear-gradient(180deg,#fff,var(--gray-25));
+}
+.ad-pt-card .port-visual img{ object-fit:contain; padding:14px; }
+.ad-pt-card .ad-card-body{ text-align:center; align-items:center; padding:10px 14px 14px; }
+.ad-pt-card .ad-card-name{ font-size:12.5px; }
+
+/* ── Lead notes button (leads tab) ── */
+.ad-l-notes-btn{ position:relative; font-size:16px; padding:6px 8px; }
+.ad-l-notes-dot{
+  position:absolute; top:2px; right:2px; width:7px; height:7px; border-radius:50%;
+  background:var(--accent); border:1.5px solid #fff;
+}
+
+/* ===========================================================
+   Global Search — ค้นข้ามสินค้า/ลีด/คำสั่งผลิตในกล่องเดียว (topbar)
+   Command-palette style overlay ผูกกับปุ่มบน topbar และคีย์ลัด "/"
+   (ดู js/admin-page.js ส่วน "GLOBAL SEARCH")
+   =========================================================== */
+.ad-gs-trigger{ position:relative; }
+.ad-gs-trigger-kbd{
+  font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--gray-400);
+  background:var(--gray-100); border:1px solid var(--gray-200); border-radius:5px;
+  padding:1px 6px; line-height:1.5;
+}
+@media (max-width:640px){
+  .ad-gs-trigger span, .ad-gs-trigger-kbd{ display:none; }
+  .ad-gs-trigger{ width:38px; padding:0; justify-content:center; }
+}
+
+.ad-gs-overlay{
+  position:fixed; inset:0; z-index:1200; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px);
+  display:flex; align-items:flex-start; justify-content:center; padding:12vh 16px 16px;
+  animation:cpFadeIn .15s var(--ease);
+}
+.ad-gs-panel{
+  width:100%; max-width:600px; max-height:70vh; background:#fff; border-radius:var(--r-xl);
+  box-shadow:var(--shadow-xl); display:flex; flex-direction:column; overflow:hidden;
+  animation:cpModalIn .18s var(--ease);
+}
+.ad-gs-input-row{ display:flex; align-items:center; gap:10px; padding:16px 18px; border-bottom:1px solid var(--gray-100); }
+.ad-gs-input-icon{ width:18px; height:18px; color:var(--gray-400); flex:none; }
+.ad-gs-input{
+  flex:1; border:none; outline:none; font-size:15px; font-family:var(--font-body); color:var(--secondary);
+  background:transparent;
+}
+.ad-gs-input::placeholder{ color:var(--gray-400); }
+.ad-gs-close{
+  flex:none; width:26px; height:26px; border-radius:50%; border:none; background:var(--gray-100);
+  color:var(--gray-500); display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.ad-gs-close:hover{ background:var(--gray-200); color:var(--secondary); }
+
+.ad-gs-results{ overflow-y:auto; padding:8px; flex:1; }
+.ad-gs-group-label{
+  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--text-meta);
+  padding:10px 10px 6px;
+}
+.ad-gs-result{
+  display:flex; align-items:center; gap:12px; padding:10px 10px; border-radius:var(--r-md);
+  text-decoration:none; color:inherit; cursor:pointer; border:none; background:transparent; width:100%; text-align:left;
+  transition:background .12s var(--ease);
+}
+.ad-gs-result:hover, .ad-gs-result.is-active{ background:var(--gray-50); }
+.ad-gs-result-icon{
+  flex:none; width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+  background:rgba(var(--primary-rgb),0.1); color:var(--primary-dark);
+}
+.ad-gs-result-icon svg{ width:15px; height:15px; }
+.ad-gs-result-body{ min-width:0; flex:1; display:flex; flex-direction:column; gap:1px; }
+.ad-gs-result-title{ font-size:13.5px; font-weight:700; color:var(--secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ad-gs-result-title mark{ background:rgba(var(--primary-rgb),0.22); color:inherit; border-radius:2px; }
+.ad-gs-result-desc{ font-size:12px; color:var(--text-meta); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ad-gs-result-tag{
+  flex:none; font-size:10.5px; font-weight:700; color:var(--text-meta); background:var(--gray-100);
+  padding:3px 9px; border-radius:var(--r-pill);
+}
+.ad-gs-empty{ padding:36px 20px; text-align:center; color:var(--text-meta); font-size:13px; }
+.ad-gs-empty strong{ color:var(--secondary); }
+
+.ad-gs-foot{
+  display:flex; gap:16px; padding:9px 18px; border-top:1px solid var(--gray-100); background:var(--gray-25);
+  font-size:11px; color:var(--text-meta);
+}
+.ad-gs-foot kbd, .ad-gs-trigger-kbd, kbd.ad-kbd{
+  font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--gray-500);
+  background:#fff; border:1px solid var(--gray-200); border-radius:5px; padding:1px 6px; margin-right:2px;
+}
+
+/* ===========================================================
+   Bug fix (found while redesigning the products tab): .cl-input
+   had no base rule anywhere in the codebase — every search box,
+   filter dropdown, and the login fields were rendering as bare
+   unstyled native inputs. .cp-toolbar already assumed 34px of
+   left padding existed to make room for the search icon (see
+   `padding-left:34px !important` in console.css), which only
+   worked by accident because unstyled inputs have no padding to
+   conflict with. Adding the real base style here.
+   =========================================================== */
+.cl-input{
+  width:auto; padding:0 12px; font-size:13.5px; font-family:var(--font-body);
+  color:var(--secondary); background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-md);
+  transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+input.cl-input, select.cl-input{ height:38px; }
+select.cl-input{ cursor:pointer; }
+textarea.cl-input{ padding:9px 12px; line-height:1.6; resize:vertical; }
+.cl-input::placeholder{ color:var(--gray-400); }
+.cl-input:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(var(--primary-rgb),0.12); }
+.cl-input:disabled{ background:var(--gray-50); color:var(--gray-400); cursor:not-allowed; }
+
+/* ===========================================================
+   Products tab redesign pass — the shared .port-card class (used
+   by the public portfolio grid too) has a bouncy translateY+shadow-lg
+   hover meant for a marketing page. Flatten it here, scoped to the
+   products grid only, so the public portfolio page is untouched.
+   =========================================================== */
+#ad-p-grid.ad-grid .ad-card{ box-shadow:none; transition:border-color .15s var(--ease); }
+#ad-p-grid.ad-grid .ad-card:hover{ box-shadow:none; transform:none; border-color:var(--gray-300); }
+
+/* ===========================================================
+   Portfolio tab redesign pass — same shared .port-card bounce
+   (translateY + shadow-lg), same fix: flatten scoped to the
+   admin portfolio grid only, public portfolio page untouched.
+   =========================================================== */
+#ad-pf-grid.ad-grid .ad-pf-card{ box-shadow:none; transition:border-color .15s var(--ease); }
+#ad-pf-grid.ad-grid .ad-pf-card:hover{ box-shadow:none; transform:none; border-color:var(--gray-300); }
+
+/* ===========================================================
+   Blog + Partners tabs — same .ad-card share as products, but
+   these render into #ad-b-grid / #ad-pt-grid, which the products
+   pass never scoped to, so they still had the bounce. Same fix.
+   =========================================================== */
+#ad-b-grid.ad-grid .ad-card{ box-shadow:none; transition:border-color .15s var(--ease); }
+#ad-b-grid.ad-grid .ad-card:hover{ box-shadow:none; transform:none; border-color:var(--gray-300); }
+#ad-pt-grid.ad-grid .ad-card{ box-shadow:none; transition:border-color .15s var(--ease); }
+#ad-pt-grid.ad-grid .ad-card:hover{ box-shadow:none; transform:none; border-color:var(--gray-300); }
+
+/* ===========================================================
+   Orders tab redesign pass — same flattening as Overview:
+   drop shadow-heavy hovers, keep hairline borders only.
+   =========================================================== */
+.cp-table-wrap{ box-shadow:none; }
+.cp-view-toggle .cp-view-btn.active{ box-shadow:none; border:1px solid var(--gray-200); }
+.cp-kanban-card{ box-shadow:none; }
+.cp-kanban-card:hover{ box-shadow:none; border-color:var(--gray-300); }
+@keyframes adSearchHighlight{ 0%{ background-color:rgba(var(--primary-rgb),0.22); } 100%{ background-color:transparent; } }
+.cp-table tbody tr.ad-search-highlight td{ animation:adSearchHighlight 1.8s ease-out; }
+.ad-card.ad-search-highlight{ animation:adSearchHighlight 1.8s ease-out; box-shadow:0 0 0 3px rgba(var(--primary-rgb),0.35); }
+.cp-kanban-card.ad-search-highlight{ animation:adSearchHighlight 1.8s ease-out; box-shadow:0 0 0 3px rgba(var(--primary-rgb),0.35); }
+
+/* ===========================================================
+   Overview redesign pass 1 — flatter "Clean SaaS" surfaces
+   Removes bounce/heavy-shadow hovers and gradient status cards;
+   adds a sparkline slot to stat cards. Markup/IDs unchanged
+   elsewhere so admin-page.js / orders-tab.js keep working.
+   =========================================================== */
+
+/* Sidebar active tab: swap the white-card lift for a quiet left rule */
+@media (min-width: 900px){
+  .cp-tabs--grouped .cp-tab.active{
+    border-left:2px solid var(--primary); border-radius:0 var(--r-md) var(--r-md) 0;
+    padding-left:10px;
+  }
+}
+
+/* Stat cards: flat by default, no translateY bounce, no gradients on warn/danger */
+.cp-stat-card{ box-shadow:none; }
+.cp-stat-card:hover{ box-shadow:none; transform:none; border-color:var(--gray-300); }
+.cp-stat-card.warn{ background:#fff; border-color:#F4D9AE; }
+.cp-stat-card.warn .cp-stat-num{ color:#B45309; }
+.cp-stat-card.danger{ background:#fff; border-color:#F3C2C2; }
+.cp-stat-card.danger .cp-stat-num{ color:#B91C1C; }
+
+/* Sparkline slot: quiet trend line under the stat number, same role color */
+.cp-stat-spark{ width:100%; height:26px; display:block; margin-top:2px; }
+.cp-stat-spark polyline{ fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.cp-stat-spark .spark-line{ stroke:var(--primary); }
+.cp-stat-card.warn .cp-stat-spark .spark-line{ stroke:#B45309; }
+.cp-stat-card.danger .cp-stat-spark .spark-line{ stroke:#B91C1C; }
+.cp-stat-card.good .cp-stat-spark .spark-line{ stroke:#0D9268; }
+.cp-stat-spark.is-empty{ display:none; }
+
+/* หมวดหมู่ใหญ่ / หมวดหมู่ย่อย: หัวข้อย่อยเล็กๆ คั่นระหว่าง 2 ตารางในแท็บเดียวกัน */
+.cp-subsection-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+.cp-subsection-title{ font-size:15px; font-weight:700; color:var(--gray-800); margin:0; }
+.cp-subsection-head .cp-add-btn{ margin-left:0; }
+.ad-g-badge{ display:inline-block; padding:2px 9px; border-radius:999px; background:var(--gray-100); color:var(--gray-600); font-size:12px; font-weight:600; }

@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สินค้าและอุปกรณ์ป้ายความปลอดภัย — CS.SIGN ผู้ผลิตป้ายความปลอดภัยครบวงจร</title>
+<meta name="description" content="เลือกชมป้ายความปลอดภัย ISO 7010 ป้ายจราจรสะท้อนแสง ป้ายชี้บ่งโรงงานอุตสาหกรรม และอุปกรณ์ควบคุมการจราจรจาก CS.SIGN มาตรฐาน มอก. รับออกแบบ Artwork และผลิตตามขนาดที่ต้องการ">
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://cssign.co.th/products.html">
+<meta property="og:title"       content="สินค้า CS.SIGN — ป้ายความปลอดภัยและป้ายจราจร มอก.">
+<meta property="og:description" content="ป้ายความปลอดภัย ISO 7010 ป้ายจราจรสะท้อนแสง อุปกรณ์จราจร ราคาและรายละเอียดสินค้าครบ">
+<meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale"      content="th_TH">
+<link rel="canonical" href="https://cssign.co.th/products.html">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Perf: preconnect above already warms the connection; this actually
+     loads the webfont CSS, moved out of style.css's @import (which is
+     render-blocking and only discoverable after style.css itself loads,
+     costing an extra round trip before Thai/Latin text paints). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com">
+<link rel="stylesheet" href="css/style.css?v=20260711a">
+<link rel="stylesheet" href="css/shared-widgets.css">
+<link rel="stylesheet" href="css/track-modal.css">
+<style>
+  /* ---- Product page hero ---- */
+  .pr-hero{ position:relative; overflow:hidden; padding: var(--page-hero-pad-top) 0 var(--page-hero-pad-bottom); background: var(--gray-50); }
+  /* ---- Second decorative layer (matches .article-hero/.contact-hero mesh
+     treatment in style.css): a soft two-corner brand-colour wash sitting
+     behind the existing line-art SVG, purely additive depth. ---- */
+  .pr-hero::before{
+    content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(520px 320px at 0% 100%, rgba(var(--primary-rgb),0.05), transparent 60%),
+      radial-gradient(460px 300px at 100% 0%, rgba(var(--accent-rgb),0.05), transparent 60%);
+  }
+  .pr-hero-bg{ position:absolute; top:-70px; right:-110px; width:520px; opacity:.85; pointer-events:none; }
+  .pr-hero-inner{ position:relative; z-index:1; max-width:680px; }
+  .pr-hero-inner h1{ font-family:var(--font-display); font-weight: 700; font-size:clamp(30px,4vw,46px); color:var(--text-heading); line-height:1.2; letter-spacing:-0.02em; margin:14px 0 18px; }
+  .pr-hero-inner p{ font-size:16.5px; line-height:1.75; color: var(--gray-500); max-width:580px; }
+
+  /* ---- Filter tabs ---- */
+  /* ดรอปดาวน์หมวดใหญ่ + ชิปหมวดย่อย อยู่แถวเดียวกันถ้าที่พอ (wrap ขึ้นบรรทัดใหม่เมื่อแคบ)
+     ชิดซ้ายด้วยกันทั้งคู่แทนการจัดกึ่งกลาง เพื่อให้ดูเป็นตัวกรองชุดเดียวกัน ไม่ใช่สอง
+     แถวที่ยาวไม่เท่ากันแล้วดูไม่สัมพันธ์กัน */
+  .pr-filter-row{ display:flex; flex-wrap:wrap; align-items:center; gap:12px 14px; margin: 0 0 18px; }
+  .pr-meta{ display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; padding-top:14px; border-top:1px solid var(--gray-100); font-family:var(--font-mono); font-size:12.5px; color:var(--gray-400); letter-spacing:.04em; }
+  .pr-meta strong{ color:var(--secondary); font-family:var(--font-display); }
+  .product-card[data-cat]{ transition:opacity .3s var(--ease), transform .3s var(--ease); }
+  .pr-empty{ display:none; text-align:center; padding:60px 0; color:var(--gray-400); font-size:15px; }
+  .pr-empty.show{ display:block; }
+
+
+  /* ============================================================
+     PRODUCT DETAIL POPUP
+     ============================================================ */
+  .pd-overlay {
+    position: fixed; inset: 0; z-index: 9998;
+    background: rgba(15,23,42,0.72);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: overlay-in .2s ease;
+  }
+  .pd-overlay.open { display: flex; }
+  @keyframes overlay-in { from { opacity:0 } to { opacity:1 } }
+
+  .pd-modal {
+    width: 100%;
+    max-width: 960px;
+    max-height: 92vh;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    box-shadow: 0 32px 96px rgba(15,23,42,0.35);
+    animation: modal-in .28s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes modal-in { from { opacity:0; transform:translateY(28px) scale(.97) } to { opacity:1; transform:translateY(0) scale(1) } }
+
+  /* Left: image gallery */
+  .pd-gallery {
+    flex: 0 0 420px;
+    background: var(--gray-50);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .pd-main-img {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    cursor: zoom-in;
+  }
+  .pd-main-img img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    padding: 24px;
+    box-sizing: border-box;
+    transition:transform .3s var(--ease);
+    transform-origin: center center;
+    display: block;
+  }
+  .pd-main-img.zoomed { cursor: zoom-out; }
+  .pd-main-img.zoomed img { transform: scale(2); }
+  .pd-zoom-hint {
+    position: absolute; bottom: 10px; right: 10px;
+    background: rgba(15,23,42,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 9px;
+    border-radius: 20px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pd-thumbs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--gray-200);
+    background: #fff;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .pd-thumb {
+    flex-shrink: 0;
+    width: 64px; height: 64px;
+    border-radius: 8px;
+    border: 2px solid var(--gray-200);
+    overflow: hidden;
+    cursor: pointer;
+    transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+    background: var(--gray-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .pd-thumb.active { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(var(--primary-rgb),0.2); }
+  .pd-thumb:hover { border-color: var(--primary); }
+  .pd-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
+  .pd-thumb-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    font-size: 9px; font-weight: 700;
+    text-align: center;
+    background: rgba(15,23,42,0.55);
+    color: #fff;
+    padding: 2px 0;
+    letter-spacing: .04em;
+  }
+
+  /* Right: info */
+  .pd-info {
+    flex: 1;
+    overflow-y: auto;
+    padding: 36px 36px 28px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .pd-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--gray-100);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-500);
+    transition:background .18s var(--ease), color .18s var(--ease);
+  }
+  .pd-close:hover { background: rgba(var(--danger-rgb),0.1); color: var(--danger); }
+  .pd-cat-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .pd-name {
+    font-family: var(--font-display);
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 700;
+    color: var(--secondary);
+    line-height: 1.3;
+    margin: 0 0 6px;
+    padding-right: 40px;
+  }
+  .pd-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 16px;
+  }
+  .pd-price-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .pd-price {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 700;
+    color: var(--primary);
+  }
+  .pd-price-note {
+    font-size: 12px;
+    color: var(--gray-400);
+  }
+  .pd-divider {
+    height: 1px;
+    background: var(--gray-100);
+    margin: 22px 0;
+  }
+
+  /* Variant chips + qty + live price summary (mirrors product-detail.html) */
+  .pd-variant-block { display: none; margin-top: 4px; }
+  .pd-variant-block.show { display: block; }
+  .pd-variant-alert {
+    background: #FFF8EC; border: 1px solid rgba(198,134,42,.35); border-left: 4px solid var(--accent);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; line-height: 1.7; color: #6B4A12;
+  }
+  .pd-variant-alert .tax-note { display: block; margin-top: 3px; color: var(--danger); font-weight: 700; }
+  .pd-opt-block { margin-bottom: 14px; }
+  .pd-opt-label { font-size: 12.5px; font-weight: 700; color: var(--secondary); margin-bottom: 8px; }
+  .pd-chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .pd-chip {
+    font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 14px;
+    border-radius: var(--r-pill); border: 1.5px solid var(--gray-200); background: #fff;
+    color: var(--gray-600); cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+  }
+  .pd-chip:hover { border-color: rgba(var(--primary-rgb),.5); color: var(--primary); }
+  .pd-chip.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+  .pd-qty-block { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  .pd-qty-block .pd-opt-label { margin-bottom: 0; }
+  .pd-qty-stepper { display: flex; align-items: center; border: 1.5px solid var(--gray-200); border-radius: var(--r-pill); overflow: hidden; }
+  .pd-qty-btn { width: 30px; height: 30px; border: none; background: var(--gray-50); color: var(--secondary); font-size: 15px; font-weight: 700; cursor: pointer; line-height: 1; }
+  .pd-qty-btn:hover { background: var(--gray-100); }
+  .pd-qty-stepper input {
+    width: 48px; height: 30px; border: none; border-left: 1.5px solid var(--gray-200); border-right: 1.5px solid var(--gray-200);
+    text-align: center; font-size: 13px; font-weight: 700; color: var(--secondary); -moz-appearance: textfield;
+  }
+  .pd-qty-stepper input::-webkit-outer-spin-button, .pd-qty-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .pd-variant-total { background: var(--gray-50); border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; }
+  .pd-vt-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; color: var(--gray-500); }
+  .pd-vt-row + .pd-vt-row { margin-top: 5px; }
+  .pd-vt-row.pd-vt-total { padding-top: 8px; margin-top: 8px; border-top: 1px dashed var(--gray-200); font-size: 14px; font-weight: 800; color: var(--secondary); }
+  .pd-vt-empty { font-size: 12.5px; color: var(--gray-500); }
+  .pd-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 8px;
+  }
+  .pd-desc {
+    font-size: 14px; line-height: 1.75;
+    color: var(--gray-500);
+    margin-bottom: 12px;
+  }
+  .pd-specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .pd-spec-item {
+    background: var(--gray-50);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .pd-spec-key {
+    font-size: 11px; font-weight: 600;
+    color: var(--gray-400);
+    margin-bottom: 3px;
+  }
+  .pd-spec-val {
+    font-size: 13.5px; font-weight: 600;
+    color: var(--secondary);
+  }
+  .pd-tags {
+    display: flex; gap: 7px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .pd-tag {
+    font-size: 12px; font-weight: 600;
+    padding: 4px 12px;
+    border-radius: var(--r-pill);
+    border: 1.5px solid var(--gray-200);
+    color: var(--gray-500);
+    background: #fff;
+  }
+
+  /* Link to the standalone product-detail.html page (real URL, so it can be
+     shared/bookmarked/indexed on its own — unlike this in-page modal) */
+  .pd-full-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 700; color: var(--primary);
+    margin-bottom: 14px; text-decoration: none;
+  }
+  .pd-full-link svg { width: 13px; height: 13px; }
+  .pd-full-link:hover { text-decoration: underline; }
+
+  /* Notice banner inside modal */
+  .pd-notice {
+    background: rgba(var(--warning-rgb),0.08);
+    border: 1.5px solid rgba(var(--warning-rgb),0.4);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--accent-dark);
+    margin-bottom: 18px;
+  }
+  .pd-notice strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--accent-dark);
+  }
+
+  .pd-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 6px;
+  }
+  .pd-quote-btn {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px;
+    font-size: 14px; font-weight: 700;
+    color: #fff; background: var(--primary);
+    padding: 12px 20px;
+    border-radius: var(--r-pill);
+    border: none; cursor: pointer;
+    text-decoration: none;
+    transition:background .2s var(--ease);
+  }
+  .pd-quote-btn:hover { background: var(--primary-dark); }
+  .pd-inquiry-btn {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px;
+    font-size: 14px; font-weight: 700;
+    color: var(--primary); background: transparent;
+    padding: 12px 20px;
+    border-radius: var(--r-pill);
+    border: 2px solid var(--primary);
+    cursor: pointer;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .pd-inquiry-btn:hover { background: var(--primary); color: #fff; }
+
+  @media (max-width: 780px) {
+    .pd-modal { flex-direction: column; max-height: 95vh; border-radius: 16px; }
+    .pd-gallery { flex: 0 0 auto; }
+    .pd-main-img { min-height: 220px; }
+    .pd-info { padding: 22px 20px 20px; }
+    .pd-specs { grid-template-columns: 1fr; }
+    .pd-actions { flex-direction: column; }
+  }
+  @media (max-width: 480px) {
+    .pd-main-img { min-height: 180px; }
+    .pd-thumb { width: 52px; height: 52px; }
+  }
+</style>
+<link rel="stylesheet" href="css/fancy-effects.css">
+</head>
+<body>
+<a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
+
+<!-- ============================================================
+     STICKY NAVIGATION
+     ============================================================ -->
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        062-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="แชทผ่าน LINE" title="แชทผ่าน LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>แอด LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="ค้นหาในเว็บไซต์">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="#" class="is-active">TH</a>
+        <a href="en/index.html">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">หน้าแรก</a>
+
+      <div class="nav-item-dropdown">
+        <button class="nav-link nav-dd-trigger nav-link--active" type="button">
+          หมวดหมู่
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown nav-megamenu">
+          <div class="nav-mega-grid">
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายความปลอดภัย</div>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+              </a>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายจราจร</div>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายจราจรสะท้อนแสง HI</strong><span>ผลิตตามมาตรฐานกรมทางหลวง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / เขตก่อสร้าง</strong><span>เพิ่มความปลอดภัยพื้นที่ก่อสร้าง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายชี้ทาง / บอกทิศทาง</strong><span>ออกแบบตามผังพื้นที่จริง</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">อุปกรณ์จราจร</div>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>กรวยจราจร / แบริเออร์</strong><span>วัสดุคุณภาพ ทนทาน ใช้งานยาวนาน</span></span>
+              </a>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>เสาล้มลุก / แท่งกั้นถนน</strong><span>ติดตั้งง่าย ปรับตามพื้นที่ใช้งาน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ตามอุตสาหกรรม</div>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงงานอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>หน่วยงานราชการ</strong></a>
+              <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>นิคมอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงพยาบาล / สถานพยาบาล</strong></a>
+            </div>
+          </div>
+          <a href="products.html" class="nav-mega-foot">
+            ดูสินค้าทั้งหมด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="portfolio.html" class="nav-link">ผลงาน</a>
+      <a href="about.html" class="nav-link">เกี่ยวกับเรา</a>
+      <a href="blog.html" class="nav-link">บทความ</a>
+      <a href="contact.html" class="nav-link">ติดต่อ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">ขอใบเสนอราคา</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="เช็คสถานะคำสั่งผลิต" title="เช็คสถานะคำสั่งผลิต">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">หน้าแรก</a>
+
+    <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
+      หมวดหมู่
+      <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="mobile-dd-panel" id="mobile-dd-panel">
+      <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+      <a href="products.html?cat=traffic">ป้ายจราจร</a>
+      <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+      <a href="products.html">ดูสินค้าทั้งหมด</a>
+    </div>
+
+    <a href="portfolio.html">ผลงาน</a>
+    <a href="about.html">เกี่ยวกับเรา</a>
+    <a href="blog.html">บทความ</a>
+    <a href="#" data-track-modal-open>เช็คสถานะคำสั่งผลิต</a>
+    <a href="contact.html">ติดต่อ</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="#" class="is-active">TH · ไทย</a>
+    <a href="en/index.html">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>แอด LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">ขอใบเสนอราคา</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">โทร 062-883-3880</a>
+  </div>
+</div>
+
+<main id="top">
+
+<!-- ============================================================
+     PRODUCTS HERO
+     ============================================================ -->
+<section class="pr-hero" data-reveal="fade">
+  <div class="pr-hero-bg" aria-hidden="true">
+    <svg viewBox="0 0 560 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M150 36 L256 222 L44 222 Z" stroke="#E2E8F0" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="430" cy="148" r="92" stroke="#E2E8F0" stroke-width="13"/>
+      <rect x="318" y="270" width="150" height="150" rx="16" stroke="#E2E8F0" stroke-width="13" transform="rotate(45 393 345)"/>
+    </svg>
+  </div>
+  <div class="wrap pr-hero-inner">
+    <div class="eyebrow">PRODUCT CATALOG</div>
+    <h1>สินค้าและอุปกรณ์<br>ป้ายความปลอดภัยครบทุกหมวด</h1>
+    <p>เลือกชมป้ายความปลอดภัย ป้ายจราจร ป้ายชี้บ่งโรงงาน และอุปกรณ์ควบคุมการจราจร ผลิตตามมาตรฐาน มอก. และ ISO 7010 ทุกรายการรับออกแบบ Artwork ฟรีและสั่งผลิตตามขนาดที่ต้องการ — เลือกหมวดหมู่ด้านล่างเพื่อดูสินค้าที่ตรงกับโครงการของคุณ</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     FILTERABLE PRODUCT GRID
+     ============================================================ -->
+<section class="section" id="catalog">
+  <div class="wrap">
+
+    <div class="pr-filter-row" data-reveal>
+      <!-- หมวดหมู่ใหญ่: ดรอปดาวน์ตัวเดียว แสดงหมวดที่เลือกอยู่เป็นข้อความ (populate โดย
+           js/products.js จากข้อมูล groups ใน Firestore — ว่างเปล่า/ไม่แสดงถ้ามีหมวดใหญ่
+           เดียวหรือยังไม่มีข้อมูล เพื่อไม่ให้เห็นดรอปดาวน์เปล่าตอนหน้าโหลด) -->
+      <div class="pr-group-select" id="product-group-tabs-dynamic"></div>
+      <!-- หมวดหมู่ย่อย: ยังเป็นชิปพิลเหมือนเดิม ปุ่ม "ทั้งหมด" นี้คือ fallback แบบ static
+           (ไม่มีดรอปดาวน์หมวดใหญ่คู่กันในโหมดนี้ จึงไม่ชนคำกัน) — js/products.js จะ
+           แทนที่เนื้อหาทั้งหมดในนี้เมื่อโหลดข้อมูลจริงจาก Firestore สำเร็จ -->
+      <div class="product-tabs" id="product-tabs-dynamic">
+        <button class="product-tab active" data-filter="all">ทั้งหมด</button>
+        <button class="product-tab" data-filter="safety">ป้ายความปลอดภัย</button>
+        <button class="product-tab" data-filter="traffic">ป้ายจราจร</button>
+        <button class="product-tab" data-filter="equip">อุปกรณ์</button>
+      </div>
+    </div>
+
+    <div class="pr-meta" data-reveal>
+      <span>แสดงสินค้า <strong id="pr-count">5</strong> รายการ</span>
+      <span>อัปเดตล่าสุด · 2569</span>
+    </div>
+
+    <div class="product-grid" id="product-grid" data-reveal>
+
+      <!-- Card 1 -->
+      <div class="product-card" data-cat="safety"
+        data-product='{
+          "name":"ป้ายความปลอดภัย ISO 7010",
+          "cat":"Safety Signage",
+          "code":"CSS-SAFE-001",
+          "price":"ขอใบเสนอราคา",
+          "desc":"ป้ายห้าม ป้ายเตือน ป้ายบังคับ ผลิตจากวัสดุทนทาน สีไม่ซีดจาง ตามมาตรฐาน มอก.635 ทุกรายการ มีให้เลือกหลายขนาดและวัสดุตามความต้องการ พร้อมบริการออกแบบ Artwork ฟรี",
+          "material":"อลูมิเนียมเกรด A / PVC / สติ๊กเกอร์สะท้อนแสง",
+          "size":"ตั้งแต่ 15×15 ซม. ถึง 120×120 ซม.",
+          "badge":"มอก.635",
+          "tags":["มอก.635","ISO 7010","Safety","Custom"],
+          "views":["หน้า","หลัง","ด้านข้าง"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><path d="M32 4 6 16v14c0 14 11 23 26 30 15-7 26-16 26-30V16L32 4z"/><path d="M22 32l7 7 14-14" stroke="#EA580C"/></svg>
+        </div>
+        <div class="product-badge">มอก.635</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            ดูรายละเอียด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="product-card" data-cat="traffic"
+        data-product='{
+          "name":"ป้ายจราจรสะท้อนแสง",
+          "cat":"Traffic Signage",
+          "code":"CSS-TRAF-002",
+          "price":"ขอใบเสนอราคา",
+          "desc":"วัสดุสะท้อนแสงเกรด Engineering และ High-Intensity มาตรฐาน ASTM ทนแดดทนฝนได้นาน 10+ ปี เหมาะสำหรับถนนสาธารณะ ทางหลวง และพื้นที่ก่อสร้าง",
+          "material":"อลูมิเนียมแผ่น + ฟิล์มสะท้อนแสง ASTM",
+          "size":"60×60 ซม. / 75×75 ซม. / 90×90 ซม.",
+          "badge":"DOH Standard",
+          "tags":["DOH","จราจร","สะท้อนแสง","ASTM"],
+          "views":["หน้า","หลัง","ด้านข้าง"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><circle cx="32" cy="32" r="26"/><path d="M16 32h32M32 16v32" stroke="#16A34A"/></svg>
+        </div>
+        <div class="product-badge">DOH Standard</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            ดูรายละเอียด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="product-card" data-cat="safety"
+        data-product='{
+          "name":"ป้ายชี้บ่งโรงงานอุตสาหกรรม",
+          "cat":"Plant Signage",
+          "code":"CSS-PLANT-003",
+          "price":"ขอใบเสนอราคา",
+          "desc":"ระบบป้ายชี้บ่งพื้นที่และความเสี่ยงสำหรับโรงงานและสถานประกอบการ พร้อม Artwork ฟรี รับผลิตตามมาตรฐานของลูกค้า",
+          "material":"อลูมิเนียม / PVC / โฟมบอร์ด / สแตนเลส",
+          "size":"ตามสั่ง ทุกขนาด",
+          "badge":"Custom Order",
+          "tags":["โรงงาน","Custom","Artwork ฟรี","GHS"],
+          "views":["หน้า","หลัง","ด้านข้าง"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><rect x="10" y="10" width="44" height="44" rx="4"/><path d="M20 38l8-12 6 8 10-14" stroke="#EA580C"/></svg>
+        </div>
+        <div class="product-badge">Custom Order</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            ดูรายละเอียด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="product-card" data-cat="equip"
+        data-product='{
+          "name":"กรวยจราจรและแบริเออร์",
+          "cat":"Traffic Equipment",
+          "code":"CSS-EQUIP-004",
+          "price":"เริ่มต้น ฿350 / ชิ้น",
+          "desc":"อุปกรณ์ควบคุมการจราจรครบชุด กรวยจราจร PVC ทนทาน แบริเออร์พลาสติก พร้อมบริการตีเส้นจราจรหน้างาน มีสต็อกพร้อมส่ง",
+          "material":"PVC เกรดพรีเมี่ยม / HDPE",
+          "size":"กรวย: สูง 50, 70, 90 ซม. / แบริเออร์: ยาว 100 ซม.",
+          "badge":"In Stock",
+          "tags":["พร้อมส่ง","PVC","จราจร","ก่อสร้าง"],
+          "views":["หน้า","หลัง","ด้านข้าง"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><path d="M32 8l16 48H16L32 8z"/><path d="M24 40h16" stroke="#7C3AED"/></svg>
+        </div>
+        <div class="product-badge">In Stock</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            ดูรายละเอียด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="product-card" data-cat="safety"
+        data-product='{
+          "name":"ป้ายทางหนีไฟและฉุกเฉิน",
+          "cat":"Safety Signage",
+          "code":"CSS-FIRE-005",
+          "price":"ขอใบเสนอราคา",
+          "desc":"ป้ายเรืองแสง Photoluminescent มองเห็นชัดในที่มืดและสถานการณ์ฉุกเฉิน ออกแบบตามมาตรฐาน ISO 7010 เหมาะสำหรับอาคาร โรงงาน โรงแรม และสถานที่สาธารณะ",
+          "material":"อลูมิเนียม + ฟิล์มเรืองแสง / PVC เรืองแสง",
+          "size":"15×30 ซม. / 20×40 ซม. / ตามสั่ง",
+          "badge":"ISO 7010",
+          "tags":["ISO 7010","เรืองแสง","ฉุกเฉิน","อัคคีภัย"],
+          "views":["หน้า","หลัง","ด้านข้าง"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><path d="M32 6c-12 0-22 9-22 21 0 16 22 31 22 31s22-15 22-31c0-12-10-21-22-21z"/><circle cx="32" cy="27" r="6" stroke="#EA580C"/></svg>
+        </div>
+        <div class="product-badge">ISO 7010</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            ดูรายละเอียด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /product-grid -->
+
+    <div class="pr-empty" id="pr-empty">ยังไม่มีสินค้าในหมวดหมู่นี้ — โปรดเลือกหมวดหมู่อื่น</div>
+
+  </div>
+</section>
+
+<!-- CTA STRIP -->
+<section class="site-cta-band site-cta-band--strip">
+  <div class="wrap">
+    <div class="site-cta-card" data-reveal>
+      <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+      <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
+      <div class="site-cta-bg-art" aria-hidden="true">
+        <svg viewBox="0 0 1200 340" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <path d="M980 40C1080 40 1160 110 1160 190C1160 270 1080 320 990 320" stroke="rgba(255,255,255,0.06)" stroke-width="46" stroke-linecap="round" fill="none"/>
+          <path d="M840 20L1180 320M1180 20L840 320" stroke="rgba(255,255,255,0.045)" stroke-width="40" stroke-linecap="round"/>
+          <circle cx="150" cy="60" r="140" fill="rgba(255,255,255,0.035)"/>
+        </svg>
+      </div>
+      <div class="site-cta-content">
+        <h2>ต้องการป้ายแบบ <span class="cta-accent">Custom</span> ตามหน้างานจริงไหม?</h2>
+        <p>ทีม CS.SIGN ให้คำปรึกษาฟรี ออกแบบ Artwork และจัดทำใบเสนอราคาภายใน 24 ชั่วโมง</p>
+        <a href="contact.html" class="btn btn-white btn-lg">ขอใบเสนอราคา</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+
+<!-- FOOTER -->
+
+
+
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์มากกว่า 20 ปี</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-h">ผลิตภัณฑ์</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+          <a href="products.html?cat=traffic">ป้ายจราจร</a>
+          <a href="products.html?cat=safety">ป้ายโรงงานอุตสาหกรรม</a>
+          <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-h">บริษัท</div>
+        <div class="footer-links">
+          <a href="about.html">เกี่ยวกับเรา</a>
+          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="portfolio.html">ผลงานของเรา</a>
+          <a href="quality-policy.html">นโยบายคุณภาพ</a>
+          <a href="blog.html">บทความ</a>
+          <a href="about.html#faq">คำถามที่พบบ่อย</a>
+          <a href="contact.html">ติดต่อเรา</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-h">ติดต่อเรา</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">ที่อยู่</div>
+          <div class="footer-contact-val">17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรศัพท์ / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">062-883-3880, 063-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรสาร (Fax)</div>
+          <span class="footer-contact-val">02-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">อีเมล</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN — บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">นโยบายความเป็นส่วนตัว</a> · <a href="terms.html" style="color:inherit;">ข้อกำหนดการใช้บริการ</a> &middot; <a href="accessibility.html" style="color:inherit;">การเข้าถึงเว็บไซต์ (WCAG)</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/tabs-overflow.js"></script>
+<script src="js/main.js"></script>
+<script src="js/cookie-consent.js"></script>
+<script src="js/site-search.js"></script>
+<script type="module" src="js/site-settings.js"></script>
+<script type="module" src="js/nav-menu.js"></script>
+<script type="module" src="js/products.js"></script>
+<script src="js/product-schema.js"></script>
+
+
+<!-- ============================================================
+     PRODUCT DETAIL POPUP
+     ============================================================ -->
+<div class="pd-overlay" id="pd-overlay" role="dialog" aria-modal="true" aria-label="รายละเอียดสินค้า">
+  <div class="pd-modal">
+    <!-- Gallery -->
+    <div class="pd-gallery">
+      <div class="pd-main-img" id="pd-main-img">
+        <div class="pa-grid" style="position:absolute;inset:0;opacity:.3;background-image:linear-gradient(rgba(15,23,42,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,0.04) 1px,transparent 1px);background-size:24px 24px;pointer-events:none;"></div>
+        <svg id="pd-main-svg" viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5" style="width:80px;height:80px;position:relative;z-index:1;"></svg>
+        <img id="pd-main-img-tag" src="" alt="" style="display:none;">
+        <div class="pd-zoom-hint" id="pd-zoom-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+          คลิกเพื่อซูม
+        </div>
+      </div>
+      <div class="pd-thumbs" id="pd-thumbs"></div>
+    </div>
+    <!-- Info -->
+    <div class="pd-info">
+      <button class="pd-close" id="pd-close" aria-label="ปิด">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="pd-cat-label" id="pd-cat"></div>
+      <h2 class="pd-name" id="pd-name"></h2>
+      <div class="pd-code" id="pd-code"></div>
+      <div class="pd-price-row">
+        <span class="pd-price" id="pd-price"></span>
+        <span class="pd-price-note">/ ต่อหน่วย</span>
+      </div>
+      <div class="pd-variant-block" id="pd-variant-block"></div>
+      <div class="pd-divider"></div>
+      <div class="pd-section-label" id="pd-details-label">รายละเอียดสินค้า</div>
+      <p class="pd-desc" id="pd-desc"></p>
+      <div class="pd-specs" id="pd-specs"></div>
+      <div class="pd-section-label" id="pd-tags-label">ป้ายกำกับ</div>
+      <div class="pd-tags" id="pd-tags"></div>
+
+      <a class="pd-full-link" id="pd-full-link" href="#" style="display:none;">
+        เปิดเป็นหน้าเต็ม (ลิงก์เฉพาะสินค้านี้)
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+
+      <!-- Notice -->
+      <div class="pd-notice">
+        <strong>หมายเหตุสำหรับลูกค้า</strong>
+        เนื่องจากอุปกรณ์จราจรและป้ายขนาดใหญ่มีเงื่อนไขการจัดส่งเฉพาะราย จึงยังไม่สามารถสั่งซื้อผ่านหน้าเว็บไซต์นี้ได้โดยตรง กรุณาติดต่อฝ่ายขายเพื่อขอใบเสนอราคาและรายละเอียดการจัดส่ง<br>
+        LINE ID: <strong>@cssigngroup</strong> หรือโทร <strong>062-883-3880</strong>
+      </div>
+
+      <div class="pd-actions">
+        <button class="pd-inquiry-btn" id="pd-inquiry-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          สอบถาม
+        </button>
+        <button class="pd-quote-btn" id="pd-quote-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          ขอใบเสนอราคา
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+/* ============================================================
+   PRODUCT FILTER + COUNT
+   ============================================================ */
+(function () {
+  var tabsWrap = document.getElementById('product-tabs-dynamic');
+  var grid = document.getElementById('product-grid');
+  var countEl = document.getElementById('pr-count');
+  var emptyEl = document.getElementById('pr-empty');
+  if (!tabsWrap || !grid) return;
+
+  function filterCards(cat) {
+    var cards = grid.querySelectorAll('.product-card');
+    var visible = 0;
+    cards.forEach(function(c) {
+      if (cat === 'all' || c.dataset.cat === cat) {
+        c.style.display = '';
+        visible++;
+      } else {
+        c.style.display = 'none';
+      }
+    });
+    if (countEl) countEl.textContent = visible;
+    if (emptyEl) emptyEl.classList.toggle('show', visible === 0);
+  }
+
+  tabsWrap.addEventListener('click', function(e) {
+    var tab = e.target.closest('.product-tab');
+    if (!tab) return;
+    tabsWrap.querySelectorAll('.product-tab').forEach(function(t){ t.classList.remove('active'); });
+    tab.classList.add('active');
+    filterCards(tab.dataset.filter || 'all');
+  });
+
+  filterCards('all');
+
+  // deep-link
+  var params = new URLSearchParams(window.location.search);
+  var cat = params.get('cat');
+  if (cat && cat !== 'all') {
+    setTimeout(function() {
+      var tab = document.querySelector('.product-tab[data-filter="' + cat + '"]');
+      if (tab) tab.click();
+    }, 200);
+  }
+
+  /* -----------------------------------------------------------
+     Instant category switch — no reload, no wait.
+     Header/footer links to products.html?cat=xxx are normal <a>
+     tags (they need to work from OTHER pages too, so we can't just
+     remove href). But if we're already ON products.html, a full
+     reload just re-runs the whole page + re-fetches Firestore for
+     no reason — the products are already sitting right there in
+     the DOM. So: intercept those clicks here, filter instantly,
+     and update the URL bar with pushState (no navigation at all).
+     ----------------------------------------------------------- */
+  function switchCategoryInstantly(cat, pushUrl) {
+    if (pushUrl) {
+      var url = new URL(window.location.href);
+      if (cat && cat !== 'all') url.searchParams.set('cat', cat); else url.searchParams.delete('cat');
+      history.pushState({ cat: cat || 'all' }, '', url.pathname + url.search);
+    }
+    var targetTab = tabsWrap.querySelector('.product-tab[data-filter="' + (cat || 'all') + '"]');
+    if (targetTab) {
+      targetTab.click(); /* reuses the existing active-state + filterCards logic above */
+    } else {
+      filterCards('all'); /* category not present in current tab set — fall back to "all" */
+    }
+    var grid2 = document.getElementById('product-grid');
+    if (grid2) grid2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('a[href*="products.html?cat="], a[href^="?cat="]');
+    if (!link) return;
+    e.preventDefault();
+    var linkUrl = new URL(link.getAttribute('href'), window.location.href);
+    var cat = linkUrl.searchParams.get('cat') || 'all';
+    switchCategoryInstantly(cat, true);
+  });
+
+  window.addEventListener('popstate', function () {
+    var p = new URLSearchParams(window.location.search);
+    switchCategoryInstantly(p.get('cat') || 'all', false);
+  });
+})();
+
+/* ============================================================
+   PRODUCT DETAIL POPUP — event delegation (no inline onclick)
+   ============================================================ */
+
+// Delegate click on any .detail-btn inside the grid
+document.getElementById('product-grid').addEventListener('click', function(e) {
+  var card = e.target.closest('.product-card');
+  if (!card) return;
+  var link = e.target.closest('.detail-btn');
+  // detail-btn is a real <a href="product-detail.html?slug=..."> for real products
+  // (see products.js) so crawlers and ctrl/cmd/middle-clicks can follow it as a
+  // normal link straight to the standalone page. A plain left-click still opens
+  // the quick-preview modal instead, matching the existing UX.
+  if (link && link.tagName === 'A' && link.getAttribute('href') && link.getAttribute('href') !== '#') {
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return; // let it navigate/open in new tab
+    e.preventDefault();
+  }
+  openProduct(card);
+});
+
+var pdOverlay = document.getElementById('pd-overlay');
+var pdClose = document.getElementById('pd-close');
+var pdMainImg = document.getElementById('pd-main-img');
+var pdMainSvg = document.getElementById('pd-main-svg');
+var pdMainImgTag = document.getElementById('pd-main-img-tag');
+var pdThumbs = document.getElementById('pd-thumbs');
+var pdZoomHint = document.getElementById('pd-zoom-hint');
+var pdSpecsEl = document.getElementById('pd-specs');
+var pdVariantBlock = document.getElementById('pd-variant-block');
+
+function escapeHtmlPd(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function pdSpecsHTML(items) {
+  return items.map(function (it) {
+    return '<div class="pd-spec-item"><div class="pd-spec-key">' + escapeHtmlPd(it.key) + '</div><div class="pd-spec-val">' + escapeHtmlPd(it.val) + '</div></div>';
+  }).join('');
+}
+
+// สินค้าที่มีตัวเลือกแบบ chip (optionAxes/variants) → แสดงตัวเลือกให้กดในป็อปอัพนี้ด้วย
+// เหมือน product-detail.html: ราคา (pd-price) และ "รายละเอียดสินค้า" (pd-specs) จะ
+// เปลี่ยนตามตัวเลือกที่ลูกค้ากำลังเลือกอยู่แบบสด ๆ ไม่มีส่วนลดตามจำนวน (ราคาต่อชิ้น
+// คูณจำนวนตรง ๆ เท่านั้น) — สินค้าที่ไม่มีตัวเลือกจะแสดงวัสดุ/ขนาดแบบเดิมตามปกติ
+function renderPdVariants(data) {
+  var axes = (data.optionAxes || []).filter(function (ax) { return ax.label && (ax.options || []).length; });
+  var variants = data.variants || [];
+  window.__pdEstSummary = null;
+
+  if (!axes.length || !variants.length) {
+    pdVariantBlock.className = 'pd-variant-block';
+    pdVariantBlock.innerHTML = '';
+    pdSpecsEl.innerHTML = pdSpecsHTML([
+      { key: 'วัสดุ', val: data.material || '-' },
+      { key: 'ขนาด', val: data.size || '-' }
+    ]);
+    return;
+  }
+
+  pdSpecsEl.innerHTML = ''; // ล้างสเปกของสินค้าก่อนหน้า ป้องกันข้อมูลค้างก่อนลูกค้าเลือกตัวเลือกใหม่
+  var variantMap = {};
+  variants.forEach(function (v) { variantMap[(v.codes || []).join('|')] = v; });
+  var selected = axes.map(function () { return null; }); // ไม่ auto-select ตัวเลือกใดไว้ล่วงหน้า — ลูกค้าต้องกดเลือกเองทุกหมวด
+
+  pdVariantBlock.className = 'pd-variant-block show';
+  pdVariantBlock.innerHTML =
+    '<div class="pd-variant-alert"><strong>ก่อนสั่งซื้อ</strong> กรุณาเลือกตัวเลือกที่ต้องการด้านล่างนี้ให้ตรงกับที่ต้องการทุกครั้ง เนื่องจากแต่ละตัวเลือกมีราคาแตกต่างกัน<span class="tax-note">*ราคาสินค้านี้ยังไม่รวมภาษีมูลค่าเพิ่ม</span></div>' +
+    axes.map(function (ax, ai) {
+      return '<div class="pd-opt-block"><div class="pd-opt-label">' + escapeHtmlPd(ax.label) + '</div><div class="pd-chip-row" data-axis-idx="' + ai + '">' +
+        ax.options.map(function (opt) {
+          return '<button type="button" class="pd-chip" data-axis-idx="' + ai + '" data-code="' + escapeHtmlPd(opt.code) + '">' + escapeHtmlPd(opt.label) + '</button>';
+        }).join('') + '</div></div>';
+    }).join('') +
+    '<div class="pd-qty-block"><div class="pd-opt-label">จำนวน</div><div class="pd-qty-stepper">' +
+      '<button type="button" class="pd-qty-btn" id="pd-qty-minus" aria-label="ลดจำนวน">−</button>' +
+      '<input type="number" id="pd-qty" value="1" min="1" inputmode="numeric">' +
+      '<button type="button" class="pd-qty-btn" id="pd-qty-plus" aria-label="เพิ่มจำนวน">+</button>' +
+    '</div></div>' +
+    '<div class="pd-variant-total" id="pd-variant-total"></div>';
+
+  var qtyEl = document.getElementById('pd-qty');
+  var totalEl = document.getElementById('pd-variant-total');
+  var priceEl = document.getElementById('pd-price');
+
+  function update() {
+    var qty = Math.max(1, parseInt(qtyEl.value, 10) || 1);
+    qtyEl.value = qty;
+    var allSelected = selected.every(function (v) { return v != null; });
+
+    if (!allSelected) {
+      // ยังเลือกไม่ครบทุกหมวด — ยังไม่โชว์ราคาจริง และยังไม่เปลี่ยนกล่องสเปก
+      priceEl.textContent = 'กรุณาเลือกตัวเลือกให้ครบทุกหมวด';
+      totalEl.innerHTML = '<div class="pd-vt-empty">กรุณาเลือกตัวเลือกให้ครบทุกหมวดด้านบนเพื่อดูราคา</div>';
+      window.__pdEstSummary = null;
+      return;
+    }
+
+    var variant = variantMap[selected.join('|')];
+    var unitPrice = (variant && Number(variant.price) > 0) ? Number(variant.price) : null;
+
+    priceEl.textContent = unitPrice ? '฿' + unitPrice.toLocaleString('th-TH') : 'สอบถามราคา';
+
+    var axisRows = axes.map(function (ax, ai) {
+      var opt = ax.options.find(function (o) { return o.code === selected[ai]; });
+      return { label: ax.label, valueLabel: opt ? opt.label : selected[ai] };
+    });
+    // "รายละเอียดสินค้า" ด้านล่างสลับไปโชว้ตัวเลือกที่กำลังเลือกอยู่ ก็ต่อเมื่อเลือกครบทุกหมวดแล้ว
+    pdSpecsEl.innerHTML = pdSpecsHTML(axisRows.map(function (r) { return { key: r.label, val: r.valueLabel }; }));
+
+    totalEl.innerHTML = unitPrice == null
+      ? '<div class="pd-vt-empty">ตัวเลือกนี้ยังไม่ได้ตั้งราคาไว้ — กรุณาติดต่อฝ่ายขายเพื่อสอบถามราคา</div>'
+      : '<div class="pd-vt-row"><span>ราคาต่อชิ้น</span><span>฿' + unitPrice.toLocaleString('th-TH') + '</span></div>' +
+        '<div class="pd-vt-row pd-vt-total"><span>ราคารวม (' + qty.toLocaleString('th-TH') + ' ชิ้น)</span><span>฿' + Math.round(unitPrice * qty).toLocaleString('th-TH') + '</span></div>';
+
+    window.__pdEstSummary = {
+      productName: data.name || '',
+      productCode: data.code || '',
+      skuCode: (variant ? variant.codes : selected).join('-'),
+      axesSelected: axisRows,
+      qty: qty,
+      unitPrice: unitPrice,
+      total: unitPrice != null ? Math.round(unitPrice * qty) : null
+    };
+  }
+
+  pdVariantBlock.querySelectorAll('.pd-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var ai = Number(chip.dataset.axisIdx);
+      pdVariantBlock.querySelectorAll('.pd-chip[data-axis-idx="' + ai + '"]').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      selected[ai] = chip.dataset.code;
+      update();
+    });
+  });
+  document.getElementById('pd-qty-plus').addEventListener('click', function () { qtyEl.value = (parseInt(qtyEl.value, 10) || 1) + 1; update(); });
+  document.getElementById('pd-qty-minus').addEventListener('click', function () { qtyEl.value = Math.max(1, (parseInt(qtyEl.value, 10) || 1) - 1); update(); });
+  qtyEl.addEventListener('input', update);
+
+  update();
+}
+
+// สร้างข้อความ pre-fill ช่อง qm-msg จากตัวเลือกที่ลูกค้ากำลังเลือกอยู่ในป็อปอัพนี้
+function buildPdQuoteMessage() {
+  var s = window.__pdEstSummary;
+  if (!s) return null;
+  var parts = ['สนใจ: ' + s.productName + (s.skuCode ? ' (รหัส ' + s.skuCode + ')' : '')];
+  s.axesSelected.forEach(function (a) { parts.push(a.label + ': ' + a.valueLabel); });
+  parts.push(s.unitPrice != null
+    ? 'ราคาประมาณการ: ' + s.unitPrice.toLocaleString('th-TH') + ' บาท/ชิ้น × ' + s.qty
+    : 'ราคา: สอบถามราคา');
+  return parts.join(' | ');
+}
+
+// SVG shapes for each card index (placeholder until real images)
+var svgShapes = [
+  '<path d="M32 4 6 16v14c0 14 11 23 26 30 15-7 26-16 26-30V16L32 4z"/><path d="M22 32l7 7 14-14" stroke="#C6862A"/>',
+  '<circle cx="32" cy="32" r="26"/><path d="M16 32h32M32 16v32" stroke="#C6862A"/>',
+  '<rect x="10" y="10" width="44" height="44" rx="4"/><path d="M20 38l8-12 6 8 10-14" stroke="#C6862A"/>',
+  '<path d="M32 8l16 48H16L32 8z"/><path d="M24 40h16" stroke="#C6862A"/>',
+  '<path d="M32 6c-12 0-22 9-22 21 0 16 22 31 22 31s22-15 22-31c0-12-10-21-22-21z"/><circle cx="32" cy="27" r="6" stroke="#C6862A"/>'
+];
+
+var currentSvgIndex = 0;
+var currentViewIndex = 0;
+var allCards = [];
+
+function openProduct(card) {
+  var rawData = card.dataset.product;
+  if (!rawData) return;
+  var data;
+  try { data = JSON.parse(rawData); } catch(e) { return; }
+
+  allCards = Array.from(document.querySelectorAll('.product-card[data-product]'));
+  currentSvgIndex = allCards.indexOf(card);
+
+  // Fill info
+  document.getElementById('pd-cat').textContent = data.cat || '';
+  document.getElementById('pd-name').textContent = data.name || '';
+  document.getElementById('pd-code').textContent = 'รหัสสินค้า: ' + (data.code || '-');
+  document.getElementById('pd-price').textContent = data.price || 'ขอใบเสนอราคา';
+  document.getElementById('pd-desc').textContent = data.desc || '';
+  renderPdVariants(data);
+
+  // "รายละเอียดสินค้า" หัวข้อนี้ครอบทั้งคำอธิบาย (pd-desc) และสเปก (pd-specs) —
+  // ถ้าทั้งสองส่วนไม่มีข้อมูลจริง ก็ไม่ต้องโชว์หัวข้อค้างไว้
+  var detailsLabelEl = document.getElementById('pd-details-label');
+  var hasDesc = !!(data.desc && data.desc.trim());
+  var hasAxes = !!((data.optionAxes || []).filter(function (ax) { return ax.label && (ax.options || []).length; }).length && (data.variants || []).length);
+  var hasSpecs = hasAxes || !!pdSpecsEl.innerHTML.trim();
+  detailsLabelEl.style.display = (hasDesc || hasSpecs) ? '' : 'none';
+
+  // Tags
+  var tagsEl = document.getElementById('pd-tags');
+  var tagsLabelEl = document.getElementById('pd-tags-label');
+  tagsEl.innerHTML = '';
+  (data.tags || []).forEach(function(t) {
+    var span = document.createElement('span');
+    span.className = 'pd-tag';
+    span.textContent = t;
+    tagsEl.appendChild(span);
+  });
+  // ไม่มี "ป้ายกำกับ" (tags) จริง ก็ไม่ต้องโชว์หัวข้อนี้
+  tagsLabelEl.style.display = (data.tags && data.tags.length) ? '' : 'none';
+
+  // Link to the standalone product-detail.html page — only real (Firestore-backed)
+  // products carry a slug; the 5 static fallback cards shown when Firestore is
+  // unreachable have no matching document, so there's no real page to link to.
+  var fullLinkEl = document.getElementById('pd-full-link');
+  if (data.slug) {
+    fullLinkEl.href = 'product-detail.html?slug=' + encodeURIComponent(data.slug);
+    fullLinkEl.style.display = '';
+  } else {
+    fullLinkEl.style.display = 'none';
+  }
+
+  // Thumbnails (views) — ใช้รูปจริงของสินค้าถ้ามี ไม่งั้น fallback เป็นไอคอน placeholder
+  pdThumbs.innerHTML = '';
+  currentViewIndex = 0;
+  function imgUrlOf(img) { return (img && typeof img === 'object') ? (img.url || '') : (img || ''); }
+  function imgLabelOf(img) { return (img && typeof img === 'object') ? (img.label || '') : ''; }
+  var rawImages = (data.images || []).filter(function(img) { return imgUrlOf(img); });
+
+  if (rawImages.length) {
+    rawImages.forEach(function(img, i) {
+      var src = imgUrlOf(img);
+      var label = imgLabelOf(img);
+      var thumb = document.createElement('div');
+      thumb.className = 'pd-thumb' + (i === 0 ? ' active' : '');
+      thumb.innerHTML = '<img src="' + src + '" alt="' + (data.name || 'สินค้า') + (label ? ' — ' + label : '') + '">' +
+        (label ? '<div class="pd-thumb-label">' + label + '</div>' : '');
+      thumb.addEventListener('click', function() {
+        pdThumbs.querySelectorAll('.pd-thumb').forEach(function(t){ t.classList.remove('active'); });
+        thumb.classList.add('active');
+        currentViewIndex = i;
+        pdMainImgTag.src = src;
+        pdMainImg.classList.remove('zoomed');
+      });
+      pdThumbs.appendChild(thumb);
+    });
+  } else {
+    var views = data.views || ['หน้า','หลัง','ด้านข้าง'];
+    views.forEach(function(v, i) {
+      var thumb = document.createElement('div');
+      thumb.className = 'pd-thumb' + (i === 0 ? ' active' : '');
+      thumb.innerHTML = '<svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5">' + (svgShapes[currentSvgIndex] || svgShapes[0]) + '</svg><div class="pd-thumb-label">' + v + '</div>';
+      thumb.addEventListener('click', function() {
+        pdThumbs.querySelectorAll('.pd-thumb').forEach(function(t){ t.classList.remove('active'); });
+        thumb.classList.add('active');
+        currentViewIndex = i;
+        pdMainImg.classList.remove('zoomed');
+      });
+      pdThumbs.appendChild(thumb);
+    });
+  }
+
+  // Main image: ใช้รูปจริงถ้ามี ไม่งั้น fallback เป็น SVG placeholder
+  if (rawImages.length) {
+    pdMainSvg.style.display = 'none';
+    pdMainImgTag.src = imgUrlOf(rawImages[0]);
+    pdMainImgTag.alt = data.name || 'สินค้า';
+    pdMainImgTag.style.display = 'block';
+  } else {
+    pdMainSvg.style.display = 'block';
+    pdMainSvg.innerHTML = svgShapes[currentSvgIndex] || svgShapes[0];
+    pdMainImgTag.style.display = 'none';
+  }
+  pdMainImg.classList.remove('zoomed');
+
+  // Open
+  pdOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// Zoom
+pdMainImg.addEventListener('click', function() {
+  pdMainImg.classList.toggle('zoomed');
+  pdZoomHint.textContent = pdMainImg.classList.contains('zoomed') ? 'คลิกเพื่อย่อ' : 'คลิกเพื่อซูม';
+});
+
+function closePdModal() {
+  pdOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+pdClose.addEventListener('click', closePdModal);
+pdOverlay.addEventListener('click', function(e) { if (e.target === pdOverlay) closePdModal(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePdModal(); });
+
+// Inquiry button → opens quotation modal after closing product detail
+document.getElementById('pd-inquiry-btn').addEventListener('click', function() {
+  closePdModal();
+  setTimeout(function() { openModal('form'); }, 200);
+});
+document.getElementById('pd-quote-btn').addEventListener('click', function() {
+  var msg = buildPdQuoteMessage();
+  closePdModal();
+  setTimeout(function() {
+    openModal('form');
+    if (msg) {
+      var msgEl = document.getElementById('qm-msg');
+      if (msgEl) msgEl.value = msg;
+    }
+  }, 200);
+});
+
+
+</script>
+
+<!-- ============================================================
+     QUOTATION POPUP MODAL — redesigned, full-width estimator
+     ============================================================ -->
+<script src="js/qmodal-template.js"></script>
+
+<!-- FAB trigger button -->
+<script src="js/track-modal-template.js"></script>
+<script type="module" src="js/track-modal.js"></script>
+<script src="js/chat-widget-template.js"></script>
+
+<script src="js/qmodal.js"></script>
+<script type="module" src="js/chat-widget.js"></script>
+<script type="module" src="js/lead-quote-modal.js"></script>
+<script src="js/fancy-effects.js" defer></script>
+</body>
+</html>

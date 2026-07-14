@@ -1,0 +1,64 @@
+<!-- 
+  og-image-guide.svg — ไฟล์นี้เป็น template สำหรับสร้าง og-image.jpg
+  
+  วิธีสร้าง og-image.jpg (1200×630px):
+  
+  1. เปิด Canva หรือ Figma
+  2. สร้าง canvas ขนาด 1200×630px
+  3. Background: gradient #0F172A → #1E3A5F (เข้มซ้าย → อ่อนขวา)
+  4. ใส่ Logo CS.SIGN ด้านซ้าย ขนาดประมาณ 120px
+  5. ข้อความหลัก: "CS.SIGN" ขนาด 80px ตัวหนา สีขาว
+  6. ข้อความรอง: "ผู้ผลิตป้ายความปลอดภัยและป้ายจราจรระดับองค์กร" สีฟ้าอ่อน
+  7. Badge แสดง: มอก. | ISO 9001 | 20+ ปี | 500+ องค์กร
+  8. Export เป็น JPG quality 85% บันทึกเป็น assets/og-image.jpg
+  
+  หมายเหตุ: ขนาดไฟล์ควรไม่เกิน 200KB
+  Facebook ใช้อัตราส่วน 1.91:1 (1200×630) ✓
+  LINE ใช้งานได้กับทุกขนาด
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E3A5F"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="1050" cy="100" r="200" fill="rgba(37,99,235,0.08)"/>
+  <circle cx="100"  cy="530" r="160" fill="rgba(6,182,212,0.06)"/>
+  
+  <!-- Logo placeholder -->
+  <rect x="80" y="80" width="60" height="60" rx="12" fill="#2563EB" opacity="0.9"/>
+  <text x="110" y="120" text-anchor="middle" font-family="Inter,sans-serif" font-size="22" font-weight="800" fill="white">CS</text>
+  
+  <!-- Brand name -->
+  <text x="160" y="112" font-family="Inter,sans-serif" font-size="28" font-weight="800" fill="white">CS.SIGN</text>
+  <text x="160" y="132" font-family="Inter,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</text>
+  
+  <!-- Main headline -->
+  <text x="80" y="280" font-family="Inter,sans-serif" font-size="64" font-weight="900" fill="white">ผู้ผลิตป้ายความปลอดภัย</text>
+  <text x="80" y="360" font-family="Inter,sans-serif" font-size="64" font-weight="900" fill="white">และป้ายจราจรครบวงจร</text>
+  
+  <!-- Sub headline -->
+  <text x="80" y="420" font-family="Inter,sans-serif" font-size="28" fill="rgba(148,197,233,0.9)">มาตรฐาน มอก. และ ISO · ประสบการณ์มากกว่า 20 ปี</text>
+  
+  <!-- Badges -->
+  <rect x="80"  y="470" width="130" height="44" rx="22" fill="rgba(37,99,235,0.3)" stroke="rgba(37,99,235,0.6)" stroke-width="1"/>
+  <text x="145" y="497" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700" fill="white">มอก. รับรอง</text>
+  
+  <rect x="225" y="470" width="150" height="44" rx="22" fill="rgba(37,99,235,0.3)" stroke="rgba(37,99,235,0.6)" stroke-width="1"/>
+  <text x="300" y="497" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700" fill="white">ISO 9001:2015</text>
+  
+  <rect x="390" y="470" width="120" height="44" rx="22" fill="rgba(37,99,235,0.3)" stroke="rgba(37,99,235,0.6)" stroke-width="1"/>
+  <text x="450" y="497" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700" fill="white">20+ ปี</text>
+  
+  <rect x="525" y="470" width="160" height="44" rx="22" fill="rgba(37,99,235,0.3)" stroke="rgba(37,99,235,0.6)" stroke-width="1"/>
+  <text x="605" y="497" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700" fill="white">500+ องค์กร</text>
+  
+  <!-- Contact -->
+  <text x="80" y="578" font-family="Inter,sans-serif" font-size="20" fill="rgba(255,255,255,0.5)">cssign.co.th · 062-883-3880</text>
+</svg>

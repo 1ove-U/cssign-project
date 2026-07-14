@@ -1,0 +1,612 @@
+/* ===========================================================
+   console.html — Production Console (admin dashboard)
+   ใช้ร่วมกับ admin.html ด้วย (base component classes: cp-*, cl-*)
+   =========================================================== */
+
+.console-page-body{
+  background: var(--gray-50);
+  min-height:100vh; font-family: var(--font-body);
+}
+
+/* ── Login gate ── */
+.cp-gate{
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(circle at 20% 20%, rgba(var(--primary-rgb),0.08), transparent 50%), var(--gray-50);
+  padding:24px;
+}
+.cp-gate-card{
+  width:100%; max-width:340px; background:#fff; border:1px solid var(--gray-200);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding:32px 28px;
+  display:flex; flex-direction:column; gap:12px; align-items:center; text-align:center;
+}
+.cp-gate-logo{ height:34px; margin-bottom:6px; }
+.cp-gate-title{ font-family:var(--font-display); font-weight: 700; font-size:19px; color:var(--secondary); }
+.cp-gate-sub{ font-size:12.5px; color:var(--text-meta); margin-bottom:6px; }
+.cp-gate-card .cl-input{ width:100%; }
+.cp-gate-btn{ width:100%; padding:11px 0 !important; font-size:13.5px !important; margin-top:4px; }
+.cp-gate-back{ font-size:12px; color:var(--text-meta); margin-top:4px; }
+.cp-gate-back:hover{ color: var(--primary); }
+
+/* ── App shell ── */
+.cp-topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:13px 28px; background:#fff;
+  border-bottom:1px solid var(--gray-200);
+  position:sticky; top:0; z-index:10;
+}
+.cp-brand{ display:flex; align-items:center; gap:10px; font-weight:800; color:var(--secondary); font-size:14.5px; }
+.cp-brand img{ height:24px; }
+.cp-user{ display:flex; align-items:center; gap:10px; }
+.cp-user-email{ font-size:12.5px; color:var(--gray-500); font-family:var(--font-mono); padding-left:4px; }
+.cp-logout{
+  font-size:12px; font-weight:700; color:var(--gray-500); background:var(--gray-100);
+  border:1px solid transparent; border-radius: var(--r-pill); padding:7px 14px; cursor:pointer;
+  transition:background .2s var(--ease), color .2s var(--ease);
+}
+.cp-logout:hover{ background:#FEE2E2; color:#DC2626; }
+
+.cp-main{ max-width:1180px; margin:0 auto; padding:28px 26px 64px; }
+
+.cp-tabs{
+  display:flex; gap:4px; margin-bottom:22px; padding:5px; background:var(--gray-100);
+  border-radius:var(--r-pill); width:max-content; max-width:100%; overflow-x:auto;
+}
+.cp-tab{
+  font-size:13px; font-weight:700; color:var(--gray-500); background:transparent; border:none;
+  padding:9px 16px; border-radius: var(--r-pill); cursor:pointer; white-space:nowrap;
+  transition:background .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease);
+  display:inline-flex; align-items:center; gap:7px;
+}
+.cp-tab .cp-tab-ic{ width:15px; height:15px; flex:none; opacity:.8; }
+.cp-tab.active .cp-tab-ic{ opacity:1; }
+.cp-tab:hover{ color:var(--secondary); }
+.cp-tab.active{ background:#fff; color:var(--primary-dark); box-shadow: var(--shadow-sm); }
+.cp-tab:focus-visible{ outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ── Page head: breadcrumb + title (matches the "📄 Order Queue / Order Queue" reference header) ── */
+.cp-page-head{ margin-bottom:22px; }
+.cp-page-crumb{
+  display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+  color:var(--text-meta); margin-bottom:6px;
+}
+.cp-page-crumb svg{ width:14px; height:14px; flex:none; }
+.cp-page-title{
+  font-family:var(--font-display); font-weight:700; font-size:23px; color:var(--secondary);
+  letter-spacing:-.01em; margin:0;
+}
+.cp-page-head--with-action{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.cp-page-head--with-action .cp-page-crumb,
+.cp-page-head--with-action .cp-page-title{ margin-bottom:0; }
+.cp-page-head--with-action #cp-view-summary-btn{ margin-top:2px; }
+
+/* ── Overview: "สรุปคำสั่งผลิต" section divider (แยกจากสถิติทั่วไปของเว็บไซต์ด้านบน) ── */
+.cp-ov-section-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  margin:32px 0 16px; padding-top:24px; border-top:1px solid var(--gray-200);
+}
+.cp-ov-section-title{ font-family:var(--font-display); font-weight:700; font-size:16.5px; color:var(--secondary); }
+.cp-ov-section-sub{ font-size:12px; color:var(--text-meta); margin-top:3px; }
+
+/* ── Overview: collapsible sub-sections (reduce how much is on screen at once) ──
+   ปิดโดยดีฟอลต์ ใช้ max-height + opacity transition แทน display:none เพื่อให้เปิด/ปิด
+   นุ่มนวล ไม่กระตุก. ค่า max-height ตั้งสูงเกินพอ (เนื้อหาจริงไม่เคยสูงขนาดนั้น) */
+.cp-ov-toggle-btn{
+  display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
+  color:var(--gray-600); background:var(--gray-100); border:1px solid var(--gray-200);
+  border-radius:var(--r-pill); padding:8px 14px; cursor:pointer; flex:none;
+  transition:background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease);
+}
+.cp-ov-toggle-btn:hover{ background:var(--gray-200); color:var(--secondary); }
+.cp-ov-toggle-ic{ width:12px; height:12px; transition:transform .2s var(--ease); }
+.cp-ov-toggle-btn[aria-expanded="true"] .cp-ov-toggle-ic{ transform:rotate(180deg); }
+
+.cp-ov-collapsible{
+  display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows .3s var(--ease), opacity .25s var(--ease);
+}
+.cp-ov-collapsible > *{ min-height:0; overflow:hidden; margin-bottom:0 !important; }
+.cp-ov-collapsible.is-open{ grid-template-rows:1fr; opacity:1; margin-bottom:22px; }
+
+.cp-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
+.cp-stat-card{
+  position:relative; background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); padding:20px 20px 18px;
+  display:flex; flex-direction:column; gap:11px; box-shadow:var(--shadow-sm);
+  transition:box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease);
+}
+.cp-stat-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); border-color:var(--gray-300); }
+.cp-stat-card::before{
+  content:""; width:9px; height:9px; border-radius:50%; background:var(--primary); flex:none;
+  box-shadow:0 0 0 4px rgba(var(--primary-rgb),0.12);
+}
+.cp-stat-card.warn::before{ background:#F59E0B; box-shadow:0 0 0 4px rgba(245,158,11,0.14); }
+.cp-stat-card.danger::before{ background:#DC2626; box-shadow:0 0 0 4px rgba(220,38,38,0.14); }
+/* Cards that use the icon-chip layout (icon + label row, then big number) hide the plain corner dot */
+.cp-stat-card:has(.cp-stat-top)::before{ content:none; }
+.cp-stat-top{ display:flex; align-items:center; gap:9px; }
+.cp-stat-icon{
+  flex:none; width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+  background:rgba(var(--primary-rgb),0.1); color:var(--primary-dark);
+}
+.cp-stat-icon svg{ width:16px; height:16px; }
+.cp-stat-icon--primary{ background:rgba(var(--primary-rgb),0.1); color:var(--primary-dark); }
+.cp-stat-icon--good{ background:rgba(13,146,104,0.12); color:#0D9268; }
+.cp-stat-icon--warn{ background:rgba(245,158,11,0.14); color:#B45309; }
+.cp-stat-icon--danger{ background:rgba(220,38,38,0.12); color:#DC2626; }
+.cp-stat-num{ font-family:var(--font-display); font-weight: 700; font-size:27px; color:var(--secondary); letter-spacing:-.01em; }
+.cp-stat-num--sales{ font-size:16px; }
+.cp-stat-num--sales small{ font-size:11px; font-weight:600; color:var(--text-meta); font-family:var(--font-body); }
+.cp-stat-label{ font-size:12.5px; color:var(--gray-500); font-weight:600; }
+.cp-stat-top .cp-stat-label{ font-size:13px; }
+[data-jump]{ cursor:pointer; }
+
+.cp-chart-box{ background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); padding:18px; margin-bottom:22px; box-shadow:var(--shadow-sm); }
+
+/* ── Chart box: tab switcher between "รายวัน" / "รายเดือน" panels
+   (สองกราฟรวมอยู่ในกล่องเดียว สลับดูทีละอย่าง แทนที่จะเรียงต่อกันยาว) ── */
+.cchart-tabs{ display:flex; gap:6px; margin-bottom:16px; }
+.cchart-tab{
+  font-size:12.5px; font-weight:700; color:var(--gray-500); background:var(--gray-100); border:1px solid transparent;
+  border-radius:var(--r-pill); padding:8px 14px; cursor:pointer; transition:background .15s var(--ease), color .15s var(--ease);
+}
+.cchart-tab:hover{ color:var(--secondary); }
+.cchart-tab.active{ background:rgba(var(--primary-rgb),0.12); color:var(--primary-dark); border-color:rgba(var(--primary-rgb),0.25); }
+.cchart-subhead{ margin-bottom:14px; }
+
+.cp-toolbar{ display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+.cp-search{ flex:1; max-width:340px; }
+.cp-filter{ max-width:180px; }
+.cp-add-btn{
+  margin-left:auto; padding:10px 18px !important; font-size:13px !important; border-radius:var(--r-pill) !important;
+  box-shadow:0 2px 10px rgba(var(--primary-rgb),0.22);
+}
+
+/* Search input with a magnifier icon, matching the reference "Search orders, customers..." field.
+   Bug fix: the SVG data-uri had no explicit background-size, so it rendered at its
+   intrinsic/default size (way larger than the 24x24 viewBox implies) and swallowed
+   the placeholder text. Pinning background-size to a fixed icon size fixes it. */
+.cp-toolbar{ position:relative; }
+.cp-search{ position:relative; }
+.cp-toolbar .cp-search{ padding-left:38px !important; background-repeat:no-repeat; background-position:13px center; background-size:16px 16px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393A0AF' stroke-width='2'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/></svg>");
+}
+
+.cp-table-wrap{ background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); overflow-x:auto; box-shadow:var(--shadow-sm); }
+.cp-table{ width:100%; border-collapse:collapse; font-size:13px; min-width:880px; }
+.cp-table th{
+  text-align:left; padding:14px 16px; color:var(--text-meta); font-weight:700; font-size:10.5px;
+  text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--gray-200);
+  white-space:nowrap; background:var(--gray-25);
+}
+.cp-table td{ padding:14px 16px; border-bottom:1px solid var(--gray-100); color:var(--secondary); vertical-align:middle; }
+.cp-table tbody tr{ transition:background .15s var(--ease); }
+.cp-table tbody tr:hover{ background:var(--gray-50); }
+.cp-table tr:last-child td{ border-bottom:none; }
+
+/* ── ตารางคำสั่งผลิตโดยเฉพาะ: ใช้ colgroup + table-layout:fixed กันปัญหาคอลัมน์บีบ/
+   ข้อความตัดบรรทัดมั่ว ตอนข้อมูลบางคอลัมน์ว่าง (เช่น รายการ/จำนวน) หรือจอแคบ —
+   ความกว้างคอลัมน์จะคงที่ตาม colgroup เสมอ ไม่ผันตามเนื้อหาต่อแถวอีกต่อไป และ
+   ถ้าจอแคบกว่าความกว้างรวม จะเลื่อนแนวนอนใน .cp-table-wrap แทนการบีบคอลัมน์ ── */
+#cp-table-view .cp-table{ table-layout:fixed; min-width:1130px; }
+#cp-table-view .cp-table td{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#cp-table-view .cp-table td.cp-td-progress,
+#cp-table-view .cp-table td:last-child{ overflow:visible; }
+#cp-table-view .cp-namecell-name{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.cp-empty{ text-align:center; color:var(--text-meta); padding:30px 0 !important; }
+.cp-load-error{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+.cp-load-error .cp-load-error-msg{ color:var(--text-meta); }
+.cp-load-error .cp-retry-btn{ padding:7px 16px !important; font-size:12.5px !important; }
+.cp-code{ font-family:var(--font-mono); font-size:11.5px; color:var(--gray-500); }
+.cp-progress-wrap{ display:flex; align-items:center; gap:8px; }
+.cp-progress-bar{ width:60px; height:6px; background:var(--gray-100); border-radius:99px; overflow:hidden; }
+.cp-progress-bar i{ display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--primary)); }
+.cp-compliant-yes{ color:#0D9268; font-weight:700; }
+.cp-compliant-no{ color:var(--text-meta); }
+
+/* ── Name cell: avatar circle + stacked name/company (leads + orders tables) ── */
+.cp-namecell{ display:flex; align-items:center; gap:9px; }
+.cp-avatar{
+  flex:none; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:800; letter-spacing:.01em;
+}
+.cp-namecell-text{ display:flex; flex-direction:column; line-height:1.35; min-width:0; }
+.cp-namecell-name{ font-weight:700; color:var(--secondary); }
+
+/* ── Status select styled as a colored pill (colors follow the kanban column palette) ── */
+.cp-status-select{
+  font-size:11.5px; font-weight:700; padding:5px 26px 5px 10px; border-radius:var(--r-pill);
+  border:1px solid var(--gray-200); background:var(--gray-100); color:var(--gray-600); cursor:pointer;
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364707D' stroke-width='2.5'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat:no-repeat; background-position:right 8px center; background-size:11px;
+  transition:background-color .15s var(--ease), color .15s var(--ease);
+}
+.cp-status-select[data-status="new"]{ background-color:#EEF2FF; color:#4338CA; border-color:#E0E7FF; }
+.cp-status-select[data-status="received"]{ background-color:var(--gray-100); color:var(--gray-600); border-color:var(--gray-200); }
+.cp-status-select[data-status="read"]{ background-color:var(--gray-100); color:var(--gray-600); border-color:var(--gray-200); }
+.cp-status-select[data-status="design"]{ background-color:#F5F0FF; color:#7E22CE; border-color:#ECE0FE; }
+.cp-status-select[data-status="approval"],
+.cp-status-select[data-status="replied"]{ background-color:#FFF7E6; color:#B45309; border-color:#FDECC8; }
+.cp-status-select[data-status="production"]{ background-color:#EBF4FF; color:#1D4ED8; border-color:#DCE9FE; }
+.cp-status-select[data-status="qc"]{ background-color:#EEF2FF; color:#4F46E5; border-color:#E0E7FF; }
+.cp-status-select[data-status="packing"]{ background-color:#E8FBF6; color:#0F766E; border-color:#D3F5EA; }
+.cp-status-select[data-status="shipping"]{ background-color:#E5F6FE; color:#0369A1; border-color:#D2EFFC; }
+.cp-status-select[data-status="completed"],
+.cp-status-select[data-status="won"]{ background-color:#E7F8F0; color:#0D9268; border-color:#D3F0E3; }
+.cp-status-select[data-status="cancelled"],
+.cp-status-select[data-status="lost"]{ background-color:#FDECEC; color:#B91C1C; border-color:#FBD8D8; }
+/* select's own <option> list stays plain (native dropdown chrome, not themeable) */
+.cp-status-select option{ color:#111; background:#fff; }
+.cp-row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+.cp-icon-btn{
+  width:28px; height:28px; border-radius:9px; border:1px solid var(--gray-200); background:#fff;
+  color:var(--gray-500); display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+}
+.cp-icon-btn:hover{ background:rgba(var(--primary-rgb),0.08); color:var(--primary); border-color:rgba(var(--primary-rgb),0.25); }
+.cp-icon-btn.danger:hover{ background:#FEE2E2; color:#DC2626; border-color:#FCA5A5; }
+.cp-icon-btn svg{ width:14px; height:14px; }
+
+/* ── Add/Edit order modal ── */
+.cp-modal-overlay{
+  position:fixed; inset:0; z-index:999; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center; padding:16px;
+  animation:cpFadeIn .18s var(--ease);
+}
+.cp-modal{
+  width:100%; max-width:480px; background:#fff; border-radius:var(--r-xl); box-shadow:var(--shadow-xl);
+  padding:26px; display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto;
+  animation:cpModalIn .22s var(--ease);
+}
+/* ล็อกการเลื่อนหน้าพื้นหลังตอน popup เปิดอยู่ — popup จะยึดอยู่กึ่งกลางจอเสมอ
+   ไม่ขยับตำแหน่งตามการเลื่อนหน้าเว็บที่อยู่ด้านหลัง */
+body.cp-scroll-locked{ overflow:hidden; }
+@keyframes cpFadeIn{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes cpModalIn{ from{ opacity:0; transform:translateY(10px) scale(.98); } to{ opacity:1; transform:none; } }
+.cp-modal-title{ font-family:var(--font-display); font-weight: 700; font-size:16px; color:var(--secondary); }
+.cp-modal-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.cp-checkbox{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--gray-600); }
+
+@media (max-width:768px){
+  .cp-stats{ grid-template-columns:repeat(2,1fr); }
+  .cp-modal-row{ grid-template-columns:1fr; }
+  .cp-toolbar{ flex-wrap:wrap; }
+  .cp-add-btn{ margin-left:0; width:100%; }
+}
+
+/* ===========================================================
+   Dashboard upgrade — notifications, richer stats, kanban, export/print
+   =========================================================== */
+
+.cp-stats{ grid-template-columns:repeat(6,1fr); }
+@media (max-width:1024px){ .cp-stats{ grid-template-columns:repeat(3,1fr); } }
+@media (max-width:600px){ .cp-stats{ grid-template-columns:repeat(2,1fr); } }
+/* จำนวนการ์ดในแต่ละกริดไม่เท่ากันเสมอไปแล้ว (การ์ด "จำนวนงานใหม่" ย้ายจากคำสั่งผลิตไปภาพรวม)
+   เลยใช้ auto-fill แทนจำนวนคอลัมน์ตายตัว 6 คอลัมน์ กันไม่ให้เหลือช่องว่างท้ายแถวตอนการ์ดไม่ครบ 6 ใบ */
+#ov-stats-grid, #cp-stats-grid{ grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); }
+
+.cp-stat-card.warn{ border-color:#FDE68A; background:linear-gradient(180deg,#FFFBEB,#fff); }
+.cp-stat-card.warn .cp-stat-num{ color:#B45309; }
+.cp-stat-card.danger{ border-color:#FCA5A5; background:linear-gradient(180deg,#FEF2F2,#fff); }
+.cp-stat-card.danger .cp-stat-num{ color:#B91C1C; }
+.cp-stat-card[data-jump]{ cursor:pointer; }
+.cp-stat-num--sales{ font-size:17px; line-height:1.4; display:block; }
+.cp-stat-num--sales small{ font-family:var(--font-body,inherit); font-weight:500; font-size:11px; color:var(--text-meta); }
+
+/* ── Notification bell ── */
+.cp-notif-wrap{ position:relative; }
+.cp-notif-btn{
+  width:36px; height:36px; border-radius:50%; border:1px solid var(--gray-200); background:#fff;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;
+  color:var(--gray-500); transition:background .15s var(--ease), color .15s var(--ease);
+}
+.cp-notif-btn:hover{ background:var(--gray-50); color:var(--primary); }
+.cp-notif-btn svg{ width:17px; height:17px; }
+.cp-notif-dot{
+  position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%;
+  background:#DC2626; border:2px solid #fff;
+}
+.cp-notif-panel{
+  position:absolute; top:calc(100% + 10px); right:0; width:320px; max-height:400px; overflow-y:auto;
+  background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); box-shadow:var(--shadow-xl);
+  z-index:50; padding:6px 0; animation:cpFadeIn .15s var(--ease);
+}
+.cp-notif-panel-title{ font-size:12px; font-weight:800; color:var(--secondary); padding:10px 16px 8px; border-bottom:1px solid var(--gray-100); }
+.cp-notif-list{ display:flex; flex-direction:column; }
+.cp-notif-item{
+  display:flex; flex-direction:column; gap:2px; padding:10px 16px; border-bottom:1px solid var(--gray-50);
+  cursor:pointer; transition:background .12s var(--ease);
+}
+.cp-notif-item:hover{ background:var(--gray-50); }
+.cp-notif-item:last-child{ border-bottom:none; }
+.cp-notif-item-title{ font-size:12.5px; font-weight:700; color:var(--secondary); }
+.cp-notif-item-sub{ font-size:11px; color:var(--text-meta); }
+.cp-notif-item.is-overdue .cp-notif-item-sub{ color:#DC2626; font-weight:700; }
+.cp-notif-item.is-duesoon .cp-notif-item-sub{ color:#B45309; font-weight:700; }
+.cp-notif-empty{ padding:20px 16px; text-align:center; font-size:12.5px; color:var(--text-meta); }
+
+/* ── Chart range toggle ── */
+.cchart-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:12.5px; color:var(--text-meta); }
+.cchart-head strong{ color:var(--secondary); font-size:13.5px; }
+.cchart-range-toggle{ display:flex; gap:4px; background:var(--gray-100); border-radius:var(--r-pill); padding:3px; }
+.cchart-range-btn{
+  font-size:11px; font-weight:700; color:var(--gray-500); background:transparent; border:none;
+  padding:5px 12px; border-radius:var(--r-pill); cursor:pointer; transition:all .15s var(--ease);
+}
+.cchart-range-btn.active{ background:#fff; color:var(--primary-dark); box-shadow:var(--shadow-sm); }
+
+/* ── Breakdown boxes (by category / top customers / recent leads) ──
+   ใช้ auto-fit แทน 2 คอลัมน์ตายตัว เพราะตอนนี้บางที่มี 3 กล่องในกริดเดียว (หน้าภาพรวม) */
+.cp-breakdown-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px; margin-bottom:22px; }
+.cp-breakdown-box{ background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); padding:20px 20px 18px; box-shadow:var(--shadow-sm); }
+.cp-breakdown-title{ font-size:13.5px; font-weight:800; color:var(--secondary); margin-bottom:14px; }
+.cp-breakdown-row{ display:flex; align-items:center; gap:10px; margin-bottom:11px; }
+.cp-breakdown-row:last-child{ margin-bottom:0; }
+.cp-breakdown-name{ font-size:12px; color:var(--gray-500); width:38%; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cp-breakdown-bar-wrap{ flex:1; height:8px; background:var(--gray-100); border-radius:99px; overflow:hidden; }
+.cp-breakdown-bar{ display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--primary)); border-radius:99px; }
+.cp-breakdown-count{ font-size:11.5px; font-weight:700; color:var(--secondary); width:26px; text-align:right; flex-shrink:0; }
+@media (max-width:768px){ .cp-breakdown-grid{ grid-template-columns:1fr; } }
+
+/* ── Toolbar: view toggle + export/print buttons ── */
+.cp-view-toggle{ display:flex; gap:2px; background:var(--gray-100); border-radius:var(--r-sm, 8px); padding:3px; }
+.cp-view-btn{
+  width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:none;
+  background:transparent; border-radius:6px; cursor:pointer; color:var(--gray-500);
+  transition:all .15s var(--ease);
+}
+.cp-view-btn svg{ width:15px; height:15px; }
+.cp-view-btn.active{ background:#fff; color:var(--primary-dark); box-shadow:var(--shadow-sm); }
+.cp-icon-text-btn{
+  display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; color:var(--gray-600);
+  background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-pill); padding:0 14px; height:38px;
+  cursor:pointer; transition:background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease); white-space:nowrap;
+}
+.cp-icon-text-btn:hover{ background:var(--gray-50); border-color:var(--gray-300); color:var(--primary-dark); }
+.cp-icon-text-btn svg{ width:14px; height:14px; }
+
+/* ── Kanban board ── */
+.cp-kanban{ display:grid; grid-template-columns:repeat(9,minmax(200px,1fr)); gap:12px; overflow-x:auto; padding-bottom:8px; }
+.cp-kanban-col{ background:var(--gray-50); border:1px solid var(--gray-200); border-radius:var(--r-lg); min-width:200px; display:flex; flex-direction:column; }
+.cp-kanban-col.drag-over{ background:rgba(var(--primary-rgb),0.06); border-color:var(--primary); }
+.cp-kanban-col-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--gray-200); }
+.cp-kanban-col-title{ font-size:12px; font-weight:800; color:var(--secondary); }
+.cp-kanban-col-count{ font-size:11px; font-weight:700; color:#fff; background:var(--gray-400); border-radius:99px; padding:1px 8px; }
+.cp-kanban-col[data-status="received"] .cp-kanban-col-count{ background:#94A3B8; }
+.cp-kanban-col[data-status="design"] .cp-kanban-col-count{ background:#A855F7; }
+.cp-kanban-col[data-status="approval"] .cp-kanban-col-count{ background:#F59E0B; }
+.cp-kanban-col[data-status="production"] .cp-kanban-col-count{ background:#3B82F6; }
+.cp-kanban-col[data-status="qc"] .cp-kanban-col-count{ background:#6366F1; }
+.cp-kanban-col[data-status="packing"] .cp-kanban-col-count{ background:#14B8A6; }
+.cp-kanban-col[data-status="shipping"] .cp-kanban-col-count{ background:#0EA5E9; }
+.cp-kanban-col[data-status="completed"] .cp-kanban-col-count{ background:#10B981; }
+.cp-kanban-col[data-status="cancelled"] .cp-kanban-col-count{ background:#EF4444; }
+.cp-kanban-col-body{ flex:1; padding:10px; display:flex; flex-direction:column; gap:8px; min-height:120px; max-height:calc(100vh - 480px); overflow-y:auto; }
+.cp-kanban-card{
+  background:#fff; border:1px solid var(--gray-200); border-radius:10px; padding:11px 12px;
+  box-shadow:var(--shadow-sm); cursor:grab; display:flex; flex-direction:column; gap:5px;
+  transition:box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+.cp-kanban-card:hover{ box-shadow:var(--shadow-md); }
+.cp-kanban-card.dragging{ opacity:.4; }
+.cp-kanban-card.is-overdue{ border-left:3px solid #DC2626; }
+.cp-kanban-card.is-duesoon{ border-left:3px solid #F59E0B; }
+.cp-kanban-card-code{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-meta); }
+.cp-kanban-card-item{ font-size:12.5px; font-weight:700; color:var(--secondary); line-height:1.35; }
+.cp-kanban-card-cust{ font-size:11px; color:var(--gray-500); }
+.cp-kanban-card-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:2px; }
+.cp-kanban-card-due{ font-size:10.5px; color:var(--text-meta); }
+.cp-kanban-card-due.is-overdue{ color:#DC2626; font-weight:700; }
+.cp-kanban-card-due.is-duesoon{ color:#B45309; font-weight:700; }
+.cp-kanban-card-actions{ display:flex; gap:4px; }
+@media (max-width:1024px){ .cp-kanban{ grid-template-columns:repeat(9,200px); } }
+
+/* ── Toast ── */
+.cp-toast-wrap{ position:fixed; bottom:20px; right:20px; z-index:2000; display:flex; flex-direction:column; gap:8px; }
+.cp-toast{
+  background:var(--secondary); color:#fff; font-size:12.5px; font-weight:600; padding:11px 18px;
+  border-radius:var(--r-md); box-shadow:var(--shadow-xl); animation:cpToastIn .2s var(--ease);
+}
+.cp-toast.error{ background:#B91C1C; }
+.cp-toast.success{ background:#0D9268; }
+.cp-toast.closing{ opacity:0; transform:translateY(4px); transition:opacity .2s var(--ease), transform .2s var(--ease); }
+.cp-toast.undo{
+  position:relative; overflow:hidden; display:flex; align-items:center; gap:12px;
+  background:var(--secondary); padding-bottom:14px;
+}
+.cp-toast-undo-btn{
+  flex:none; background:transparent; border:1px solid rgba(255,255,255,.45); color:#fff;
+  font-size:12px; font-weight:700; padding:5px 12px; border-radius:var(--r-pill); cursor:pointer;
+  transition:background .15s var(--ease), border-color .15s var(--ease);
+}
+.cp-toast-undo-btn:hover{ background:rgba(255,255,255,.15); border-color:rgba(255,255,255,.7); }
+.cp-toast-progress{
+  position:absolute; left:0; bottom:0; height:3px; width:100%; background:rgba(255,255,255,.55);
+  transform-origin:left; animation:cpToastCountdown linear forwards;
+}
+@keyframes cpToastCountdown{ from{ transform:scaleX(1); } to{ transform:scaleX(0); } }
+
+/* ── Status filter pills (replaces the old <select> — click to filter, like the reference UI) ── */
+.cp-status-pills{
+  display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px;
+  -webkit-overflow-scrolling:touch;
+}
+.cp-status-pill{
+  flex:none; font-size:12px; font-weight:700; color:var(--gray-500); background:var(--gray-100);
+  border:1px solid transparent; border-radius:var(--r-pill); padding:7px 14px; cursor:pointer; white-space:nowrap;
+  transition:background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+}
+.cp-status-pill:hover{ background:var(--gray-200); color:var(--secondary); }
+.cp-status-pill.active{
+  background:rgba(var(--primary-rgb),0.12); color:var(--primary-dark); border-color:rgba(var(--primary-rgb),0.25);
+}
+
+/* ── Pagination footer ("Showing 1–10 of 80") ── */
+.cp-pagination{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding:14px 16px; border-top:1px solid var(--gray-100);
+}
+.cp-pagination-info{ font-size:12px; color:var(--text-meta); }
+.cp-pagination-btns{ display:flex; align-items:center; gap:4px; }
+.cp-page-btn{
+  min-width:28px; height:28px; padding:0 8px; display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; color:var(--gray-500); background:#fff; border:1px solid var(--gray-200);
+  border-radius:8px; cursor:pointer; transition:background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+}
+.cp-page-btn:hover:not(:disabled){ background:var(--gray-50); border-color:var(--gray-300); color:var(--secondary); }
+.cp-page-btn.active{ background:var(--primary); color:#fff; border-color:var(--primary); }
+.cp-page-btn:disabled{ opacity:.4; cursor:not-allowed; }
+.cp-page-nav{ font-size:14px; }
+.cp-page-ellipsis{ color:var(--gray-300); font-size:12px; padding:0 2px; }
+@media (max-width:600px){ .cp-pagination{ justify-content:center; text-align:center; } }
+@keyframes cpToastIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+
+/* ── Print report (hidden on screen) ── */
+.cp-print-report{ display:none; }
+@media print{
+  body *{ visibility:hidden; }
+  .cp-print-report, .cp-print-report *{ visibility:visible; }
+  .cp-print-report{ display:block; position:absolute; top:0; left:0; width:100%; padding:20px; }
+  .cp-print-report h1{ font-size:20px; margin-bottom:2px; }
+  .cp-print-report .cp-print-sub{ font-size:12px; color:#555; margin-bottom:16px; }
+  .cp-print-report table{ width:100%; border-collapse:collapse; font-size:11px; }
+  .cp-print-report th, .cp-print-report td{ border:1px solid #ccc; padding:6px 8px; text-align:left; }
+  .cp-print-report th{ background:#f2f2f2; }
+}
+
+@media (max-width:768px){
+  .cp-notif-panel{ width:280px; right:-40px; }
+}
+
+/* ===========================================================
+   UX upgrade pass — quick actions, trends, skeletons, bulk actions,
+   custom confirm modal, inline validation, sticky footers, legends
+   =========================================================== */
+
+/* ── Quick actions (Overview) ── */
+.cp-quick-actions{ display:flex; gap:10px; margin:-6px 0 20px; flex-wrap:wrap; }
+.cp-quick-action-btn{
+  display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700;
+  padding:10px 16px; border-radius:var(--r-pill); cursor:pointer; border:1px solid transparent;
+  transition:transform .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
+}
+.cp-quick-action-btn svg{ width:14px; height:14px; }
+.cp-quick-action-btn.primary{ background:var(--primary); color:#fff; box-shadow:0 2px 10px rgba(var(--primary-rgb),0.25); }
+.cp-quick-action-btn.primary:hover{ transform:translateY(-1px); box-shadow:0 4px 14px rgba(var(--primary-rgb),0.3); }
+.cp-quick-action-btn.secondary{ background:#fff; color:var(--secondary); border-color:var(--gray-200); }
+.cp-quick-action-btn.secondary:hover{ background:var(--gray-50); border-color:var(--gray-300); }
+
+/* ── Stat card trend (vs last month) ── */
+.cp-stat-trend{ display:inline-flex; align-items:center; gap:3px; font-size:11px; font-weight:700; }
+.cp-stat-trend svg{ width:10px; height:10px; }
+.cp-stat-trend.up{ color:#0D9268; }
+.cp-stat-trend.down{ color:#DC2626; }
+.cp-stat-trend.flat{ color:var(--text-meta); }
+.cp-stat-trend.na{ display:none; }
+
+/* ── Breakdown box header + "view all" link ── */
+.cp-breakdown-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px; }
+.cp-breakdown-head .cp-breakdown-title{ margin-bottom:0; }
+.cp-viewall-btn{
+  font-size:11.5px; font-weight:700; color:var(--primary); background:none; border:none;
+  cursor:pointer; padding:0; white-space:nowrap; flex:none;
+}
+.cp-viewall-btn:hover{ text-decoration:underline; }
+
+/* ── Skeleton loading ── */
+.cp-skel{
+  display:inline-block; height:13px; border-radius:6px; vertical-align:middle;
+  background:linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 37%, var(--gray-100) 63%);
+  background-size:400% 100%; animation:cpSkelShine 1.4s ease infinite;
+}
+@keyframes cpSkelShine{ 0%{ background-position:100% 50%; } 100%{ background-position:0 50%; } }
+.cp-skel-row td{ padding:16px; }
+.cp-skel-card{ border:1px solid var(--gray-200); border-radius:var(--r-lg); overflow:hidden; background:#fff; }
+.cp-skel-thumb{
+  aspect-ratio:1/1; display:block;
+  background:linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 37%, var(--gray-100) 63%);
+  background-size:400% 100%; animation:cpSkelShine 1.4s ease infinite;
+}
+.cp-skel-body{ padding:14px 16px; display:flex; flex-direction:column; gap:8px; }
+
+/* ── Sticky table header ──
+   หมายเหตุ: เดิมตั้ง position:sticky; top:62px (62px = ความสูงของ .cp-topbar
+   ด้านบนสุด) เพื่อให้หัวตารางค้างอยู่ใต้ topbar เวลาเลื่อนทั้งหน้าจอ แต่
+   .cp-table-wrap ตั้ง overflow-x:auto ไว้ ซึ่งตาม spec ของ CSS จะทำให้
+   overflow-y ถูกคำนวณเป็น auto ไปด้วยโดยอัตโนมัติ (ไม่สามารถให้แกนหนึ่ง
+   เป็น auto อีกแกนเป็น visible ได้พร้อมกัน) — ผลคือ .cp-table-wrap กลายเป็น
+   scroll container ของตัวเอง แล้ว position:sticky ของ th จะอ้างอิงกับ
+   กล่องเล็ก ๆ นี้แทนที่จะอ้างอิงกับหน้าเว็บทั้งหน้า ทำให้หัวตารางเลื่อนลงมา
+   62px จากขอบบนของกล่อง (ซึ่งเตี้ยกว่านั้นมากเวลามีข้อมูลไม่กี่แถว) ไปทับ
+   ซ้อนแถวข้อมูลด้านล่างจนมองไม่เห็นข้อมูลเลย จึงตัด sticky ออกไปก่อน */
+.cp-table thead th{ position:static; }
+
+/* ── Bulk actions bar ── */
+.cp-bulk-bar{
+  display:none; align-items:center; gap:12px; background:rgba(var(--primary-rgb),0.06);
+  border:1px solid rgba(var(--primary-rgb),0.2); border-radius:var(--r-md); padding:10px 14px;
+  margin-bottom:12px; font-size:12.5px; color:var(--secondary); flex-wrap:wrap;
+}
+.cp-bulk-bar.active{ display:flex; }
+.cp-bulk-bar strong{ color:var(--primary-dark); }
+.cp-bulk-clear{ font-size:11.5px; color:var(--gray-500); background:none; border:none; cursor:pointer; text-decoration:underline; }
+.cp-bulk-actions{ display:flex; gap:8px; margin-left:auto; flex-wrap:wrap; align-items:center; }
+.cp-bulk-btn{
+  font-size:12px; font-weight:700; border-radius:var(--r-pill); padding:6px 14px;
+  border:1px solid var(--gray-200); background:#fff; cursor:pointer; transition:background .15s var(--ease);
+}
+.cp-bulk-btn:hover{ background:var(--gray-50); }
+.cp-bulk-btn.danger{ color:#DC2626; border-color:#FCA5A5; }
+.cp-bulk-btn.danger:hover{ background:#FEE2E2; }
+.cp-bulk-select{
+  font-size:12px; border-radius:var(--r-pill); border:1px solid var(--gray-200); padding:6px 10px; background:#fff;
+}
+.cp-row-check, .cp-head-check{ width:16px; height:16px; cursor:pointer; accent-color:var(--primary); }
+.cp-th-check{ width:36px; }
+
+/* ── Empty state (icon + message + CTA) ── */
+.cp-empty-state{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding:52px 20px; color:var(--text-meta); text-align:center; grid-column:1/-1;
+}
+.cp-empty-state-icon{
+  width:52px; height:52px; border-radius:50%; background:var(--gray-100); color:var(--text-meta);
+  display:flex; align-items:center; justify-content:center; margin-bottom:2px;
+}
+.cp-empty-state-icon svg{ width:24px; height:24px; }
+.cp-empty-state-title{ font-size:14px; font-weight:700; color:var(--gray-500); }
+.cp-empty-state-desc{ font-size:12.5px; color:var(--text-meta); max-width:320px; line-height:1.5; }
+.cp-empty-state .btn{ margin-top:8px; padding:9px 18px !important; font-size:12.5px !important; border-radius:var(--r-pill) !important; }
+
+/* ── Custom confirm modal (replaces browser confirm()/alert()) ── */
+.cp-confirm-overlay{
+  position:fixed; inset:0; z-index:1200; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center; padding:16px; animation:cpFadeIn .15s var(--ease);
+}
+.cp-confirm-box{
+  width:100%; max-width:380px; background:#fff; border-radius:var(--r-xl); box-shadow:var(--shadow-xl);
+  padding:24px; display:flex; flex-direction:column; gap:6px; animation:cpModalIn .18s var(--ease);
+}
+.cp-confirm-icon{
+  width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:#FEE2E2; color:#DC2626; margin-bottom:8px;
+}
+.cp-confirm-icon svg{ width:21px; height:21px; }
+.cp-confirm-title{ font-family:var(--font-display); font-weight:700; font-size:15.5px; color:var(--secondary); }
+.cp-confirm-msg{ font-size:13px; color:var(--gray-500); line-height:1.55; margin-top:4px; }
+.cp-confirm-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
+
+/* ── Inline field validation ── */
+.cl-input.cl-invalid{ border-color:#DC2626 !important; background:#FEF6F6; }
+.cl-field-error{ font-size:11.5px; color:#DC2626; margin-top:-8px; display:none; }
+.cl-field-error.active{ display:block; }
+
+/* ── Sticky "บันทึก" footer for long modal forms ── */
+.cp-modal.cl-sticky-footer{ padding-bottom:0; }
+.cp-modal.cl-sticky-footer .cl-actions{
+  position:sticky; bottom:0; background:#fff; margin:8px -26px -26px; padding:14px 26px;
+  border-top:1px solid var(--gray-100); z-index:2;
+}
+
+/* ── Unified color legend ── */
+.cp-legend{ display:flex; flex-wrap:wrap; gap:8px 18px; margin:-6px 0 14px; font-size:11.5px; color:var(--gray-500); }
+.cp-legend-item{ display:flex; align-items:center; gap:6px; }
+.cp-legend-dot{ width:9px; height:9px; border-radius:50%; flex:none; }

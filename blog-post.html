@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">บทความ — CS.SIGN</title>
+<meta id="meta-description" name="description" content="บทความและความรู้เรื่องป้ายความปลอดภัยและป้ายจราจร จากทีมผู้เชี่ยวชาญ CS.SIGN">
+<meta id="og-type" property="og:type" content="article">
+<meta id="og-url" property="og:url" content="https://cssign.co.th/blog-post.html">
+<meta id="og-title" property="og:title" content="บทความ — CS.SIGN">
+<meta id="og-description" property="og:description" content="บทความและความรู้เรื่องป้ายความปลอดภัยและป้ายจราจร จากทีมผู้เชี่ยวชาญ CS.SIGN">
+<meta id="og-image" property="og:image" content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale" content="th_TH">
+<link id="canonical-link" rel="canonical" href="https://cssign.co.th/blog-post.html">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Perf: preconnect above already warms the connection; this actually
+     loads the webfont CSS, moved out of style.css's @import (which is
+     render-blocking and only discoverable after style.css itself loads,
+     costing an extra round trip before Thai/Latin text paints). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+
+<link rel="stylesheet" href="css/style.css?v=20260711a">
+<link rel="stylesheet" href="css/shared-widgets.css">
+<link rel="stylesheet" href="css/track-modal.css">
+<style>
+/* Base .article-hero / .article-body / .article-content / .article-callout /
+   .article-table rules now live in css/style.css so this page stays in sync
+   with blog-safety-sign-standards-th.html, terms.html, privacy-policy.html
+   and accessibility.html. Only page-specific extras remain here. */
+.article-meta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--gray-400); }
+.article-meta-row span { display: flex; align-items: center; gap: 6px; }
+.article-meta-row svg { width: 14px; height: 14px; }
+.article-content p { white-space: pre-line; }
+.article-cta-box { background: var(--gray-25); border: 1px solid var(--gray-100); border-radius: var(--r-lg); padding: 32px; text-align: center; margin-top: 44px; }
+.article-cta-box h3 { font-size: 19px; font-weight: 800; color: var(--text-heading); margin-bottom: 8px; }
+.article-cta-box p { font-size: 14.5px; color: var(--gray-500); margin-bottom: 20px; }
+.article-disclaimer { font-size: 12.5px; color: var(--gray-400); margin-top: 30px; border-top: 1px solid var(--gray-100); padding-top: 20px; }
+.article-author { display: flex; align-items: center; gap: 12px; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--gray-100); }
+.article-author-avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-light), var(--primary-dark)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 15px; flex-shrink: 0; }
+.article-author-name { font-weight: 700; color: var(--text-heading); font-size: 14.5px; }
+.article-author-role { font-size: 12.5px; color: var(--gray-500); }
+
+/* ── Cover image (real photo, replaces the old static img-ph placeholder) ── */
+.article-cover-img { border-radius: var(--r-lg); overflow: hidden; margin-bottom: 40px; background: var(--gray-100); }
+.article-cover-img img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+
+/* ── Share buttons ── */
+.article-share { display: flex; align-items: center; gap: 10px; margin: 32px 0 0; padding-top: 24px; border-top: 1px solid var(--gray-100); }
+.article-share-label { font-size: 13px; font-weight: 700; color: var(--gray-500); margin-right: 4px; }
+.article-share-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--gray-50); border: 1px solid var(--gray-100); color: var(--gray-500); transition: all .2s var(--ease); cursor: pointer; }
+.article-share-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.article-share-btn svg { width: 16px; height: 16px; }
+.article-share-btn.copied { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ── Article hero background — rebuilt to match .contact-hero on
+   contact.html exactly (same soft "X" chevron artwork, same size,
+   opacity, and position), so the two banners share one visual language
+   instead of the article page having its own smaller/weaker version. ── */
+.article-hero { position: relative; overflow: hidden; background: #fff; }
+.article-hero-bg-x { position: absolute; right: -40px; top: 50%; transform: translateY(-50%); width: 480px; opacity: 0.55; pointer-events: none; z-index: 0; }
+.article-hero-bg-x svg { width: 100%; height: auto; }
+.article-hero .wrap { position: relative; z-index: 1; }
+@media (max-width: 600px) { .article-hero-bg-x { width: 260px; opacity: 0.3; } }
+
+/* ── Loading / Not-found states ── */
+.article-state { padding: 160px 0 120px; text-align: center; }
+.article-state .wrap { max-width: 520px; }
+.article-state-icon { width: 56px; height: 56px; margin: 0 auto 22px; color: var(--gray-300); }
+.article-state-icon svg { width: 100%; height: 100%; }
+.article-state h2 { font-size: 22px; font-weight: 800; color: var(--text-heading); margin-bottom: 10px; }
+.article-state p { font-size: 14.5px; color: var(--gray-500); margin-bottom: 26px; }
+.article-skel { padding: 56px 0 60px; }
+.article-skel .wrap { max-width: 780px; }
+.article-skel-line { height: 14px; background: var(--gray-100); border-radius: 6px; margin-bottom: 14px; overflow: hidden; position: relative; }
+.article-skel-line::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); animation: skel-shimmer 1.3s infinite; }
+@keyframes skel-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.article-skel-line--title { height: 30px; width: 85%; margin-bottom: 22px; }
+.article-skel-line--w60 { width: 60%; }
+.article-skel-line--w40 { width: 40%; }
+.article-skel-cover { height: 340px; background: var(--gray-100); border-radius: var(--r-lg); margin: 30px 0; overflow: hidden; position: relative; }
+.article-skel-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); animation: skel-shimmer 1.3s infinite; }
+
+/* ── Related posts (reuses .blog-card visual language from blog.html) ── */
+.related-section { padding: 20px 0 var(--section-pad); background: var(--gray-25); border-top: 1px solid var(--gray-100); }
+.related-section .wrap { max-width: 1080px; }
+.related-section .section-head { margin-bottom: 32px; }
+.related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.blog-card { background: #fff; border: 1px solid var(--gray-100); border-radius: var(--r-lg); overflow: hidden; display: flex; flex-direction: column; transition: transform .25s var(--ease), box-shadow .25s var(--ease); text-decoration: none; }
+.blog-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.blog-card .img-ph { border-radius: 0; border: none; border-bottom: 1px solid var(--gray-100); }
+.blog-card-body { padding: 22px; display: flex; flex-direction: column; flex: 1; }
+.blog-card-body h3 { font-size: 16.5px; font-weight: 700; color: var(--text-heading); line-height: 1.4; margin-bottom: 10px; }
+.blog-card-body p { font-size: 13.5px; color: var(--gray-500); margin-bottom: 16px; flex: 1; }
+.blog-card-foot { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--gray-400); padding-top: 14px; border-top: 1px solid var(--gray-100); }
+.blog-card-link { font-size: 13px; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 4px; }
+.blog-card-link svg { width: 13px; height: 13px; transition: transform .2s; }
+.blog-card:hover .blog-card-link svg { transform: translateX(3px); }
+.blog-card-img-real { border: none !important; background: none !important; }
+.blog-card-img-real img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.blog-tag { display: inline-flex; align-self: flex-start; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--primary); background: rgba(var(--primary-rgb),0.08); padding: 5px 12px; border-radius: var(--r-pill); margin-bottom: 14px; }
+
+/* ── Related posts: loading skeleton (shown while getBlogs() is in flight,
+   instead of the section just being absent) ── */
+.related-skel-card { background: #fff; border: 1px solid var(--gray-100); border-radius: var(--r-lg); overflow: hidden; display: flex; flex-direction: column; }
+.related-skel-img { aspect-ratio: 4/3; background: var(--gray-100); position: relative; overflow: hidden; }
+.related-skel-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); animation: skel-shimmer 1.3s infinite; }
+.related-skel-body { padding: 22px; }
+.related-skel-body .article-skel-line:last-child { margin-bottom: 0; }
+
+@media (max-width: 900px) {
+  .related-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .related-grid { grid-template-columns: 1fr; }
+  .article-share { flex-wrap: wrap; }
+}
+</style>
+<link rel="stylesheet" href="css/fancy-effects.css">
+</head>
+<body>
+<a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        062-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="แชทผ่าน LINE" title="แชทผ่าน LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>แอด LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="ค้นหาในเว็บไซต์">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="#" class="is-active">TH</a>
+        <a href="en/index.html">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">หน้าแรก</a>
+
+      <div class="nav-item-dropdown">
+        <button class="nav-link nav-dd-trigger" type="button">
+          หมวดหมู่
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown nav-megamenu">
+          <div class="nav-mega-grid">
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายความปลอดภัย</div>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+              </a>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายจราจร</div>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายจราจรสะท้อนแสง HI</strong><span>ผลิตตามมาตรฐานกรมทางหลวง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / เขตก่อสร้าง</strong><span>เพิ่มความปลอดภัยพื้นที่ก่อสร้าง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายชี้ทาง / บอกทิศทาง</strong><span>ออกแบบตามผังพื้นที่จริง</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">อุปกรณ์จราจร</div>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>กรวยจราจร / แบริเออร์</strong><span>วัสดุคุณภาพ ทนทาน ใช้งานยาวนาน</span></span>
+              </a>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>เสาล้มลุก / แท่งกั้นถนน</strong><span>ติดตั้งง่าย ปรับตามพื้นที่ใช้งาน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ตามอุตสาหกรรม</div>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงงานอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>หน่วยงานราชการ</strong></a>
+              <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>นิคมอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงพยาบาล / สถานพยาบาล</strong></a>
+            </div>
+          </div>
+          <a href="products.html" class="nav-mega-foot">
+            ดูสินค้าทั้งหมด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="portfolio.html" class="nav-link">ผลงาน</a>
+      <a href="about.html" class="nav-link">เกี่ยวกับเรา</a>
+      <a href="blog.html" class="nav-link nav-link--active">บทความ</a>
+      <a href="contact.html" class="nav-link">ติดต่อ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">ขอใบเสนอราคา</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="เช็คสถานะคำสั่งผลิต" title="เช็คสถานะคำสั่งผลิต">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">หน้าแรก</a>
+    <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
+      หมวดหมู่
+      <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="mobile-dd-panel" id="mobile-dd-panel">
+      <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+      <a href="products.html?cat=traffic">ป้ายจราจร</a>
+      <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+      <a href="products.html">ดูสินค้าทั้งหมด</a>
+    </div>
+    <a href="portfolio.html">ผลงาน</a>
+    <a href="about.html">เกี่ยวกับเรา</a>
+    <a href="blog.html" style="color:var(--primary);">บทความ</a>
+    <a href="#" data-track-modal-open>เช็คสถานะคำสั่งผลิต</a>
+    <a href="contact.html">ติดต่อ</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="#" class="is-active">TH · ไทย</a>
+    <a href="en/index.html">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>แอด LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">ขอใบเสนอราคา</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">โทร 062-883-3880</a>
+  </div>
+</div>
+
+<main id="top">
+
+<!-- ============================================================
+     LOADING SKELETON (แสดงระหว่างรอ fetch จาก Firestore)
+     Uses the same branded .article-hero band as the loaded article so
+     the banner background is there from the first paint, instead of the
+     page looking blank until the fetch finishes.
+     ============================================================ -->
+<section class="article-hero" id="article-hero-skeleton">
+  <div class="article-hero-bg-x" aria-hidden="true">
+    <svg viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 20L300 200L540 20" stroke="#E2E8F0" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M60 380L300 200L540 380" stroke="#E2E8F0" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div class="article-skel-line article-skel-line--w40" style="max-width:160px;"></div>
+    <div class="article-skel-line article-skel-line--title"></div>
+    <div class="article-skel-line article-skel-line--w60" style="margin-bottom:0;"></div>
+  </div>
+</section>
+
+<div class="article-skel" id="article-skeleton">
+  <div class="wrap">
+    <div class="article-skel-cover"></div>
+    <div class="article-skel-line"></div>
+    <div class="article-skel-line"></div>
+    <div class="article-skel-line article-skel-line--w60"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     NOT FOUND STATE (ไม่มี slug / หา slug ไม่เจอ / เป็น draft)
+     ============================================================ -->
+<div class="article-state" id="article-not-found" style="display:none;">
+  <div class="wrap">
+    <div class="article-state-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+    </div>
+    <h2>ไม่พบบทความนี้</h2>
+    <p>บทความอาจถูกลบ ยังไม่เผยแพร่ หรือลิงก์ไม่ถูกต้อง ลองกลับไปดูบทความอื่นๆ ของเราแทนได้</p>
+    <a href="blog.html" class="btn btn-primary">ดูบทความทั้งหมด</a>
+  </div>
+</div>
+
+<!-- ============================================================
+     ARTICLE (เติมข้อมูลด้วย JS หลัง fetch สำเร็จ)
+     ============================================================ -->
+<div id="article-root" style="display:none;">
+
+  <section class="article-hero">
+    <div class="article-hero-bg-x" aria-hidden="true">
+      <svg viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60 20L300 200L540 20" stroke="#E2E8F0" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M60 380L300 200L540 380" stroke="#E2E8F0" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="wrap">
+      <div class="article-breadcrumb" id="article-breadcrumb"></div>
+      <h1 id="article-title"></h1>
+      <div class="article-meta-row" id="article-meta-row"></div>
+    </div>
+  </section>
+
+  <section class="article-body">
+    <div class="wrap">
+      <div id="article-cover"></div>
+
+      <div class="article-content" id="article-content"></div>
+
+      <div class="article-share">
+        <span class="article-share-label">แชร์บทความนี้</span>
+        <button type="button" class="article-share-btn" id="share-copy" aria-label="คัดลอกลิงก์">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <a class="article-share-btn" id="share-facebook" target="_blank" rel="noopener" aria-label="แชร์ผ่าน Facebook">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        </a>
+        <a class="article-share-btn" id="share-line" target="_blank" rel="noopener" aria-label="แชร์ผ่าน LINE">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg>
+        </a>
+      </div>
+
+      <div class="article-author" id="article-author"></div>
+
+      <p class="article-disclaimer">บทความนี้จัดทำขึ้นเพื่อให้ข้อมูลทั่วไปเท่านั้น ไม่ถือเป็นคำแนะนำทางกฎหมาย ผู้ประกอบการควรตรวจสอบกฎหมายและกฎกระทรวงที่เกี่ยวข้องกับกิจการของตนเองอย่างละเอียด หรือปรึกษาหน่วยงานราชการที่เกี่ยวข้องโดยตรง</p>
+
+      <div class="article-cta-box">
+        <h3>ต้องการให้ทีมงานสำรวจพื้นที่และประเมินป้ายที่ต้องใช้?</h3>
+        <p>ทีมวิศวกร CS.SIGN พร้อมลงพื้นที่ฟรี พร้อมออกแบบ Artwork และเสนอราคาภายใน 24 ชั่วโมง</p>
+        <a href="contact.html" class="btn btn-primary">ขอคำปรึกษาฟรี</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============================================================
+     RELATED POSTS
+     ============================================================ -->
+<section class="related-section" id="related-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">อ่านต่อ</div>
+      <h2 class="h-section">บทความที่เกี่ยวข้อง</h2>
+    </div>
+    <div class="related-grid" id="related-grid">
+      <div class="related-skel-card"><div class="related-skel-img"></div><div class="related-skel-body"><div class="article-skel-line article-skel-line--w60"></div><div class="article-skel-line"></div><div class="article-skel-line article-skel-line--w40"></div></div></div>
+      <div class="related-skel-card"><div class="related-skel-img"></div><div class="related-skel-body"><div class="article-skel-line article-skel-line--w60"></div><div class="article-skel-line"></div><div class="article-skel-line article-skel-line--w40"></div></div></div>
+      <div class="related-skel-card"><div class="related-skel-img"></div><div class="related-skel-body"><div class="article-skel-line article-skel-line--w60"></div><div class="article-skel-line"></div><div class="article-skel-line article-skel-line--w40"></div></div></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์มากกว่า 20 ปี</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ผลิตภัณฑ์</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+          <a href="products.html?cat=traffic">ป้ายจราจร</a>
+          <a href="products.html?cat=safety">ป้ายโรงงานอุตสาหกรรม</a>
+          <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">บริษัท</div>
+        <div class="footer-links">
+          <a href="about.html">เกี่ยวกับเรา</a>
+          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="portfolio.html">ผลงานของเรา</a>
+          <a href="quality-policy.html">นโยบายคุณภาพ</a>
+          <a href="blog.html" style="color:var(--primary);">บทความ</a>
+          <a href="about.html#faq">คำถามที่พบบ่อย</a>
+          <a href="contact.html">ติดต่อเรา</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ติดต่อเรา</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">ที่อยู่</div>
+          <div class="footer-contact-val">17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรศัพท์ / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">062-883-3880, 063-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรสาร (Fax)</div>
+          <span class="footer-contact-val">02-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">อีเมล</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN — บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">นโยบายความเป็นส่วนตัว</a> · <a href="terms.html" style="color:inherit;">ข้อกำหนดการใช้บริการ</a> &middot; <a href="accessibility.html" style="color:inherit;">การเข้าถึงเว็บไซต์ (WCAG)</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/tabs-overflow.js"></script>
+<script src="js/main.js"></script>
+<script src="js/cookie-consent.js"></script>
+<script src="js/site-search.js"></script>
+<script type="module" src="js/site-settings.js"></script>
+<script type="module" src="js/nav-menu.js"></script>
+<script type="module" src="js/home-dynamic.js"></script>
+
+<!-- ============================================================
+     CS.SIGN AI CHAT POPUP
+     ============================================================ -->
+
+<!-- FAB trigger button -->
+<script src="js/track-modal-template.js"></script>
+<script type="module" src="js/track-modal.js"></script>
+<script src="js/chat-widget-template.js"></script>
+
+<script type="module">
+import { getBlogBySlug, getBlogs } from "./js/db.js";
+
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function formatThaiDate(ms) {
+  if (!ms) return "";
+  try {
+    return new Date(ms).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
+function estimateReadMinutes(content) {
+  const words = String(content || "").trim().split(/\s+/).filter(Boolean).length;
+  const chars = String(content || "").length;
+  return Math.max(1, Math.round(Math.max(words / 130, chars / 500)));
+}
+
+// เนื้อหาบทความขึ้นย่อหน้าใหม่ด้วยบรรทัดว่าง ไม่มี markdown/HTML ใดๆ
+// จึง split ด้วย /\n\s*\n/ แล้ว escape ทีละย่อหน้าก่อน wrap <p>
+function renderContent(content) {
+  const paragraphs = String(content || "")
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (!paragraphs.length) return "";
+  return paragraphs
+    .map((p) => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
+    .join("\n");
+}
+
+function initials(name) {
+  const clean = String(name || "CS").trim();
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (!parts.length) return "CS";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function relatedCardTemplate(post) {
+  const href = `blog-post.html?slug=${encodeURIComponent(post.slug || "")}`;
+  const title = escapeHtml(post.title);
+  const excerpt = escapeHtml(post.excerpt);
+  const dateStr = formatThaiDate(post.createdAt);
+  const readMin = estimateReadMinutes(post.content);
+  const imgBlock = post.image
+    ? `<div class="img-ph img-ph--4-3 blog-card-img-real"><img src="${escapeHtml(post.image)}" alt="${title}" loading="lazy" decoding="async"></div>`
+    : `<div class="img-ph img-ph--4-3">
+         <div class="img-ph-inner">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+           <span class="img-ph-label">${title}</span>
+         </div>
+       </div>`;
+  return `
+    <a href="${href}" class="blog-card">
+      ${imgBlock}
+      <div class="blog-card-body">
+        <h3>${title}</h3>
+        <p>${excerpt}</p>
+        <div class="blog-card-foot">
+          <span>${dateStr ? dateStr + " · " : ""}อ่าน ${readMin} นาที</span>
+          <span class="blog-card-link">อ่านต่อ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="13" height="13"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+        </div>
+      </div>
+    </a>`;
+}
+
+function showNotFound() {
+  document.getElementById("article-hero-skeleton").style.display = "none";
+  document.getElementById("article-skeleton").style.display = "none";
+  document.getElementById("article-root").style.display = "none";
+  document.getElementById("related-section").style.display = "none";
+  document.getElementById("article-not-found").style.display = "";
+}
+
+function updateMetaTags(post) {
+  const title = post.metaTitle ? post.metaTitle : `${post.title} — CS.SIGN`;
+  const desc = post.metaDescription || post.excerpt || "";
+  const url = `https://cssign.co.th/blog-post.html?slug=${encodeURIComponent(post.slug)}`;
+  const img = post.image || "https://cssign.co.th/assets/og-image.jpg";
+
+  document.title = title;
+  document.getElementById("page-title").textContent = title;
+  document.getElementById("meta-description").setAttribute("content", desc);
+  document.getElementById("og-title").setAttribute("content", title);
+  document.getElementById("og-description").setAttribute("content", desc);
+  document.getElementById("og-url").setAttribute("content", url);
+  document.getElementById("og-image").setAttribute("content", img);
+  document.getElementById("canonical-link").setAttribute("href", url);
+}
+
+function renderArticle(post) {
+  updateMetaTags(post);
+
+  document.getElementById("article-breadcrumb").innerHTML =
+    `<a href="blog.html">บทความ</a> / ${escapeHtml(post.title)}`;
+  document.getElementById("article-title").textContent = post.title;
+
+  const dateStr = formatThaiDate(post.createdAt);
+  const readMin = estimateReadMinutes(post.content);
+  document.getElementById("article-meta-row").innerHTML = `
+    ${dateStr ? `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>เผยแพร่ ${dateStr}</span>` : ""}
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>อ่าน ${readMin} นาที</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>${escapeHtml(post.author || "ทีมงาน CS.SIGN")}</span>
+  `;
+
+  const coverEl = document.getElementById("article-cover");
+  coverEl.innerHTML = post.image
+    ? `<div class="article-cover-img"><img src="${escapeHtml(post.image)}" alt="${escapeHtml(post.title)}" decoding="async"></div>`
+    : `<div class="img-ph img-ph--16-9" style="margin-bottom:40px;">
+         <div class="img-ph-inner">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+           <span class="img-ph-label">${escapeHtml(post.title)}</span>
+         </div>
+       </div>`;
+
+  document.getElementById("article-content").innerHTML = renderContent(post.content);
+
+  document.getElementById("article-author").innerHTML = `
+    <div class="article-author-avatar">${escapeHtml(initials(post.author))}</div>
+    <div>
+      <div class="article-author-name">${escapeHtml(post.author || "ทีมงาน CS.SIGN")}</div>
+      <div class="article-author-role">ทีมงาน CS.SIGN And Products Co., Ltd.</div>
+    </div>
+  `;
+
+  // ปุ่มแชร์
+  const shareUrl = `https://cssign.co.th/blog-post.html?slug=${encodeURIComponent(post.slug)}`;
+  document.getElementById("share-facebook").href =
+    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+  document.getElementById("share-line").href =
+    `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}`;
+  document.getElementById("share-copy").addEventListener("click", async () => {
+    const btn = document.getElementById("share-copy");
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      btn.classList.add("copied");
+      setTimeout(() => btn.classList.remove("copied"), 1600);
+    } catch {
+      window.prompt("คัดลอกลิงก์บทความ:", shareUrl);
+    }
+  });
+
+  document.getElementById("article-hero-skeleton").style.display = "none";
+  document.getElementById("article-skeleton").style.display = "none";
+  document.getElementById("article-root").style.display = "";
+}
+
+async function renderRelated(currentSlug) {
+  const gridEl = document.getElementById("related-grid");
+  const sectionEl = document.getElementById("related-section");
+  // ระหว่างรอ fetch, grid แสดง skeleton card อยู่แล้ว (มาจาก HTML) — ถ้าไม่มีบทความ
+  // ที่เกี่ยวข้องจริงๆ หรือ fetch พัง ค่อยซ่อนทั้ง section ทีเดียว แทนที่จะปล่อย
+  // skeleton ค้างอยู่เฉยๆ
+  try {
+    const all = await getBlogs();
+    const related = (all || [])
+      .filter((p) => p.status === "published" && p.slug !== currentSlug)
+      .slice(0, 3);
+    if (!related.length) {
+      sectionEl.style.display = "none";
+      return;
+    }
+    gridEl.innerHTML = related.map(relatedCardTemplate).join("");
+  } catch (err) {
+    console.error("[blog-post] related posts failed:", err);
+    sectionEl.style.display = "none";
+  }
+}
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("slug");
+
+  if (!slug) {
+    showNotFound();
+    return;
+  }
+
+  let post = null;
+  try {
+    post = await getBlogBySlug(slug);
+  } catch (err) {
+    console.error("[blog-post] getBlogBySlug() failed:", err);
+    showNotFound();
+    return;
+  }
+
+  // firestore.rules อนุญาต read ทุกสถานะแบบ public ดังนั้น draft ต้องถือเป็น not-found ฝั่ง frontend เอง
+  if (!post || post.status !== "published") {
+    showNotFound();
+    return;
+  }
+
+  renderArticle(post);
+  renderRelated(post.slug);
+}
+
+init();
+</script>
+
+<script type="module" src="js/chat-widget.js"></script>
+<script src="js/fancy-effects.js" defer></script>
+</body></html>

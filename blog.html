@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทความและข่าวสาร — CS.SIGN ผู้ผลิตป้ายความปลอดภัยและป้ายจราจร</title>
+<meta name="description" content="บทความและความรู้เกี่ยวกับมาตรฐานป้ายความปลอดภัย ป้ายจราจร กฎหมายที่เกี่ยวข้อง และเทคนิคการเลือกป้ายให้เหมาะกับหน้างาน อัปเดตสม่ำเสมอโดยทีมผู้เชี่ยวชาญ CS.SIGN">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cssign.co.th/blog.html">
+<meta property="og:title" content="บทความและข่าวสาร — CS.SIGN">
+<meta property="og:description" content="ความรู้เรื่องมาตรฐานป้ายความปลอดภัยและป้ายจราจรจากทีมผู้เชี่ยวชาญ CS.SIGN">
+<meta property="og:image" content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale" content="th_TH">
+<link rel="canonical" href="https://cssign.co.th/blog.html">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Perf: preconnect above already warms the connection; this actually
+     loads the webfont CSS, moved out of style.css's @import (which is
+     render-blocking and only discoverable after style.css itself loads,
+     costing an extra round trip before Thai/Latin text paints). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+
+<link rel="stylesheet" href="css/style.css?v=20260711a">
+<link rel="stylesheet" href="css/shared-widgets.css">
+<link rel="stylesheet" href="css/track-modal.css">
+<style>
+/* ── Blog / Articles Page ──
+   Hero background rebuilt to match .contact-hero on contact.html exactly
+   (same soft "X" chevron artwork, same size/opacity/position) instead of
+   its own radial-gradient blur + dot-grid texture. */
+.blog-hero { position: relative; padding: var(--page-hero-pad-top) 0 var(--page-hero-pad-bottom); background: #fff; border-bottom: 1px solid var(--gray-100); text-align: center; overflow: hidden; }
+/* ---- Second decorative layer (matches .article-hero/.contact-hero mesh
+   treatment in style.css): a soft two-corner brand-colour wash behind the
+   existing chevron artwork, purely additive depth. ---- */
+.blog-hero::before{
+  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(520px 320px at 0% 0%, rgba(var(--primary-rgb),0.05), transparent 60%),
+    radial-gradient(460px 300px at 100% 100%, rgba(var(--accent-rgb),0.05), transparent 60%);
+}
+.blog-hero-bg-x { position: absolute; right: -40px; top: 50%; transform: translateY(-50%); width: 480px; opacity: 0.55; pointer-events: none; z-index: 0; }
+.blog-hero-bg-x svg { width: 100%; height: auto; }
+.blog-hero .wrap { position: relative; z-index: 1; }
+@media (max-width: 600px) { .blog-hero-bg-x { width: 260px; opacity: 0.3; } }
+.blog-hero .eyebrow { justify-content: center; width: 100%; }
+.blog-hero h1 { font-family: var(--font-display); font-size: clamp(30px, 4vw, 46px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--text-heading); margin: 14px 0 18px; }
+.blog-hero h1 em { font-style: normal; background: linear-gradient(100deg, var(--primary-light) 10%, var(--primary) 55%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.blog-hero p { max-width: 600px; margin: 0 auto; font-size: 16.5px; line-height: 1.75; color: var(--gray-500); }
+
+.blog-featured { padding: var(--section-pad) 0 40px; }
+
+/* ── Shared "gradient ring" hover border — a thin gradient outline that
+   traces just the card's edge on hover. Built with a masked pseudo-element
+   (mask-composite: exclude cuts out the interior) rather than a background
+   swap, so it never fills or bleeds behind the card's own content — only
+   the ring itself is painted. Applied to both the featured card and the
+   small article cards for a consistent hover language across the page. */
+.blog-feat-card, .blog-card {
+  position: relative;
+}
+.blog-feat-card::before, .blog-card::before {
+  content: ''; position: absolute; inset: 0; z-index: 3; border-radius: inherit;
+  padding: 1.5px; pointer-events: none; opacity: 0;
+  background: linear-gradient(120deg, var(--primary-light) 0%, var(--primary) 50%, var(--accent) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  transition: opacity .3s var(--ease);
+}
+.blog-feat-card:hover::before, .blog-card:hover::before { opacity: 1; }
+
+.blog-feat-card {
+  display: grid; grid-template-columns: 1.1fr 1fr; gap: 0;
+  background: #fff; border: 1px solid var(--gray-100); border-radius: var(--r-xl);
+  overflow: hidden; box-shadow: var(--shadow-md);
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+.blog-feat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.blog-feat-card .img-ph { height: 100%; border-radius: 0; border: none; position: relative; overflow: hidden; }
+.blog-feat-card .img-ph::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(200deg, transparent 55%, rgba(0,0,0,0.16) 100%);
+  pointer-events: none;
+}
+.blog-feat-card .img-ph img { transition: transform .6s var(--ease); }
+.blog-feat-card:hover .img-ph img { transform: scale(1.06); }
+.blog-feat-body { padding: 44px; background: #fff; display: flex; flex-direction: column; justify-content: center; }
+.blog-tag {
+  display: inline-flex; align-items: center; gap: 7px; align-self: flex-start;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--primary); background: rgba(var(--primary-rgb),0.08);
+  padding: 6px 14px 6px 12px; border-radius: var(--r-pill); margin-bottom: 16px;
+}
+.blog-tag .blog-tag-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex: none;
+  box-shadow: 0 0 0 0 rgba(var(--primary-rgb),0.55);
+  animation: blogTagPulse 1.8s ease-out infinite;
+}
+@keyframes blogTagPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--primary-rgb),0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(var(--primary-rgb),0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb),0); }
+}
+.blog-feat-body h2 { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text-heading); margin-bottom: 14px; line-height: 1.35; letter-spacing: -0.01em; }
+.blog-feat-body p { font-size: 15px; line-height: 1.75; color: var(--gray-600); margin-bottom: 22px; }
+.blog-meta { display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--gray-400); margin-bottom: 22px; flex-wrap: wrap; }
+.blog-meta span { display: flex; align-items: center; gap: 5px; }
+.blog-meta svg { width: 14px; height: 14px; }
+.blog-feat-body .blog-card-link { font-size: 14px; }
+.blog-feat-body .blog-card-link svg { width: 15px; height: 15px; }
+.blog-feat-card:hover .blog-card-link svg { transform: translateX(4px); }
+
+.blog-grid-section { padding: 20px 0 var(--section-pad); position: relative; }
+.blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; transition: opacity .22s var(--ease); }
+.blog-card {
+  background: #fff; border: 1px solid var(--gray-100); border-radius: var(--r-lg);
+  overflow: hidden; display: flex; flex-direction: column;
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+.blog-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.blog-card .img-ph { border-radius: 0; border: none; border-bottom: 1px solid var(--gray-100); }
+.blog-card-body { padding: 22px; display: flex; flex-direction: column; flex: 1; }
+.blog-card-body .blog-tag { font-size: 10.5px; padding: 4px 11px; margin-bottom: 12px; }
+.blog-card-body .blog-tag .blog-tag-dot { display: none; }
+.blog-card-body h3 { font-size: 16.5px; font-weight: 700; color: var(--text-heading); line-height: 1.4; margin-bottom: 10px; transition: color .2s var(--ease); }
+.blog-card:hover .blog-card-body h3 { color: var(--primary); }
+.blog-card-body p { font-size: 13.5px; line-height: 1.65; color: var(--gray-500); margin-bottom: 16px; flex: 1; }
+.blog-card-foot { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--gray-400); padding-top: 14px; border-top: 1px solid var(--gray-100); }
+.blog-card-link { font-size: 13px; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 4px; }
+.blog-card-link svg { width: 13px; height: 13px; transition: transform .2s; }
+.blog-card:hover .blog-card-link svg { transform: translateX(3px); }
+.blog-card--soon { opacity: .72; }
+.blog-soon-badge { font-size: 11px; font-weight: 700; color: var(--gray-400); background: var(--gray-100); padding: 4px 10px; border-radius: var(--r-pill); }
+
+/* Newsletter CTA moved to shared .site-cta-band (css/shared-widgets.css) */
+
+/* ── Dynamic blog rendering (js/blog-render.js) ── */
+.blog-card-img-real,
+.blog-feat-card-img-real { border: none !important; background: none !important; }
+.blog-card-img-real img,
+.blog-feat-card-img-real img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.blog-empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--gray-400); font-size: 14.5px; }
+.blog-skel-card { cursor: default; pointer-events: none; }
+.blog-skel-thumb { background: var(--gray-100); aspect-ratio: 4/3; position: relative; overflow: hidden; }
+.blog-skel-line { height: 11px; border-radius: 5px; background: var(--gray-100); position: relative; overflow: hidden; margin: 6px 0; }
+.blog-skel-line.w35 { width: 35%; height: 9px; }
+.blog-skel-line.w90 { width: 90%; }
+.blog-skel-line.w60 { width: 60%; margin-bottom: 16px; }
+.blog-skel-pill { height: 20px; width: 76px; border-radius: var(--r-pill); background: var(--gray-100); position: relative; overflow: hidden; }
+.blog-skel-thumb::after,
+.blog-skel-line::after,
+.blog-skel-pill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent);
+  animation: ssShimmer 1.15s ease-in-out infinite;
+}
+/* Featured-card skeleton — mirrors .blog-feat-card's two-column layout */
+.blog-feat-skel { pointer-events: none; }
+.blog-feat-skel .blog-skel-thumb { height: 100%; aspect-ratio: auto; }
+.blog-feat-skel .blog-skel-line.w60 { width: 82%; height: 22px; margin-bottom: 18px; }
+.blog-feat-skel .blog-skel-line.w90 { width: 96%; }
+
+@media (max-width: 900px) {
+  .blog-feat-card { grid-template-columns: 1fr; }
+  .blog-feat-card .img-ph { aspect-ratio: 16/9; }
+  .blog-feat-skel .blog-skel-thumb { aspect-ratio: 16/9; }
+  .blog-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .blog-feat-body { padding: 28px 22px; }
+  .blog-grid { grid-template-columns: 1fr; }
+}
+</style>
+<link rel="stylesheet" href="css/fancy-effects.css">
+</head>
+<body>
+<a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        062-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="แชทผ่าน LINE" title="แชทผ่าน LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>แอด LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="ค้นหาในเว็บไซต์">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="#" class="is-active">TH</a>
+        <a href="en/index.html">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">หน้าแรก</a>
+
+      <div class="nav-item-dropdown">
+        <button class="nav-link nav-dd-trigger" type="button">
+          หมวดหมู่
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown nav-megamenu">
+          <div class="nav-mega-grid">
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายความปลอดภัย</div>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+              </a>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายจราจร</div>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายจราจรสะท้อนแสง HI</strong><span>ผลิตตามมาตรฐานกรมทางหลวง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / เขตก่อสร้าง</strong><span>เพิ่มความปลอดภัยพื้นที่ก่อสร้าง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายชี้ทาง / บอกทิศทาง</strong><span>ออกแบบตามผังพื้นที่จริง</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">อุปกรณ์จราจร</div>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>กรวยจราจร / แบริเออร์</strong><span>วัสดุคุณภาพ ทนทาน ใช้งานยาวนาน</span></span>
+              </a>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>เสาล้มลุก / แท่งกั้นถนน</strong><span>ติดตั้งง่าย ปรับตามพื้นที่ใช้งาน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ตามอุตสาหกรรม</div>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงงานอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>หน่วยงานราชการ</strong></a>
+              <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>นิคมอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงพยาบาล / สถานพยาบาล</strong></a>
+            </div>
+          </div>
+          <a href="products.html" class="nav-mega-foot">
+            ดูสินค้าทั้งหมด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="portfolio.html" class="nav-link">ผลงาน</a>
+      <a href="about.html" class="nav-link">เกี่ยวกับเรา</a>
+      <a href="blog.html" class="nav-link nav-link--active">บทความ</a>
+      <a href="contact.html" class="nav-link">ติดต่อ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">ขอใบเสนอราคา</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="เช็คสถานะคำสั่งผลิต" title="เช็คสถานะคำสั่งผลิต">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">หน้าแรก</a>
+    <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
+      หมวดหมู่
+      <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="mobile-dd-panel" id="mobile-dd-panel">
+      <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+      <a href="products.html?cat=traffic">ป้ายจราจร</a>
+      <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+      <a href="products.html">ดูสินค้าทั้งหมด</a>
+    </div>
+    <a href="portfolio.html">ผลงาน</a>
+    <a href="about.html">เกี่ยวกับเรา</a>
+    <a href="blog.html" style="color:var(--primary);">บทความ</a>
+    <a href="#" data-track-modal-open>เช็คสถานะคำสั่งผลิต</a>
+    <a href="contact.html">ติดต่อ</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="#" class="is-active">TH · ไทย</a>
+    <a href="en/index.html">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>แอด LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">ขอใบเสนอราคา</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">โทร 062-883-3880</a>
+  </div>
+</div>
+
+<main id="top">
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="blog-hero">
+  <div class="blog-hero-bg-x" aria-hidden="true">
+    <svg viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 20L300 200L540 20" stroke="#E2E8F0" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M60 380L300 200L540 380" stroke="#E2E8F0" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div class="eyebrow">บทความ &amp; ข่าวสาร</div>
+    <h1>ความรู้เรื่อง <em>ป้ายความปลอดภัย</em><br>จากทีมผู้เชี่ยวชาญ CS.SIGN</h1>
+    <p>รวมบทความ มาตรฐาน และกฎหมายที่เกี่ยวข้องกับป้ายความปลอดภัยและป้ายจราจร อัปเดตสม่ำเสมอ เพื่อช่วยให้องค์กรของคุณเตรียมพร้อมและเลือกป้ายได้ถูกต้องตามมาตรฐาน</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     FEATURED ARTICLE
+     ============================================================ -->
+<section class="blog-featured" id="blog-featured-section">
+  <div class="wrap" id="blog-featured-dynamic" data-reveal>
+    <!-- Fallback เริ่มต้นก่อน JS โหลดเสร็จ — js/blog-render.js จะดึงบทความ "ล่าสุด" (createdAt ใหม่สุด)
+         จาก Firestore มาแทนที่การ์ดนี้เองอัตโนมัติเสมอ ไม่ต้องตั้งค่า featured:true ในแอดมินอีกต่อไป -->
+    <a href="blog-safety-sign-standards-th.html" class="blog-feat-card" style="text-decoration:none;">
+      <div class="img-ph img-ph--4-3">
+        <div class="img-ph-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+          <span class="img-ph-label">มาตรฐานป้ายความปลอดภัย<br>ตามกฎหมายไทย</span>
+        </div>
+      </div>
+      <div class="blog-feat-body">
+        <span class="blog-tag"><span class="blog-tag-dot"></span>บทความล่าสุด</span>
+        <h2>มาตรฐานป้ายความปลอดภัยที่กฎหมายไทยบังคับ ผู้ประกอบการต้องรู้อะไรบ้าง</h2>
+        <div class="blog-meta">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>15 มิ.ย. 2569</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>อ่าน 6 นาที</span>
+        </div>
+        <p>สรุปกฎหมายและมาตรฐานหลักที่เกี่ยวข้องกับป้ายความปลอดภัยในสถานประกอบการไทย ตั้งแต่ พ.ร.บ. ความปลอดภัยฯ มอก. 635-2547 ไปจนถึง ISO 7010 พร้อมจุดที่กฎหมายกำหนดให้ต้องติดป้าย เพื่อให้ผ่านการตรวจสอบและลดความเสี่ยงอุบัติเหตุในสถานที่ทำงาน</p>
+        <span class="blog-card-link">อ่านบทความเต็ม <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- ============================================================
+     ARTICLE GRID
+     ============================================================ -->
+<section class="blog-grid-section">
+  <div class="wrap">
+    <div class="section-head" data-reveal>
+      <div class="eyebrow">ARTICLES</div>
+      <h2 class="h-section">บทความอื่นๆ ที่น่าสนใจ</h2>
+    </div>
+    <div class="blog-grid" data-reveal id="blog-grid-dynamic">
+
+      <div class="blog-card blog-card--soon">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>
+            <span class="img-ph-label">เลือกวัสดุป้ายจราจร<br>ให้เหมาะกับหน้างาน</span>
+          </div>
+        </div>
+        <div class="blog-card-body">
+          <h3>วิธีเลือกวัสดุป้ายจราจรให้ทนแดดทนฝนในไทย: PVC, อะคริลิก หรือสติกเกอร์สะท้อนแสง</h3>
+          <p>เปรียบเทียบข้อดีข้อเสียของวัสดุป้ายแต่ละประเภท พร้อมคำแนะนำในการเลือกใช้ตามสภาพหน้างานจริง</p>
+          <div class="blog-card-foot">
+            <span>กำลังจัดทำเนื้อหา</span>
+            <span class="blog-soon-badge">เร็วๆ นี้</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="blog-card blog-card--soon">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+            <span class="img-ph-label">ISO 7010 คืออะไร</span>
+          </div>
+        </div>
+        <div class="blog-card-body">
+          <h3>ISO 7010 คืออะไร และทำไมโรงงานส่งออกถึงต้องใช้สัญลักษณ์มาตรฐานนี้</h3>
+          <p>ทำความเข้าใจที่มาของสัญลักษณ์ความปลอดภัยสากล และความแตกต่างจากมาตรฐาน มอก. ที่ใช้ในประเทศไทย</p>
+          <div class="blog-card-foot">
+            <span>กำลังจัดทำเนื้อหา</span>
+            <span class="blog-soon-badge">เร็วๆ นี้</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="blog-card blog-card--soon">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            <span class="img-ph-label">ป้ายอพยพฉุกเฉิน<br>ตามกฎหมายอาคาร</span>
+          </div>
+        </div>
+        <div class="blog-card-body">
+          <h3>ป้ายทางหนีไฟและจุดรวมพล: ข้อกำหนดที่อาคารสำนักงานและโรงแรมห้ามมองข้าม</h3>
+          <p>สรุปตำแหน่งและขนาดป้ายอพยพฉุกเฉินที่กฎหมายควบคุมอาคารกำหนด พร้อมข้อผิดพลาดที่พบบ่อย</p>
+          <div class="blog-card-foot">
+            <span>กำลังจัดทำเนื้อหา</span>
+            <span class="blog-soon-badge">เร็วๆ นี้</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="blog-card blog-card--soon">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span class="img-ph-label">เช็กลิสต์เตรียมตัว<br>ก่อนตรวจโรงงาน</span>
+          </div>
+        </div>
+        <div class="blog-card-body">
+          <h3>เช็กลิสต์ป้ายความปลอดภัย 12 ข้อ ก่อนเจ้าหน้าที่ตรวจโรงงานมาเยือน</h3>
+          <p>รวมจุดที่เจ้าหน้าที่ตรวจสอบบ่อยที่สุด และวิธีเตรียมเอกสารรับรองป้ายให้พร้อมล่วงหน้า</p>
+          <div class="blog-card-foot">
+            <span>กำลังจัดทำเนื้อหา</span>
+            <span class="blog-soon-badge">เร็วๆ นี้</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="blog-card blog-card--soon">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="7" width="14" height="10" rx="1"/><path d="M16 10h3l3 3v4h-6"/><circle cx="6.5" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>
+            <span class="img-ph-label">ขั้นตอนสั่งผลิตป้าย<br>แบบองค์กร</span>
+          </div>
+        </div>
+        <div class="blog-card-body">
+          <h3>สั่งผลิตป้ายแบบองค์กรครั้งแรก ต้องเตรียมข้อมูลอะไรให้ทีมออกแบบบ้าง</h3>
+          <p>ไกด์ฉบับย่อสำหรับฝ่ายจัดซื้อที่ต้องการให้กระบวนการขอใบเสนอราคาและผลิตป้ายรวดเร็วขึ้น</p>
+          <div class="blog-card-foot">
+            <span>กำลังจัดทำเนื้อหา</span>
+            <span class="blog-soon-badge">เร็วๆ นี้</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="blog-card blog-card--soon">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 27l7-14 7 14M16 22h8" transform="translate(-9,-9)"/><rect x="4" y="4" width="32" height="32" rx="8" transform="scale(0.6)"/></svg>
+            <span class="img-ph-label">เทรนด์วัสดุป้ายจราจร<br>ปี 2569</span>
+          </div>
+        </div>
+        <div class="blog-card-body">
+          <h3>เทรนด์วัสดุและฟิล์มสะท้อนแสงสำหรับป้ายจราจรที่น่าจับตาในปี 2569</h3>
+          <p>อัปเดตนวัตกรรมวัสดุที่ช่วยเพิ่มอายุการใช้งานป้ายจราจรในสภาพอากาศร้อนชื้นแบบไทย</p>
+          <div class="blog-card-foot">
+            <span>กำลังจัดทำเนื้อหา</span>
+            <span class="blog-soon-badge">เร็วๆ นี้</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     NEWSLETTER / CTA
+     ============================================================ -->
+<section class="site-cta-band">
+  <div class="wrap">
+    <div class="site-cta-card" data-reveal>
+      <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+      <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
+      <div class="site-cta-bg-art" aria-hidden="true">
+        <svg viewBox="0 0 1200 340" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <path d="M980 40C1080 40 1160 110 1160 190C1160 270 1080 320 990 320" stroke="rgba(255,255,255,0.06)" stroke-width="46" stroke-linecap="round" fill="none"/>
+          <path d="M840 20L1180 320M1180 20L840 320" stroke="rgba(255,255,255,0.045)" stroke-width="40" stroke-linecap="round"/>
+          <circle cx="150" cy="60" r="140" fill="rgba(255,255,255,0.035)"/>
+        </svg>
+      </div>
+      <div class="site-cta-content">
+        <h2>ไม่อยากพลาดบทความใหม่?</h2>
+        <p>ทักทีมงาน CS.SIGN ทาง LINE หรือโทรหาเรา เพื่อรับคำปรึกษาเรื่องมาตรฐานป้ายที่เหมาะกับองค์กรของคุณโดยตรง</p>
+        <div class="btn-group">
+          <a href="contact.html" class="btn btn-white">ติดต่อทีมผู้เชี่ยวชาญ</a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="btn btn-ghost-white">แอด LINE @cssigngroup</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์มากกว่า 20 ปี</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ผลิตภัณฑ์</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+          <a href="products.html?cat=traffic">ป้ายจราจร</a>
+          <a href="products.html?cat=safety">ป้ายโรงงานอุตสาหกรรม</a>
+          <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">บริษัท</div>
+        <div class="footer-links">
+          <a href="about.html">เกี่ยวกับเรา</a>
+          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="portfolio.html">ผลงานของเรา</a>
+          <a href="quality-policy.html">นโยบายคุณภาพ</a>
+          <a href="blog.html" style="color:var(--primary);">บทความ</a>
+          <a href="about.html#faq">คำถามที่พบบ่อย</a>
+          <a href="contact.html">ติดต่อเรา</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ติดต่อเรา</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">ที่อยู่</div>
+          <div class="footer-contact-val">17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรศัพท์ / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">062-883-3880, 063-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรสาร (Fax)</div>
+          <span class="footer-contact-val">02-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">อีเมล</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN — บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">นโยบายความเป็นส่วนตัว</a> · <a href="terms.html" style="color:inherit;">ข้อกำหนดการใช้บริการ</a> &middot; <a href="accessibility.html" style="color:inherit;">การเข้าถึงเว็บไซต์ (WCAG)</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/tabs-overflow.js"></script>
+<script src="js/main.js"></script>
+<script src="js/cookie-consent.js"></script>
+<script src="js/site-search.js"></script>
+<script type="module" src="js/site-settings.js"></script>
+<script type="module" src="js/nav-menu.js"></script>
+<script type="module" src="js/blog-render.js"></script>
+<script type="module" src="js/home-dynamic.js"></script>
+
+<!-- ============================================================
+     CS.SIGN AI CHAT POPUP
+     ============================================================ -->
+
+<!-- FAB trigger button -->
+<script src="js/track-modal-template.js"></script>
+<script type="module" src="js/track-modal.js"></script>
+<script src="js/chat-widget-template.js"></script>
+
+<script type="module" src="js/chat-widget.js"></script>
+<script src="js/fancy-effects.js" defer></script>
+</body></html>

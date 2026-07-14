@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การเข้าถึงเว็บไซต์ (Accessibility Statement) — CS.SIGN</title>
+<meta name="description" content="แถลงการณ์การเข้าถึงเว็บไซต์ของ CS.SIGN ว่าด้วยมาตรฐาน WCAG 2.1 ระดับ AA ฟีเจอร์การเข้าถึงที่รองรับ ข้อจำกัดที่ทราบ และช่องทางแจ้งปัญหา">
+<meta name="robots" content="noindex, follow">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cssign.co.th/accessibility.html">
+<meta property="og:title" content="การเข้าถึงเว็บไซต์ (Accessibility Statement) — CS.SIGN">
+<meta property="og:description" content="แถลงการณ์การเข้าถึงเว็บไซต์ของ CS.SIGN ตามมาตรฐาน WCAG 2.1 AA">
+<meta property="og:image" content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale" content="th_TH">
+<link rel="canonical" href="https://cssign.co.th/accessibility.html">
+
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Perf: preconnect above already warms the connection; this actually
+     loads the webfont CSS, moved out of style.css's @import (which is
+     render-blocking and only discoverable after style.css itself loads,
+     costing an extra round trip before Thai/Latin text paints). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+
+<link rel="stylesheet" href="css/style.css?v=20260711a">
+<link rel="stylesheet" href="css/shared-widgets.css">
+<link rel="stylesheet" href="css/track-modal.css">
+<style>
+/* Base .article-hero / .article-body / .article-content / .article-callout /
+   .article-table rules now live in css/style.css so this page stays in sync
+   with terms.html, privacy-policy.html and the blog article pages. Only
+   page-specific extras remain here. */
+.article-body { padding-bottom: 80px; }
+.article-table td { vertical-align: top; }
+.article-toc { background: var(--gray-25); border: 1px solid var(--gray-100); border-radius: var(--r-lg); padding: 22px 26px; margin-bottom: 36px; }
+.article-toc div.article-toc-h { font-weight: 800; color: var(--text-heading); margin-bottom: 10px; font-size: 14.5px; }
+.article-toc ol { margin: 0; padding-left: 20px; font-size: 14.5px; }
+.article-toc li { margin-bottom: 6px; }
+.article-toc a { color: var(--gray-600); }
+.article-toc a:hover { color: var(--primary); }
+.article-contact-box { background: var(--gray-25); border: 1px solid var(--gray-100); border-radius: var(--r-lg); padding: 26px 28px; margin-top: 12px; font-size: 14.5px; }
+.article-contact-box strong { color: var(--text-heading); }
+</style>
+<link rel="stylesheet" href="css/fancy-effects.css">
+</head>
+<body>
+<a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        062-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="แชทผ่าน LINE" title="แชทผ่าน LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>แอด LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="ค้นหาในเว็บไซต์">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="#" class="is-active">TH</a>
+        <a href="en/index.html">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">หน้าแรก</a>
+
+      <div class="nav-item-dropdown">
+        <button class="nav-link nav-dd-trigger" type="button">
+          หมวดหมู่
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown nav-megamenu">
+          <div class="nav-mega-grid">
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายความปลอดภัย</div>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+              </a>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายจราจร</div>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายจราจรสะท้อนแสง HI</strong><span>ผลิตตามมาตรฐานกรมทางหลวง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / เขตก่อสร้าง</strong><span>เพิ่มความปลอดภัยพื้นที่ก่อสร้าง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายชี้ทาง / บอกทิศทาง</strong><span>ออกแบบตามผังพื้นที่จริง</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">อุปกรณ์จราจร</div>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>กรวยจราจร / แบริเออร์</strong><span>วัสดุคุณภาพ ทนทาน ใช้งานยาวนาน</span></span>
+              </a>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>เสาล้มลุก / แท่งกั้นถนน</strong><span>ติดตั้งง่าย ปรับตามพื้นที่ใช้งาน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ตามอุตสาหกรรม</div>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงงานอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>หน่วยงานราชการ</strong></a>
+              <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>นิคมอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงพยาบาล / สถานพยาบาล</strong></a>
+            </div>
+          </div>
+          <a href="products.html" class="nav-mega-foot">
+            ดูสินค้าทั้งหมด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="portfolio.html" class="nav-link">ผลงาน</a>
+      <a href="about.html" class="nav-link">เกี่ยวกับเรา</a>
+      <a href="blog.html" class="nav-link">บทความ</a>
+      <a href="contact.html" class="nav-link">ติดต่อ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">ขอใบเสนอราคา</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="เช็คสถานะคำสั่งผลิต" title="เช็คสถานะคำสั่งผลิต">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">หน้าแรก</a>
+    <a href="portfolio.html">ผลงาน</a>
+    <a href="about.html">เกี่ยวกับเรา</a>
+    <a href="blog.html">บทความ</a>
+    <a href="#" data-track-modal-open>เช็คสถานะคำสั่งผลิต</a>
+    <a href="contact.html">ติดต่อ</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="#" class="is-active">TH · ไทย</a>
+    <a href="en/index.html">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>แอด LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">ขอใบเสนอราคา</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">โทร 062-883-3880</a>
+  </div>
+</div>
+
+<main id="top">
+
+<section class="article-hero">
+  <div class="wrap">
+    <div class="article-breadcrumb"><a href="index.html">หน้าแรก</a> / การเข้าถึงเว็บไซต์</div>
+    <h1>การเข้าถึงเว็บไซต์ (Accessibility Statement)</h1>
+    <div class="article-updated">ปรับปรุงล่าสุด: 3 กรกฎาคม 2569 · อ้างอิงมาตรฐาน Web Content Accessibility Guidelines (WCAG) 2.1 ระดับ AA</div>
+  </div>
+</section>
+
+<section class="article-body">
+  <div class="wrap">
+    <div class="article-content">
+
+      <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ("บริษัท", "เรา") มุ่งมั่นให้เว็บไซต์ cssign.co.th สามารถเข้าถึงและใช้งานได้โดยผู้ใช้ทุกกลุ่ม รวมถึงผู้ใช้ที่มีความบกพร่องทางการมองเห็น การได้ยิน การเคลื่อนไหว หรือการรับรู้ เอกสารฉบับนี้อธิบายเป้าหมายด้านการเข้าถึง (accessibility) ของเรา สิ่งที่ดำเนินการแล้ว ข้อจำกัดที่ทราบอยู่ และช่องทางแจ้งปัญหาการใช้งาน</p>
+
+      <div class="article-toc">
+        <div class="article-toc-h">สารบัญ</div>
+        <ol>
+          <li><a href="#standard">มาตรฐานที่ยึดถือ</a></li>
+          <li><a href="#status">สถานะการปฏิบัติตามมาตรฐาน</a></li>
+          <li><a href="#features">ฟีเจอร์การเข้าถึงที่รองรับแล้ว</a></li>
+          <li><a href="#limitations">ข้อจำกัดที่ทราบและแผนแก้ไข</a></li>
+          <li><a href="#tech">เทคโนโลยีที่ใช้ในการพัฒนา</a></li>
+          <li><a href="#assessment">วิธีการประเมิน</a></li>
+          <li><a href="#feedback">แจ้งปัญหาการเข้าถึง</a></li>
+        </ol>
+      </div>
+
+      <h2 id="standard">1. มาตรฐานที่ยึดถือ</h2>
+      <p>เรากำหนดเป้าหมายให้เว็บไซต์สอดคล้องกับ <strong>Web Content Accessibility Guidelines (WCAG) 2.1 ระดับ AA</strong> ซึ่งเผยแพร่โดย W3C — มาตรฐานเดียวกับที่หน่วยงานราชการไทยอ้างอิงในระเบียบว่าด้วยเว็บไซต์หน่วยงานภาครัฐ และเป็นมาตรฐานที่หน่วยงานรัฐ/รัฐวิสาหกิจ ตลอดจนบริษัทข้ามชาติจำนวนมากกำหนดไว้ในเงื่อนไขการจัดซื้อจัดจ้าง (procurement) ของตนเอง</p>
+
+      <h2 id="status">2. สถานะการปฏิบัติตามมาตรฐาน</h2>
+      <p>เว็บไซต์นี้อยู่ในสถานะ <strong>"สอดคล้องบางส่วน" (Partially Conformant)</strong> กับ WCAG 2.1 ระดับ AA กล่าวคือ บางส่วนของเนื้อหายังไม่สอดคล้องกับมาตรฐานอย่างสมบูรณ์ตามรายละเอียดในหัวข้อ "ข้อจำกัดที่ทราบ" ด้านล่าง เรากำลังปรับปรุงอย่างต่อเนื่องและจะอัปเดตสถานะนี้เมื่อมีความคืบหน้า</p>
+
+      <h2 id="features">3. ฟีเจอร์การเข้าถึงที่รองรับแล้ว</h2>
+      <ul>
+        <li><strong>ลิงก์ข้ามไปเนื้อหาหลัก (Skip to content):</strong> ทุกหน้ามีลิงก์ซ่อนที่ปรากฏเมื่อกด Tab เป็นปุ่มแรก ให้ผู้ใช้คีย์บอร์ด/สกรีนรีดเดอร์ข้ามเมนูนำทางไปยังเนื้อหาหลักได้ทันที</li>
+        <li><strong>โครงสร้าง HTML เชิงความหมาย (semantic markup):</strong> ใช้แท็ก <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;footer&gt;</code> และลำดับหัวข้อ (heading) ที่เป็นลำดับชั้นถูกต้อง เพื่อให้สกรีนรีดเดอร์อ่านโครงสร้างหน้าได้ถูกต้อง</li>
+        <li><strong>ป้ายกำกับสำหรับผู้ช่วยเทคโนโลยี (ARIA labels):</strong> ปุ่มไอคอน เช่น เมนูมือถือ ช่องค้นหา และวิดเจ็ตแชท มีข้อความ <code>aria-label</code> กำกับความหมาย ไม่ใช่แค่ไอคอนเปล่า</li>
+        <li><strong>คำอธิบายภาพ (alt text):</strong> รูปภาพประกอบเนื้อหา เช่น โลโก้และรูปผลงาน มีข้อความ alt อธิบายเนื้อหาของภาพ</li>
+        <li><strong>นำทางด้วยคีย์บอร์ดได้:</strong> เมนู ปุ่ม และลิงก์ทั้งหมดสามารถเข้าถึงและใช้งานได้ด้วยคีย์บอร์ดอย่างเดียวโดยไม่ต้องใช้เมาส์</li>
+        <li><strong>หยุดเนื้อหาที่เลื่อนอัตโนมัติได้:</strong> แถบรีวิวลูกค้า (testimonial carousel) ที่เลื่อนอัตโนมัติจะหยุดเลื่อนทันทีที่มีการโฟกัสด้วยคีย์บอร์ดหรือชี้เมาส์ค้างไว้ ตามข้อกำหนด WCAG 2.2.2 (Pause, Stop, Hide)</li>
+        <li><strong>ระบุภาษาของหน้า:</strong> ทุกหน้าระบุแอตทริบิวต์ <code>lang</code> ที่ถูกต้อง (th สำหรับหน้าภาษาไทย, en สำหรับหน้าภาษาอังกฤษ) เพื่อให้สกรีนรีดเดอร์ออกเสียงถูกต้อง</li>
+        <li><strong>คอนทราสต์สี:</strong> โทนสีหลักของเว็บไซต์ (น้ำเงินเข้ม #0B5A96 บนพื้นขาว/เข้ม) ออกแบบให้มีค่าคอนทราสต์ที่อ่านง่าย สำหรับข้อความเนื้อหาหลัก</li>
+        <li><strong>ออกแบบตอบสนอง (responsive) และรองรับการซูม:</strong> หน้าเว็บปรับตามขนาดหน้าจอและรองรับการซูมของเบราว์เซอร์โดยไม่ทำให้เนื้อหาซ้อนทับหรือหายไป</li>
+      </ul>
+
+      <h2 id="limitations">4. ข้อจำกัดที่ทราบและแผนแก้ไข</h2>
+      <p>แม้จะพยายามให้ครอบคลุมที่สุด แต่บางส่วนของเว็บไซต์ยังมีข้อจำกัดที่เรารับทราบและอยู่ระหว่างวางแผนแก้ไข ได้แก่</p>
+      <ul>
+        <li><strong>เอกสารประกอบมาตรฐาน:</strong> หากต้องการเอกสารประกอบมาตรฐานในรูปแบบที่เข้าถึงได้ กรุณาติดต่อเราตามช่องทางด้านล่าง เรายินดีจัดส่งเวอร์ชันที่เหมาะสมให้</li>
+        <li><strong>การตรวจสอบคอนทราสต์แบบเจาะจง:</strong> ยังไม่ได้ตรวจสอบค่าคอนทราสต์ของทุกองค์ประกอบ (เช่น ข้อความบนพื้นหลังภาพถ่ายในบางส่วนของหน้าผลงาน) ด้วยเครื่องมืออัตโนมัติอย่างครบถ้วน 100%</li>
+        <li><strong>วิดเจ็ตแผนที่และแชทของบุคคลที่สาม:</strong> องค์ประกอบที่ฝังจากผู้ให้บริการภายนอก (เช่น QR code, แผนที่) อาจมีระดับการรองรับการเข้าถึงที่ขึ้นอยู่กับผู้ให้บริการนั้น ๆ ซึ่งอยู่นอกเหนือการควบคุมโดยตรงของเรา</li>
+        <li><strong>ยังไม่ได้ผ่านการตรวจสอบโดยผู้เชี่ยวชาญภายนอก:</strong> การประเมินปัจจุบันอ้างอิงการตรวจสอบภายในและเครื่องมืออัตโนมัติเป็นหลัก (ดูหัวข้อถัดไป) ยังไม่ได้ผ่านการตรวจสอบโดยผู้ใช้จริงที่ใช้เทคโนโลยีสิ่งอำนวยความสะดวก (assistive technology) หรือผู้ตรวจสอบภายนอกที่ได้รับการรับรอง</li>
+      </ul>
+
+      <h2 id="tech">5. เทคโนโลยีที่ใช้ในการพัฒนา</h2>
+      <p>เว็บไซต์นี้พัฒนาด้วย HTML, CSS และ JavaScript มาตรฐาน (ไม่มีเฟรมเวิร์กที่จำกัดการเข้าถึง) การทำงานของเว็บไซต์ขึ้นอยู่กับฟีเจอร์เหล่านี้ในการแสดงผลอย่างสมบูรณ์ ความเข้ากันได้จะดีที่สุดกับเบราว์เซอร์และเทคโนโลยีสิ่งอำนวยความสะดวกรุ่นที่ยังได้รับการดูแลรักษาอยู่ (เช่น Chrome, Edge, Safari, Firefox เวอร์ชันล่าสุด ร่วมกับสกรีนรีดเดอร์ เช่น NVDA, JAWS, VoiceOver)</p>
+
+      <h2 id="assessment">6. วิธีการประเมิน</h2>
+      <p>CS.SIGN ประเมินการเข้าถึงของเว็บไซต์นี้ด้วยวิธีการดังนี้</p>
+      <ul>
+        <li>การตรวจสอบตนเอง (self-evaluation) โดยทีมพัฒนา อ้างอิงเกณฑ์ WCAG 2.1 ระดับ AA</li>
+        <li>การทดสอบนำทางด้วยคีย์บอร์ดเพียงอย่างเดียว (ไม่ใช้เมาส์) ในหน้าหลัก</li>
+      </ul>
+
+      <h2 id="feedback">7. แจ้งปัญหาการเข้าถึง</h2>
+      <p>เรายินดีรับฟังหากท่านพบอุปสรรคในการเข้าถึงเนื้อหาส่วนใดของเว็บไซต์ กรุณาแจ้งเราพร้อมระบุ URL ของหน้าที่พบปัญหาและอุปกรณ์/เทคโนโลยีสิ่งอำนวยความสะดวกที่ใช้งาน เพื่อให้เราสามารถตรวจสอบและแก้ไขได้ตรงจุด</p>
+      <div class="article-contact-box">
+        <p style="margin-bottom:10px;"><strong>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</strong></p>
+        <p style="margin-bottom:4px;">ที่อยู่: 17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150</p>
+        <p style="margin-bottom:4px;">โทรศัพท์: <a href="tel:0628833880">062-883-3880</a>, <a href="tel:0639785670">063-978-5670</a></p>
+        <p style="margin-bottom:0;">อีเมล: <a href="mailto:cssigngroup@gmail.com">cssigngroup@gmail.com</a></p>
+      </div>
+
+      <div class="article-callout" style="margin-top:28px;">
+        เอกสารนี้จัดทำขึ้นเพื่ออธิบายสถานะการเข้าถึงเว็บไซต์ตามความเป็นจริง ณ วันที่ปรับปรุงล่าสุด สำหรับองค์กรที่ต้องการเอกสารรับรองการเข้าถึงอย่างเป็นทางการ (เช่น VPAT/ACR) เพื่อประกอบการจัดซื้อจัดจ้าง กรุณาติดต่อเราเพื่อหารือรายละเอียดเพิ่มเติม
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์มากกว่า 20 ปี</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ผลิตภัณฑ์</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+          <a href="products.html?cat=traffic">ป้ายจราจร</a>
+          <a href="products.html?cat=safety">ป้ายโรงงานอุตสาหกรรม</a>
+          <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">บริษัท</div>
+        <div class="footer-links">
+          <a href="about.html">เกี่ยวกับเรา</a>
+          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="portfolio.html">ผลงานของเรา</a>
+          <a href="quality-policy.html">นโยบายคุณภาพ</a>
+          <a href="blog.html">บทความ</a>
+          <a href="about.html#faq">คำถามที่พบบ่อย</a>
+          <a href="contact.html">ติดต่อเรา</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ติดต่อเรา</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">ที่อยู่</div>
+          <div class="footer-contact-val">17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรศัพท์ / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">062-883-3880, 063-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรสาร (Fax)</div>
+          <span class="footer-contact-val">02-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">อีเมล</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN — บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">นโยบายความเป็นส่วนตัว</a> · <a href="terms.html" style="color:inherit;">ข้อกำหนดการใช้บริการ</a> &middot; <a href="accessibility.html" style="color:inherit;">การเข้าถึงเว็บไซต์ (WCAG)</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/tabs-overflow.js"></script>
+<script src="js/main.js"></script>
+<script src="js/cookie-consent.js"></script>
+<script src="js/site-search.js"></script>
+<script type="module" src="js/site-settings.js"></script>
+<script type="module" src="js/nav-menu.js"></script>
+
+<!-- ============================================================
+     CS.SIGN AI CHAT POPUP
+     ============================================================ -->
+
+<!-- FAB trigger button -->
+<script src="js/track-modal-template.js"></script>
+<script type="module" src="js/track-modal.js"></script>
+<script src="js/chat-widget-template.js"></script>
+
+<script type="module" src="js/chat-widget.js"></script>
+<script src="js/fancy-effects.js" defer></script>
+</body></html>

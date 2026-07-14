@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เกี่ยวกับเรา — CS.SIGN</title>
+<meta name="description" content="CS.SIGN บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์มากกว่า 20 ปี">
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://cssign.co.th/about.html">
+<meta property="og:title"       content="เกี่ยวกับเรา — CS.SIGN ผู้ผลิตป้ายความปลอดภัย">
+<meta property="og:description" content="CS.SIGN บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์ 20+ ปี">
+<meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale"      content="th_TH">
+<link rel="canonical" href="https://cssign.co.th/about.html">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Perf: preconnect above already warms the connection; this actually
+     loads the webfont CSS, moved out of style.css's @import (which is
+     render-blocking and only discoverable after style.css itself loads,
+     costing an extra round trip before Thai/Latin text paints). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+
+<link rel="stylesheet" href="css/style.css?v=20260711a">
+<link rel="stylesheet" href="css/shared-widgets.css">
+<link rel="stylesheet" href="css/track-modal.css">
+<style>
+/* ============================================================
+   ABOUT — "Shape & Colour" redesign
+   Signature idea: a safety sign communicates before anyone reads
+   a word — its shape and colour ARE the message (triangle=warning,
+   circle=mandatory, square=information). The page opens on that
+   idea instead of a generic trust-badge hero, and carries the
+   triangle/circle/square motif through as its one recurring device.
+   No certification claims anywhere on this page.
+   ============================================================ */
+
+/* ---------- HERO ----------
+   Matches the standard interior-page banner used sitewide (compare
+   .qp-hero in quality-policy.html, .pf-hero in portfolio.html,
+   .pr-hero in products.html): light var(--gray-25) band, centered
+   760px column, single soft radial blob, eyebrow+h1+p sized off the
+   same clamp() values — rather than a one-off dark hero. */
+.ab-hero{
+  position: relative;
+  overflow: hidden;
+  padding: var(--page-hero-pad-top) 0 var(--page-hero-pad-bottom);
+  background: var(--gray-25);
+  border-bottom: 1px solid var(--gray-100);
+}
+.ab-hero::before{
+  content:'';
+  position:absolute; width:600px; height:600px; border-radius:50%;
+  background: radial-gradient(circle, rgba(var(--primary-rgb),0.07), transparent 70%);
+  top:-220px; right:-120px; pointer-events:none;
+}
+/* ---- Second decorative layer (matches .article-hero/.contact-hero mesh
+   treatment in style.css): a soft opposite-corner accent wash to pair with
+   the existing top-right primary blob, purely additive depth. ---- */
+.ab-hero::after{
+  content:'';
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background: radial-gradient(480px 300px at 0% 100%, rgba(var(--accent-rgb),0.05), transparent 65%);
+}
+.ab-hero-inner{
+  position: relative; z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+.ab-hero .eyebrow{ justify-content:center; width:100%; }
+.ab-hero-inner h1{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(30px, 4vw, 46px);
+  color: var(--text-heading);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 14px 0 18px;
+}
+.ab-hero-inner h1 em{
+  font-style: normal;
+  color: var(--primary);
+}
+.ab-hero-inner > p{
+  font-size: 16.5px;
+  line-height: 1.75;
+  color: var(--gray-500);
+  max-width: 620px;
+  margin: 0 auto;
+}
+.ab-hero-stats{
+  display:flex; justify-content:center; gap:40px; flex-wrap:wrap;
+  padding-top: 28px; margin-top: 30px;
+  border-top: 1px solid var(--gray-200);
+}
+.ab-stat-item{ display:flex; flex-direction:column; align-items:center; gap:5px; }
+.ab-stat-num{ font-family: var(--font-display); font-weight:700; font-size: clamp(24px,2.4vw,30px); color: var(--secondary); letter-spacing:-0.02em; display:flex; align-items:baseline; gap:1px; }
+.ab-stat-num span{ color: var(--accent-dark); font-size:0.55em; }
+.ab-stat-label{ font-size:12px; color: var(--gray-500); line-height:1.4; max-width:150px; text-align:center; }
+.ab-hero-cta{ display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:30px; }
+
+@media (max-width: 560px){
+  .ab-hero-stats{ gap:22px; }
+}
+
+/* ---------- WHO WE ARE — brand statement ---------- */
+.ab-intro{ position:relative; overflow:hidden; padding: var(--section-pad) 0; background:#fff; }
+.ab-intro-watermark{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-family: var(--font-display); font-weight:800;
+  font-size: clamp(70px, 13vw, 210px); line-height:1;
+  color: var(--gray-25); white-space:nowrap;
+  letter-spacing:-0.01em; pointer-events:none; z-index:0;
+  -webkit-text-stroke: 1px var(--gray-100);
+}
+.ab-intro-grid{
+  position:relative; z-index:1;
+  display:grid; grid-template-columns: 0.85fr 1.15fr; gap:60px;
+}
+.ab-intro-head{ position:sticky; top:120px; align-self:start; }
+.ab-intro-title{
+  font-family: var(--font-display); font-weight:800;
+  font-size: clamp(30px, 3.6vw, 46px); line-height:1.08;
+  letter-spacing:-0.02em; color: var(--text-heading);
+  margin:14px 0 10px;
+}
+.ab-intro-title span{ color: var(--primary); }
+.ab-intro-sub{
+  font-family: var(--font-mono); font-size:12.5px; letter-spacing:.04em;
+  text-transform:uppercase; color: var(--gray-500);
+}
+.ab-intro-marks{ display:flex; gap:14px; margin-top:26px; }
+.ab-intro-marks svg{ width:26px; height:26px; }
+.ab-intro-body{ padding-top:6px; }
+.ab-intro-body p{
+  font-size:15.5px; line-height:1.95; color: var(--gray-600);
+  margin:0 0 20px;
+}
+.ab-intro-body p:last-child{ margin-bottom:0; }
+.ab-intro-body p:first-child::first-letter{
+  font-family: var(--font-display); font-weight:800; font-size:2.6em;
+  float:left; line-height:0.85; padding:6px 8px 0 0; color: var(--primary);
+}
+.ab-intro-body strong{ color: var(--text-heading); font-weight:700; }
+@media (max-width: 860px){
+  .ab-intro-grid{ grid-template-columns:1fr; gap:26px; }
+  .ab-intro-head{ position:static; }
+  .ab-intro-marks{ justify-content:center; }
+  .ab-intro-head{ text-align:center; }
+}
+@media (max-width: 560px){
+  .ab-intro-watermark{ font-size: clamp(50px, 20vw, 90px); }
+}
+
+/* ---------- MISSION — executive commitment feature ---------- */
+.ab-mission{ padding: var(--section-pad) 0; background: var(--gray-25); border-top:1px solid var(--gray-100); border-bottom:1px solid var(--gray-100); }
+.ab-mission-grid{ display:grid; grid-template-columns: 0.85fr 1.15fr; gap:64px; align-items:center; }
+.ab-mission-panel{
+  position:relative; aspect-ratio:1/1; max-width:340px; margin:0 auto;
+  border-radius: var(--r-lg); overflow:hidden;
+  background: linear-gradient(155deg, var(--secondary) 0%, #1c2a3f 100%);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  box-shadow: var(--shadow-lg);
+  will-change: transform; transform-style: preserve-3d;
+  transition: transform .1s linear;
+}
+.ab-mission-panel-glow{
+  position:absolute; width:220px; height:220px; border-radius:50%;
+  background: radial-gradient(circle, rgba(var(--primary-rgb),0.35), transparent 70%);
+  top:-60px; left:-40px; pointer-events:none;
+}
+.ab-mission-svg{ width:56%; position:relative; z-index:1; }
+.ab-mission-panel-tag{
+  position:relative; z-index:1; color:#fff; font-family: var(--font-mono);
+  font-size:12px; letter-spacing:.05em; text-align:center; padding:0 24px; opacity:.85;
+}
+.ab-mission-text .eyebrow{ margin-bottom:14px; }
+.ab-mission-text h2{ margin-bottom:16px; }
+.ab-mission-text > p{ font-size:15.5px; line-height:1.8; color: var(--gray-500); margin-bottom:22px; }
+.ab-mission-points{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
+.ab-mission-points li{ display:flex; align-items:flex-start; gap:10px; font-size:14.5px; color: var(--text-heading); font-weight:500; line-height:1.5; }
+.ab-mission-points li svg{ width:19px; height:19px; flex-shrink:0; color: var(--success); margin-top:1px; }
+@media (max-width: 860px){
+  .ab-mission-grid{ grid-template-columns:1fr; gap:40px; text-align:center; }
+  .ab-mission-points{ align-items:center; }
+  .ab-mission-points li{ text-align:left; }
+}
+
+/* ---------- EXPERTISE — flip cards ---------- */
+.ab-expertise{ padding: var(--section-pad) 0; background:#fff; }
+.ab-expertise .section-head p{ margin-top:10px; color: var(--gray-500); font-size:14.5px; }
+.ab-expertise-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:24px; margin-top:52px; perspective:1400px; }
+.ab-flip{ height:240px; cursor:pointer; outline:none; }
+.ab-flip-inner{
+  position:relative; width:100%; height:100%;
+  transition: transform .6s var(--ease); transform-style: preserve-3d;
+}
+.ab-flip.is-flipped .ab-flip-inner{ transform: rotateY(180deg); }
+@media (hover:hover) and (pointer:fine){
+  .ab-flip:hover .ab-flip-inner{ transform: rotateY(180deg); }
+}
+.ab-flip:focus-visible .ab-flip-inner{ transform: rotateY(180deg); }
+.ab-flip-face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  border-radius: var(--r-lg); padding:28px 26px; display:flex; flex-direction:column;
+}
+.ab-flip-front{
+  background: var(--gray-25); border:1px solid var(--gray-100);
+  align-items:center; justify-content:center; text-align:center; gap:10px;
+}
+.ab-flip-front svg{ width:44px; height:44px; }
+.ab-flip-front h3{ font-size:17px; font-weight:700; color: var(--secondary); }
+.ab-flip-hint{ font-size:11.5px; color: var(--gray-400); font-family: var(--font-mono); letter-spacing:.03em; }
+.ab-flip-back{
+  background: linear-gradient(155deg, var(--secondary), #1c2a3f);
+  color:#fff; transform: rotateY(180deg); justify-content:center; gap:10px;
+}
+.ab-flip-back h3{ font-size:16px; font-weight:700; color: var(--accent-on-dark); }
+.ab-flip-back p{ font-size:13px; line-height:1.65; color: rgba(255,255,255,0.82); margin:0; }
+@media (max-width: 900px){ .ab-expertise-grid{ grid-template-columns:1fr; } .ab-flip{ height:210px; } }
+
+/* ---------- CONSULTING PROCESS ---------- */
+.ab-consult{ padding: var(--section-pad) 0; background:#fff; }
+.ab-consult-steps{ display:flex; align-items:stretch; gap:0; margin-top:52px; }
+.ab-consult-step{
+  flex:1; background:#fff; border:1px solid var(--gray-100); border-radius: var(--r-lg);
+  padding:24px 20px; transition: border-color .25s var(--ease), box-shadow .25s var(--ease), transform .25s var(--ease);
+}
+.ab-consult-step:hover{ border-color: rgba(var(--primary-rgb),0.22); box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.ab-consult-num{
+  width:36px; height:36px; border-radius:50%; background: var(--primary); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-family: var(--font-mono); font-weight:700; font-size:13px; margin-bottom:16px;
+}
+.ab-consult-step h3{ font-size:15.5px; font-weight:700; color: var(--secondary); margin-bottom:6px; }
+.ab-consult-step p{ font-size:13px; color: var(--gray-500); line-height:1.6; margin:0; }
+.ab-consult-arrow{ display:flex; align-items:center; justify-content:center; flex-shrink:0; width:36px; color: var(--gray-300); }
+.ab-consult-arrow svg{ width:20px; height:20px; }
+.ab-consult-note{
+  text-align:center; margin-top:32px; font-size:13.5px; color: var(--primary); font-weight:600;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.ab-consult-note::before{ content:''; width:7px; height:7px; border-radius:50%; background: var(--success); flex-shrink:0; }
+@media (max-width: 900px){
+  .ab-consult-steps{ flex-direction:column; gap:14px; }
+  .ab-consult-arrow{ width:auto; height:20px; transform:rotate(90deg); align-self:center; }
+}
+
+/* ---------- VALUES ---------- */
+.ab-values{ padding: var(--section-pad) 0; background: var(--gray-25); border-top:1px solid var(--gray-100); border-bottom:1px solid var(--gray-100); }
+.ab-values-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:20px; margin-top:52px; perspective: 1200px; }
+.ab-value-card{
+  background:#fff; border:1px solid var(--gray-100); border-radius: var(--r-lg);
+  padding: 26px 22px; position:relative;
+  transition: box-shadow .3s var(--ease), border-color .3s var(--ease), transform .25s var(--ease);
+  will-change: transform; transform-style: preserve-3d;
+}
+.ab-value-card:hover{ box-shadow: var(--shadow-lg); border-color: rgba(var(--primary-rgb),0.18); }
+.ab-value-num{ font-family: var(--font-mono); font-size:11px; letter-spacing:.1em; color: var(--accent-dark); margin-bottom:14px; }
+.ab-value-card h3{ font-size:16px; font-weight:700; color: var(--secondary); margin-bottom:8px; line-height:1.35; }
+.ab-value-card p{ font-size:13.5px; color: var(--gray-500); line-height:1.65; margin:0; }
+@media (max-width: 900px){ .ab-values-grid{ grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px){ .ab-values-grid{ grid-template-columns: 1fr; } }
+
+/* ---------- FAQ (compact) ---------- */
+.ab-faq{ padding: var(--section-pad) 0; background:#fff; }
+.ab-faq-inner{ max-width: 820px; margin:0 auto; }
+
+/* ---------- Anchor scroll offset ---------- */
+#ab-why, #ab-intro, #ab-expertise, #ab-consult{ scroll-margin-top: 100px; }
+</style>
+<link rel="stylesheet" href="css/fancy-effects.css">
+</head>
+<body>
+<a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
+
+<!-- ============================================================
+     STICKY NAVIGATION
+     ============================================================ -->
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        062-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="แชทผ่าน LINE" title="แชทผ่าน LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>แอด LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="ค้นหาในเว็บไซต์">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="#" class="is-active">TH</a>
+        <a href="en/index.html">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">หน้าแรก</a>
+
+      <div class="nav-item-dropdown">
+        <button class="nav-link nav-dd-trigger" type="button">
+          หมวดหมู่
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown nav-megamenu">
+          <div class="nav-mega-grid">
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายความปลอดภัย</div>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+              </a>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ป้ายจราจร</div>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายจราจรสะท้อนแสง HI</strong><span>ผลิตตามมาตรฐานกรมทางหลวง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายเตือน / เขตก่อสร้าง</strong><span>เพิ่มความปลอดภัยพื้นที่ก่อสร้าง</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>ป้ายชี้ทาง / บอกทิศทาง</strong><span>ออกแบบตามผังพื้นที่จริง</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">อุปกรณ์จราจร</div>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>กรวยจราจร / แบริเออร์</strong><span>วัสดุคุณภาพ ทนทาน ใช้งานยาวนาน</span></span>
+              </a>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>เสาล้มลุก / แท่งกั้นถนน</strong><span>ติดตั้งง่าย ปรับตามพื้นที่ใช้งาน</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">ตามอุตสาหกรรม</div>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงงานอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>หน่วยงานราชการ</strong></a>
+              <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>นิคมอุตสาหกรรม</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>โรงพยาบาล / สถานพยาบาล</strong></a>
+            </div>
+          </div>
+          <a href="products.html" class="nav-mega-foot">
+            ดูสินค้าทั้งหมด
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="portfolio.html" class="nav-link">ผลงาน</a>
+      <a href="about.html" class="nav-link nav-link--active">เกี่ยวกับเรา</a>
+      <a href="blog.html" class="nav-link">บทความ</a>
+      <a href="contact.html" class="nav-link">ติดต่อ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">ขอใบเสนอราคา</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="เช็คสถานะคำสั่งผลิต" title="เช็คสถานะคำสั่งผลิต">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">หน้าแรก</a>
+    <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
+      หมวดหมู่
+      <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="mobile-dd-panel" id="mobile-dd-panel">
+      <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+      <a href="products.html?cat=traffic">ป้ายจราจร</a>
+      <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+      <a href="products.html">ดูสินค้าทั้งหมด</a>
+    </div>
+    <a href="portfolio.html">ผลงาน</a>
+    <a href="about.html">เกี่ยวกับเรา</a>
+    <a href="blog.html">บทความ</a>
+    <a href="#" data-track-modal-open>เช็คสถานะคำสั่งผลิต</a>
+    <a href="contact.html">ติดต่อ</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="#" class="is-active">TH · ไทย</a>
+    <a href="en/index.html">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>แอด LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">ขอใบเสนอราคา</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">โทร 062-883-3880</a>
+  </div>
+</div>
+
+<main id="top">
+
+<!-- ============================================================
+     HERO — standard interior banner (matches quality-policy.html /
+     portfolio.html / products.html: light band, centered column)
+     ============================================================ -->
+<section class="ab-hero">
+  <div class="wrap">
+    <div class="ab-hero-inner" data-reveal>
+      <div class="eyebrow">เกี่ยวกับ CS.SIGN</div>
+      <h1>รูปทรงและสี คือภาษาที่ <br><em>เร็วที่สุด</em> ของความปลอดภัย</h1>
+      <p>
+        ก่อนใครจะอ่านตัวหนังสือทัน สามเหลี่ยม วงกลม และสี่เหลี่ยม ได้สื่อสารไปแล้วว่าต้องระวัง ต้องทำ หรือแค่ต้องรู้ CS.SIGN คือผู้เชี่ยวชาญด้านป้ายเซฟตี้ ป้ายห้าม ป้ายเตือน และป้ายบังคับ สำหรับโรงงานอุตสาหกรรมและสถานประกอบการทุกประเภท รวมถึงป้ายจราจรและอุปกรณ์จราจรสำหรับงานทั่วประเทศ
+      </p>
+      <div class="ab-hero-stats">
+        <div class="ab-stat-item">
+          <span class="ab-stat-num stat-num" data-count="20"><span>+</span></span>
+          <span class="ab-stat-label">ปีที่คลุกคลีกับงานป้ายความปลอดภัย</span>
+        </div>
+        <div class="ab-stat-item">
+          <span class="ab-stat-num" style="font-size:18px;">เซฟตี้ + จราจร</span>
+          <span class="ab-stat-label">ครบทั้งป้ายในโรงงานและป้ายบนท้องถนน</span>
+        </div>
+        <div class="ab-stat-item">
+          <span class="ab-stat-num" style="font-size:18px;">ให้คำปรึกษาฟรี</span>
+          <span class="ab-stat-label">ประเมินจุดเสี่ยงหน้างานก่อนเสนอราคา</span>
+        </div>
+      </div>
+      <div class="ab-hero-cta">
+        <a href="contact.html" class="btn btn-primary">ปรึกษาทีมงานฟรี</a>
+        <a href="portfolio.html" class="btn btn-secondary">ดูผลงานที่ผ่านมา</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     WHO WE ARE — brand statement / intro
+     ============================================================ -->
+<section class="ab-intro" id="ab-intro">
+  <div class="ab-intro-watermark" aria-hidden="true">MANUFACTURERS</div>
+  <div class="wrap">
+    <div class="ab-intro-grid" data-reveal>
+      <div class="ab-intro-head">
+        <div class="eyebrow">WHO WE ARE</div>
+        <h2 class="ab-intro-title">WE ARE<br><span>MANUFACTURERS</span></h2>
+        <p class="ab-intro-sub">Specializing in quality industrial signage</p>
+        <div class="ab-intro-marks" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 21 20H3z" stroke="var(--accent-dark)" stroke-width="2" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="var(--primary)" stroke-width="2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2.5" stroke="var(--success)" stroke-width="2"/></svg>
+        </div>
+      </div>
+      <div class="ab-intro-body">
+        <p>เราคือผู้เชี่ยวชาญการผลิตป้ายเพื่อความปลอดภัย ป้ายเซฟตี้ ป้ายห้าม ป้ายเตือน ป้ายบังคับ สำหรับโรงงานอุตสาหกรรม และสถานประกอบการทุกประเภท รวมถึง ป้ายจราจร อุปกรณ์จราจร สำหรับงานจราจรทั่วประเทศ</p>
+        <p>ด้วยความมุ่งมั่นของผู้บริหารที่ต้องการช่วยผลักดันให้แรงงานไทยทำงานบนความตระหนักเรื่องความปลอดภัยต่อชีวิต และทรัพย์สิน เป็นสำคัญ จึงเน้นให้คำปรึกษา ประเมินความเสี่ยงจุดที่มีโอกาสจะเกิดอุบัติเหตุ และพร้อมแบ่งปันประสบการณ์กว่า 20 ปี ที่ได้เก็บเกี่ยวความรู้ ความเข้าใจในการเลือกวัสดุป้าย สัญลักษณ์ และสีที่ถูกต้องเหมาะสมตามหลักของมาตรฐานความปลอดภัย</p>
+        <p>ช่วยลดความผิดพลาดในการตัดสินใจเลือกซื้อ ช่วยให้ลูกค้าได้รับสินค้าที่มีคุณภาพในราคาที่เหมาะสม จึงสร้างความพึงพอใจให้กับลูกค้าที่ใช้บริการกับ <strong>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</strong> ตลอดระยะเวลาที่ผ่านมา</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FACILITY & TEAM GALLERY — real production/team photos.
+     No real photos on file yet, so this uses the same img-ph
+     illustrated-placeholder pattern used sitewide (portfolio,
+     blog, homepage expertise section). Swap in real photos by
+     adding <img class="real-photo" src="..."> inside each .img-ph
+     — no other markup change needed.
+     ============================================================ -->
+<section class="section section--tint ab-gallery" id="ab-gallery">
+  <div class="wrap">
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">โรงงานและทีมงานของเรา</div>
+      <h2 class="h-section">เบื้องหลังป้ายทุกแผ่น<br>ที่ส่งถึงมือคุณ</h2>
+      <p style="max-width:560px;margin:0 auto;">สายการผลิต ทีมควบคุมคุณภาพ และทีมช่างติดตั้งหน้างานจริง — ตัวตนของ CS.SIGN เบื้องหลังทุกออเดอร์</p>
+    </div>
+    <div class="about-gallery-grid" data-reveal>
+
+      <div class="img-ph img-ph--4-3">
+        <img class="real-photo" src="assets/gallery-production-line.jpg" alt="สายการผลิตในโรงงาน CS.SIGN" onerror="this.remove()">
+        <div class="img-ph-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1M12 18h1M7 18h1"/></svg>
+          <span class="img-ph-label">สายการผลิต<br>ในโรงงาน</span>
+        </div>
+      </div>
+
+      <div class="img-ph img-ph--4-3">
+        <img class="real-photo" src="assets/gallery-quality-control.jpg" alt="ทีมควบคุมคุณภาพ CS.SIGN" onerror="this.remove()">
+        <div class="img-ph-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+          <span class="img-ph-label">ทีมควบคุม<br>คุณภาพ</span>
+        </div>
+      </div>
+
+      <div class="img-ph img-ph--4-3">
+        <img class="real-photo" src="assets/gallery-installation-team.jpg" alt="ทีมช่างติดตั้งหน้างานจริง CS.SIGN" onerror="this.remove()">
+        <div class="img-ph-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M3.5 20c.6-4 3-6.4 5.5-6.4s4.9 2.4 5.5 6.4"/><path d="M14.5 14.4c2 .3 3.7 2.3 4.2 5.6"/></svg>
+          <span class="img-ph-label">ทีมช่างติดตั้ง<br>หน้างานจริง</span>
+        </div>
+      </div>
+
+      <div class="img-ph img-ph--4-3">
+        <img class="real-photo" src="assets/gallery-warehouse-delivery.jpg" alt="คลังสินค้าและการจัดส่ง CS.SIGN" onerror="this.remove()">
+        <div class="img-ph-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+          <span class="img-ph-label">คลังสินค้าและ<br>การจัดส่ง</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="ab-expertise" id="ab-expertise">
+  <div class="wrap">
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">20+ ปีที่เก็บเกี่ยวมา</div>
+      <h2 class="h-section">ความรู้ที่เราแบ่งปัน<br>ให้ทุกการตัดสินใจ</h2>
+      <p>กดที่การ์ดเพื่อดูรายละเอียด — สามองค์ประกอบที่เราให้คำปรึกษาก่อนผลิตป้ายทุกครั้ง</p>
+    </div>
+    <div class="ab-expertise-grid" data-reveal>
+
+      <div class="ab-flip" tabindex="0" role="button" aria-pressed="false">
+        <div class="ab-flip-inner">
+          <div class="ab-flip-face ab-flip-front">
+            <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="32" height="32" rx="4" stroke="var(--primary)" stroke-width="2.4"/><path d="M8 24h32" stroke="var(--primary)" stroke-width="2.4"/></svg>
+            <h3>วัสดุป้าย</h3>
+            <span class="ab-flip-hint">แตะเพื่อดูรายละเอียด</span>
+          </div>
+          <div class="ab-flip-face ab-flip-back">
+            <h3>เลือกให้ทนกับหน้างานจริง</h3>
+            <p>อะลูมิเนียมสะท้อนแสง สติกเกอร์ PVC หรืออะคริลิค — เลือกตามสภาพแวดล้อม แดด ฝน ความชื้น และอายุการใช้งานที่ต้องการ ไม่ใช่แค่ราคาถูกที่สุด</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ab-flip" tabindex="0" role="button" aria-pressed="false">
+        <div class="ab-flip-inner">
+          <div class="ab-flip-face ab-flip-front">
+            <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="var(--accent-dark)" stroke-width="2.4"/><path d="M18 24l4 4 8-9" stroke="var(--accent-dark)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>สัญลักษณ์</h3>
+            <span class="ab-flip-hint">แตะเพื่อดูรายละเอียด</span>
+          </div>
+          <div class="ab-flip-face ab-flip-back">
+            <h3>เข้าใจได้ทันที ไม่ต้องอ่าน</h3>
+            <p>ออกแบบตามหลักสัญลักษณ์สากลที่คนหน้างานคุ้นตา ให้ทุกคนเข้าใจตรงกันได้ในเสี้ยววินาที แม้ในสถานการณ์เร่งด่วน</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ab-flip" tabindex="0" role="button" aria-pressed="false">
+        <div class="ab-flip-inner">
+          <div class="ab-flip-face ab-flip-front">
+            <svg viewBox="0 0 48 48" fill="none"><path d="M24 8 40 40H8Z" stroke="var(--success)" stroke-width="2.4" stroke-linejoin="round"/></svg>
+            <h3>สี</h3>
+            <span class="ab-flip-hint">แตะเพื่อดูรายละเอียด</span>
+          </div>
+          <div class="ab-flip-face ab-flip-back">
+            <h3>สีที่ถูกต้อง คือความปลอดภัย</h3>
+            <p>แดง = ห้าม, เหลือง = เตือนภัย, น้ำเงิน = บังคับปฏิบัติ, เขียว = ปลอดภัย/ทางออก — เราเลือกเฉดสีให้ตรงตามหลักความปลอดภัย ไม่ใช่แค่สีสวย</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="ab-mission" id="ab-why">
+  <div class="wrap">
+    <div class="ab-mission-grid" data-reveal>
+      <div class="ab-mission-panel" data-tilt>
+        <div class="ab-mission-panel-glow" aria-hidden="true"></div>
+        <svg viewBox="0 0 220 220" fill="none" class="ab-mission-svg">
+          <circle cx="110" cy="110" r="86" stroke="rgba(255,255,255,0.14)" stroke-width="1.5"/>
+          <circle cx="110" cy="110" r="60" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <path d="M110 46 150 118H70Z" stroke="var(--accent-on-dark)" stroke-width="3" stroke-linejoin="round"/>
+          <circle cx="110" cy="132" r="20" stroke="#fff" stroke-width="3"/>
+          <path d="M102 132l6 6 12-13" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="ab-mission-panel-tag">ชีวิตและทรัพย์สิน มาก่อนเสมอ</div>
+      </div>
+      <div class="ab-mission-text">
+        <div class="eyebrow">ความตั้งใจของเรา</div>
+        <h2 class="h-section">ป้ายทุกแผ่น เริ่มจาก<br>ความตั้งใจที่จะปกป้องคน</h2>
+        <p>ด้วยความมุ่งมั่นของผู้บริหารที่ต้องการช่วยผลักดันให้แรงงานไทยทำงานบนความตระหนักเรื่องความปลอดภัยต่อชีวิตและทรัพย์สินเป็นสำคัญ CS.SIGN จึงไม่ได้ทำหน้าที่แค่ผลิตป้ายตามแบบที่ลูกค้าส่งมา แต่เน้นให้คำปรึกษาและประเมินความเสี่ยงในจุดที่มีโอกาสจะเกิดอุบัติเหตุ ก่อนแนะนำป้ายที่เหมาะกับหน้างานจริง</p>
+        <ul class="ab-mission-points">
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>ให้คำปรึกษาและลงพื้นที่ประเมินความเสี่ยงก่อนเสนอราคา</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>แบ่งปันประสบการณ์กว่า 20 ปี เรื่องวัสดุ สัญลักษณ์ และสีที่ถูกต้อง</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>ช่วยลดความผิดพลาดในการตัดสินใจเลือกซื้อป้าย</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="ab-consult" id="ab-consult">
+  <div class="wrap">
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">วิธีที่เราทำงานกับคุณ</div>
+      <h2 class="h-section">ให้คำปรึกษาและประเมิน<br>ความเสี่ยงหน้างานจริง</h2>
+    </div>
+    <div class="ab-consult-steps" data-reveal>
+      <div class="ab-consult-step">
+        <div class="ab-consult-num">01</div>
+        <h3>รับฟังโจทย์</h3>
+        <p>ฟังความต้องการและลักษณะหน้างาน ไม่ว่าจะเป็นโรงงาน สถานประกอบการ หรือพื้นที่จราจร</p>
+      </div>
+      <div class="ab-consult-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16M14 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="ab-consult-step">
+        <div class="ab-consult-num">02</div>
+        <h3>ประเมินจุดเสี่ยง</h3>
+        <p>ชี้จุดที่มีโอกาสเกิดอุบัติเหตุ พร้อมคำแนะนำเบื้องต้นก่อนตัดสินใจเลือกซื้อ</p>
+      </div>
+      <div class="ab-consult-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16M14 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="ab-consult-step">
+        <div class="ab-consult-num">03</div>
+        <h3>แนะนำวัสดุ สัญลักษณ์ สี</h3>
+        <p>เลือกให้เหมาะกับความเสี่ยงและงบประมาณ ในราคาที่เหมาะสม ไม่ขายเกินความจำเป็น</p>
+      </div>
+      <div class="ab-consult-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16M14 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="ab-consult-step">
+        <div class="ab-consult-num">04</div>
+        <h3>ผลิตและส่งมอบ</h3>
+        <p>ตรวจคุณภาพก่อนส่งมอบทุกครั้ง พร้อมคำแนะนำการติดตั้งหน้างาน</p>
+      </div>
+    </div>
+    <p class="ab-consult-note" data-reveal>ไม่มีค่าใช้จ่ายในการให้คำปรึกษาและประเมินเบื้องต้น</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     VALUES
+     ============================================================ -->
+<section class="ab-values" id="ab-values">
+  <div class="wrap">
+    <div class="section-head" data-reveal>
+      <div class="eyebrow">CORE VALUES</div>
+      <h2 class="h-section">หลักที่เราไม่ยอมประนีประนอม</h2>
+    </div>
+    <div class="ab-values-grid" data-reveal>
+      <div class="ab-value-card" data-tilt-card>
+        <div class="ab-value-num">01 — QUALITY</div>
+        <h3>ตรวจก่อนทุกล็อต ไม่ใช่แค่สุ่ม</h3>
+        <p>วัสดุ สี และงานพิมพ์ ผ่านการตรวจสอบก่อนส่งมอบทุกครั้ง ไม่ใช่แค่ชิ้นตัวอย่าง</p>
+      </div>
+      <div class="ab-value-card" data-tilt-card>
+        <div class="ab-value-num">02 — INTEGRITY</div>
+        <h3>ราคาและเวลาที่บอกตรงๆ</h3>
+        <p>เสนอราคาชัดเจนตั้งแต่ต้น ไม่มีค่าใช้จ่ายแอบแฝง แจ้งระยะเวลาผลิตตามจริง</p>
+      </div>
+      <div class="ab-value-card" data-tilt-card>
+        <div class="ab-value-num">03 — EXPERTISE</div>
+        <h3>ผ่านงานจริงมากว่า 20 ปี</h3>
+        <p>ทีมงานเข้าใจหน้างาน ช่วยเลือกวัสดุและสัญลักษณ์ให้เหมาะกับความเสี่ยงแต่ละพื้นที่</p>
+      </div>
+      <div class="ab-value-card" data-tilt-card>
+        <div class="ab-value-num">04 — RESPONSIBILITY</div>
+        <h3>ป้ายที่ดี ช่วยรักษาชีวิตได้จริง</h3>
+        <p>เรารู้ว่างานที่ทำมีผลต่อความปลอดภัยของคนหน้างาน จึงไม่ลดมาตรฐานเพื่อความเร็ว</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FAQ — trimmed
+     ============================================================ -->
+<section class="ab-faq" id="faq">
+  <div class="wrap">
+    <div class="ab-faq-inner">
+      <div class="section-head center" data-reveal>
+        <div class="eyebrow">FAQ</div>
+        <h2 class="h-section">คำถามที่พบบ่อย</h2>
+      </div>
+      <div class="faq-grid" id="about-faq-grid" data-reveal style="grid-template-columns:1fr;max-width:680px;margin:0 auto;">
+        <div class="faq-col">
+          <div class="faq-item">
+            <button class="faq-q"><span>CS.SIGN ให้บริการด้านใดบ้าง?</span><span class="faq-q-icon"></span></button>
+            <div class="faq-a"><p>ผลิตและจำหน่ายป้ายความปลอดภัย ป้ายจราจร ป้ายทางออกฉุกเฉิน และอุปกรณ์จราจร ทั้งสินค้าสต็อกพร้อมส่งและงานสั่งผลิตตามแบบ พร้อมสำรวจพื้นที่และติดตั้ง</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q"><span>CS.SIGN แตกต่างจากที่อื่นอย่างไร?</span><span class="faq-q-icon"></span></button>
+            <div class="faq-a"><p>เชี่ยวชาญเฉพาะทางด้านป้ายความปลอดภัยมากว่า 20 ปี มีสต็อกพร้อมส่ง และเข้าใจหลักการออกแบบสัญลักษณ์สากลตั้งแต่ขั้นตอนให้คำปรึกษา</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q"><span>หากต้องการเริ่มใช้บริการ ต้องทำอย่างไร?</span><span class="faq-q-icon"></span></button>
+            <div class="faq-a"><p>ทักผ่าน LINE โทรศัพท์ หรือแบบฟอร์มออนไลน์ ทีมงานจะประเมินความต้องการและเสนอราคาให้ฟรี ไม่มีค่าใช้จ่ายในการปรึกษา</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q"><span>มีบริการดูแลหลังส่งมอบหรือไม่?</span><span class="faq-q-icon"></span></button>
+            <div class="faq-a"><p>มีทีมสนับสนุนตอบกลับภายใน 24 ชั่วโมง รองรับการสั่งซื้อเพิ่มเติม และดูแลแก้ไขปัญหาหลังส่งมอบให้ตลอด</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q"><span>สินค้ามีการรับประกันหรือไม่?</span><span class="faq-q-icon"></span></button>
+            <div class="faq-a"><p>ป้ายทุกชิ้นที่ผลิตโดย CS.SIGN รับประกันคุณภาพวัสดุและงานผลิตเป็นเวลา 6 เดือนหลังส่งมอบ ครอบคลุมกรณีชำรุดจากขั้นตอนการผลิต ดูเงื่อนไขเพิ่มเติมได้ที่หน้า<a href="quality-policy.html#warranty" style="color:var(--primary);font-weight:600;">นโยบายคุณภาพ</a></p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CTA
+     ============================================================ -->
+<section class="site-cta-band">
+  <div class="wrap">
+    <div class="site-cta-card" data-reveal>
+      <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+      <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
+      <div class="site-cta-bg-art" aria-hidden="true">
+        <svg viewBox="0 0 1200 340" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <path d="M980 40C1080 40 1160 110 1160 190C1160 270 1080 320 990 320" stroke="rgba(255,255,255,0.06)" stroke-width="46" stroke-linecap="round" fill="none"/>
+          <path d="M840 20L1180 320M1180 20L840 320" stroke="rgba(255,255,255,0.045)" stroke-width="40" stroke-linecap="round"/>
+          <circle cx="150" cy="60" r="140" fill="rgba(255,255,255,0.035)"/>
+        </svg>
+      </div>
+      <div class="site-cta-content">
+        <h2>พร้อมร่วมงานกับ <span class="cta-accent">CS.SIGN</span>?</h2>
+        <p>ทีมผู้เชี่ยวชาญของเราพร้อมให้คำปรึกษา ออกแบบ Artwork ฟรี และเสนอราคาภายใน 24 ชั่วโมง</p>
+        <div class="btn-group">
+          <a href="contact.html" class="btn btn-white">ขอใบเสนอราคา</a>
+          <a href="portfolio.html" class="btn btn-ghost-white">ดูผลงานของเรา</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์มากกว่า 20 ปี</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ผลิตภัณฑ์</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
+          <a href="products.html?cat=traffic">ป้ายจราจร</a>
+          <a href="products.html?cat=safety">ป้ายโรงงานอุตสาหกรรม</a>
+          <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">บริษัท</div>
+        <div class="footer-links">
+          <a href="about.html">เกี่ยวกับเรา</a>
+          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="portfolio.html">ผลงานของเรา</a>
+          <a href="quality-policy.html">นโยบายคุณภาพ</a>
+          <a href="blog.html">บทความ</a>
+          <a href="#faq">คำถามที่พบบ่อย</a>
+          <a href="contact.html">ติดต่อเรา</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">ติดต่อเรา</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">ที่อยู่</div>
+          <div class="footer-contact-val">17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรศัพท์ / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">062-883-3880, 063-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">โทรสาร (Fax)</div>
+          <span class="footer-contact-val">02-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">อีเมล</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN — บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">นโยบายความเป็นส่วนตัว</a> · <a href="terms.html" style="color:inherit;">ข้อกำหนดการใช้บริการ</a> &middot; <a href="accessibility.html" style="color:inherit;">การเข้าถึงเว็บไซต์ (WCAG)</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/tabs-overflow.js"></script>
+<script src="js/main.js"></script>
+<script src="js/cookie-consent.js"></script>
+<script src="js/site-search.js"></script>
+<script type="module" src="js/site-settings.js"></script>
+<script type="module" src="js/nav-menu.js"></script>
+<script type="module" src="js/home-dynamic.js"></script>
+<!-- FAB trigger button -->
+<script src="js/track-modal-template.js"></script>
+<script type="module" src="js/track-modal.js"></script>
+<script src="js/chat-widget-template.js"></script>
+
+<!-- ============================================================
+     QUOTATION POPUP MODAL
+     ============================================================ -->
+<!-- ============================================================
+     QUOTATION POPUP MODAL — redesigned, full-width estimator
+     ============================================================ -->
+<script src="js/qmodal-template.js"></script>
+
+<script src="js/qmodal.js"></script>
+<script type="module" src="js/chat-widget.js"></script>
+<script type="module" src="js/lead-quote-modal.js"></script>
+
+<!-- ============================================================
+     ABOUT PAGE — cursor tilt micro-interactions
+     Desktop / fine-pointer only, and skipped entirely when the
+     visitor prefers reduced motion. Both effects are purely
+     decorative (transform only), so a failed/slow script never
+     breaks layout or hides content.
+     ============================================================ -->
+<script>
+(function () {
+  var finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!finePointer || reduceMotion) return;
+
+  // Signature hero panel: gentle 3D tilt toward the cursor
+  var sig = document.querySelector('[data-tilt]');
+  if (sig) {
+    var raf1 = null, sx = 0, sy = 0;
+    var applySig = function () {
+      raf1 = null;
+      sig.style.transform = 'rotateX(' + (sy * -6) + 'deg) rotateY(' + (sx * 6) + 'deg)';
+    };
+    sig.addEventListener('mousemove', function (e) {
+      var r = sig.getBoundingClientRect();
+      sx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      sy = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      if (!raf1) raf1 = requestAnimationFrame(applySig);
+    });
+    sig.addEventListener('mouseleave', function () {
+      sig.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    });
+  }
+
+  // Value cards: subtle per-card tilt
+  var cards = document.querySelectorAll('[data-tilt-card]');
+  cards.forEach(function (card) {
+    var raf2 = null, cx = 0, cy = 0;
+    var applyCard = function () {
+      raf2 = null;
+      card.style.transform = 'rotateX(' + (cy * -5) + 'deg) rotateY(' + (cx * 5) + 'deg) translateY(-3px)';
+    };
+    card.addEventListener('mousemove', function (e) {
+      var r = card.getBoundingClientRect();
+      cx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      cy = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      if (!raf2) raf2 = requestAnimationFrame(applyCard);
+    });
+    card.addEventListener('mouseleave', function () {
+      card.style.transform = '';
+    });
+  });
+})();
+</script>
+
+<!-- ============================================================
+     EXPERTISE FLIP CARDS — click / tap / keyboard toggle
+     (hover already flips them on fine-pointer devices via CSS;
+     this covers touch and keyboard activation)
+     ============================================================ -->
+<script>
+(function () {
+  var flips = document.querySelectorAll('.ab-flip');
+  flips.forEach(function (card) {
+    var toggle = function () {
+      var flipped = card.classList.toggle('is-flipped');
+      card.setAttribute('aria-pressed', flipped ? 'true' : 'false');
+    };
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  });
+})();
+</script>
+<script src="js/fancy-effects.js" defer></script>
+</body>
+</html>

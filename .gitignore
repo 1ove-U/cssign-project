@@ -1,0 +1,36 @@
+# ── ค่าลับ / ห้าม commit ขึ้น git เด็ดขาด ──────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+serviceAccountKey*.json
+firebase-adminsdk*.json
+**/secrets.json
+
+# ── Node.js (cloudflare-worker/) ─────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Wrangler (Cloudflare) local state ────────────────────────────
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# ── Firebase local state ─────────────────────────────────────────
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*.local
+
+# ── ระบบปฏิบัติการ / editor ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── ไฟล์ zip ต้นฉบับที่อัปโหลดมา (ไม่ต้องเก็บใน repo) ───────────────
+*.zip

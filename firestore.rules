@@ -1,0 +1,309 @@
+// firestore.rules
+// วางไฟล์นี้ใน root ของ project และ deploy ด้วย:
+//   firebase deploy --only firestore:rules
+//
+// หลักการ: ไม่พอแค่ "auth != null" — ทุก collection ที่แก้ไขได้ต้องระบุด้วยว่า
+//   1) create ต้องมี field ที่จำเป็นครบ และห้ามมี field แปลกปลอม (hasOnly)
+//   2) update ห้ามแก้ field ที่ไม่อยู่ใน whitelist ของ action นั้น ๆ
+//      (เช่น "pin/unpin" แก้ได้แค่ pinned/order ห้ามแตะ price, images ฯลฯ)
+//   3) type ของแต่ละ field ต้องตรงตามที่ schema กำหนด กันค่าพัง เช่น price ติดลบ
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── helper ──────────────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null;
+    }
+    // บทบาท "admin" (แก้ได้ทุกอย่าง + ลบได้) vs "staff" (แก้ไขได้แต่ลบไม่ได้)
+    // อ่านจาก staff/{uid} ที่สร้างไว้ล่วงหน้า — ถ้ายังไม่มี doc นี้เลย (ยังไม่ได้ตั้งค่า
+    // ทีมงานเลย) ให้ถือว่าเป็น admin ไปก่อน กันบัญชีเดียวที่มีอยู่เดิมถูกล็อกออกจากของตัวเอง
+    function staffRoleExists() {
+      return exists(/databases/$(database)/documents/staff/$(request.auth.uid));
+    }
+    function staffRole() {
+      return get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role;
+    }
+    function isAdminRole() {
+      // exists()/get() แยกฟังก์ชันกัน — get(...).exists() ไม่มีจริงใน Firestore Rules
+      // (เขียนแบบนั้นแล้ว rule evaluate error = ถูกปฏิเสธเงียบๆ กลายเป็น permission denied)
+      return isAdmin() && (!staffRoleExists() || staffRole() == 'admin');
+    }
+    function incomingData() {
+      return request.resource.data;
+    }
+    // serverTimestamp() ที่ยังไม่ resolve จะถูกมองเป็น null ตอน evaluate rule
+    function isTimestampField(v) {
+      return v == null || v is timestamp;
+    }
+
+    // ── leads: ฟอร์มหน้าเว็บ "create" ได้แบบ public แต่ต้องมีรูปร่างตามที่กำหนด ──
+    // อ่าน/แก้ไข/ลบ ได้เฉพาะ admin login เท่านั้น
+    match /leads/{leadId} {
+      // หมายเหตุ: หน้าเว็บต่าง ๆ ใช้ชื่อ field โทรศัพท์ไม่ตรงกัน (tel ใน qmodal,
+      // phone ใน inline_contact/contact_page_form, ไม่มีเลยใน catalog_download ที่ใช้ company แทน)
+      // เลยอนุญาตทุกชื่อไว้ใน whitelist แต่บังคับ type/ขนาดของแต่ละ field ที่อนุญาต
+      allow create: if incomingData().keys().hasAll(['name','source','status','createdAt'])
+                    && incomingData().keys().hasOnly([
+                         'name','email','tel','phone','company','service','message',
+                         'source','status','createdAt','pageUrl','referrer'
+                       ])
+                    && incomingData().name is string && incomingData().name.size() > 0 && incomingData().name.size() < 200
+                    && incomingData().source is string
+                    && incomingData().status == 'new'
+                    && isTimestampField(incomingData().createdAt)
+                    && (!('email' in incomingData())   || incomingData().email is string)
+                    && (!('tel' in incomingData())     || (incomingData().tel is string && incomingData().tel.size() < 50))
+                    && (!('phone' in incomingData())   || (incomingData().phone is string && incomingData().phone.size() < 50))
+                    && (!('company' in incomingData()) || incomingData().company is string)
+                    && (!('service' in incomingData()) || incomingData()['service'] is string)
+                    && (!('message' in incomingData()) || (incomingData().message is string && incomingData().message.size() < 5000))
+                    && (!('pageUrl' in incomingData())  || incomingData().pageUrl is string)
+                    && (!('referrer' in incomingData()) || incomingData().referrer is string);
+
+      allow read: if isAdmin();
+      allow delete: if isAdminRole();
+
+      // admin แก้ได้แค่ status + notes + assignee ห้ามแก้เนื้อหา lead ที่ลูกค้าส่งมา
+      // status: new -> read -> replied -> won/lost (ปิดการขายได้ หรือไม่ได้)
+      // notes: บันทึกของทีมขาย (โทรคุยไปแล้ว, นัดโทรกลับ, ราคาที่เสนอ ฯลฯ) — ไม่บังคับว่าต้องส่งมาด้วยทุกครั้ง
+      // assignee: ชื่อพนักงานผู้รับผิดชอบลีดนี้ (จาก settings.teamMembers) — ไม่บังคับ, ส่ง "" เพื่อเอาออกได้
+      allow update: if isAdmin()
+                    && incomingData().diff(resource.data).affectedKeys().hasOnly(['status', 'notes', 'assignee'])
+                    && (!('status' in incomingData()) || incomingData().status in ['new', 'read', 'replied', 'won', 'lost'])
+                    && (!('notes' in incomingData())  || (incomingData().notes is string && incomingData().notes.size() < 5000))
+                    && (!('assignee' in incomingData()) || (incomingData().assignee is string && incomingData().assignee.size() < 200));
+    }
+
+    // ── products: read สาธารณะ, write เฉพาะ admin + จำกัด field/type ──
+    match /products/{id} {
+      allow read: if true;
+
+      allow create: if isAdmin()
+                    && incomingData().keys().hasAll(['name','cat_id','price','unit','status'])
+                    && incomingData().keys().hasOnly([
+                         'code','cat_id','name','price','unit','description',
+                         'material','size','tags','status','featured','images','createdAt',
+                         'slug','metaTitle','metaDescription','optionAxes','variants'
+                       ])
+                    && incomingData().name is string && incomingData().name.size() > 0
+                    && incomingData().cat_id is string
+                    && incomingData().price is number && incomingData().price >= 0
+                    && incomingData().status in ['active', 'hidden']
+                    && (!('featured' in incomingData()) || incomingData().featured is bool)
+                    && (!('tags' in incomingData())     || incomingData().tags is list)
+                    && (!('images' in incomingData())   || incomingData().images is list)
+                    && (!('optionAxes' in incomingData()) || incomingData().optionAxes is list)
+                    && (!('variants' in incomingData())   || incomingData().variants is list)
+                    // slug ต้อง lowercase + a-z0-9- เท่านั้น (กันชนกับ query string อื่นๆ และ URL แปลกๆ)
+                    && (!('slug' in incomingData()) || incomingData().slug is string)
+                    // จำกัดความยาวให้ตรงกับ maxlength ฝั่ง admin form (70/160) กันข้อมูลพังจาก client อื่นที่ไม่ผ่านฟอร์ม
+                    && (!('metaTitle' in incomingData())       || (incomingData().metaTitle is string && incomingData().metaTitle.size() <= 70))
+                    && (!('metaDescription' in incomingData()) || (incomingData().metaDescription is string && incomingData().metaDescription.size() <= 160));
+
+      // แก้ทั้งฟอร์ม (จากหน้าแก้ไขสินค้า) — ยังต้องอยู่ใน whitelist + type เดิม
+      allow update: if isAdmin()
+                    && incomingData().keys().hasOnly([
+                         'code','cat_id','name','price','unit','description',
+                         'material','size','tags','status','featured','images','createdAt',
+                         'slug','metaTitle','metaDescription','optionAxes','variants'
+                       ])
+                    && incomingData().name is string && incomingData().name.size() > 0
+                    && incomingData().price is number && incomingData().price >= 0
+                    && incomingData().status in ['active', 'hidden']
+                    && (!('featured' in incomingData()) || incomingData().featured is bool)
+                    && (!('slug' in incomingData()) || incomingData().slug is string)
+                    && (!('optionAxes' in incomingData()) || incomingData().optionAxes is list)
+                    && (!('variants' in incomingData())   || incomingData().variants is list)
+                    && (!('metaTitle' in incomingData())       || (incomingData().metaTitle is string && incomingData().metaTitle.size() <= 70))
+                    && (!('metaDescription' in incomingData()) || (incomingData().metaDescription is string && incomingData().metaDescription.size() <= 160));
+
+      allow delete: if isAdminRole();
+    }
+
+    // ── groups (หมวดหมู่ใหญ่): read สาธารณะ, write เฉพาะ admin + จำกัด field ──
+    match /groups/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+                    && incomingData().keys().hasOnly(['name','icon','order','createdAt'])
+                    && incomingData().name is string && incomingData().name.size() > 0;
+      allow delete: if isAdminRole();
+    }
+
+    // ── categories: read สาธารณะ, write เฉพาะ admin + จำกัด field ──
+    match /categories/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+                    && incomingData().keys().hasOnly(['name','icon','description','group','group_id','createdAt'])
+                    && incomingData().name is string && incomingData().name.size() > 0;
+      allow delete: if isAdminRole();
+    }
+
+    // ── portfolios: read สาธารณะ, write เฉพาะ admin + แยกสิทธิ์ "pin/unpin" ──
+    match /portfolios/{id} {
+      allow read: if true;
+
+      allow create: if isAdmin()
+                    && incomingData().keys().hasAll(['title'])
+                    && incomingData().keys().hasOnly([
+                         'title','category','client','description','tags',
+                         'images','pinned','order','createdAt'
+                       ])
+                    && incomingData().title is string && incomingData().title.size() > 0
+                    && (!('pinned' in incomingData()) || incomingData().pinned is bool)
+                    && (!('order' in incomingData())  || incomingData().order is number);
+
+      // แก้ไขทั้งรายการผลงาน (ฟอร์มแก้ไข)
+      allow update: if isAdmin()
+                    && incomingData().keys().hasOnly([
+                         'title','category','client','description','tags',
+                         'images','pinned','order','createdAt'
+                       ])
+                    && incomingData().title is string && incomingData().title.size() > 0
+                    && (!('pinned' in incomingData()) || incomingData().pinned is bool)
+                    && (!('order' in incomingData())  || incomingData().order is number);
+
+      allow delete: if isAdminRole();
+    }
+
+    // ── testimonials / partners / faqs: read สาธารณะ, write เฉพาะ admin + จำกัด field ──
+    match /testimonials/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+                    && incomingData().keys().hasOnly(['company','name','role','quote','stars','logo','createdAt'])
+                    && incomingData().quote is string
+                    && (!('stars' in incomingData()) || (incomingData().stars is number && incomingData().stars >= 1 && incomingData().stars <= 5));
+      allow delete: if isAdminRole();
+    }
+
+    match /partners/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+                    && incomingData().keys().hasOnly(['name','logo','createdAt'])
+                    && incomingData().name is string && incomingData().name.size() > 0;
+      allow delete: if isAdminRole();
+    }
+
+    match /faqs/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+                    && incomingData().keys().hasOnly(['question','answer','createdAt'])
+                    && incomingData().question is string && incomingData().answer is string;
+      allow delete: if isAdminRole();
+    }
+
+    // ── blogs: บทความหน้า blog.html — read สาธารณะ, write เฉพาะ admin + จำกัด field ──
+    match /blogs/{id} {
+      allow read: if true;
+
+      allow create: if isAdmin()
+                    && incomingData().keys().hasAll(['title','slug','status'])
+                    && incomingData().keys().hasOnly([
+                         'title','slug','excerpt','content','image','category',
+                         'author','status','featured','createdAt','updatedAt',
+                         'metaTitle','metaDescription'
+                       ])
+                    && incomingData().title is string && incomingData().title.size() > 0
+                    && incomingData().slug is string && incomingData().slug.size() > 0
+                    && incomingData().status in ['published', 'draft']
+                    && (!('featured' in incomingData()) || incomingData().featured is bool)
+                    && (!('metaTitle' in incomingData())       || (incomingData().metaTitle is string && incomingData().metaTitle.size() <= 70))
+                    && (!('metaDescription' in incomingData()) || (incomingData().metaDescription is string && incomingData().metaDescription.size() <= 160));
+
+      allow update: if isAdmin()
+                    && incomingData().keys().hasOnly([
+                         'title','slug','excerpt','content','image','category',
+                         'author','status','featured','createdAt','updatedAt',
+                         'metaTitle','metaDescription'
+                       ])
+                    && incomingData().title is string && incomingData().title.size() > 0
+                    && incomingData().status in ['published', 'draft']
+                    && (!('featured' in incomingData()) || incomingData().featured is bool)
+                    && (!('metaTitle' in incomingData())       || (incomingData().metaTitle is string && incomingData().metaTitle.size() <= 70))
+                    && (!('metaDescription' in incomingData()) || (incomingData().metaDescription is string && incomingData().metaDescription.size() <= 160));
+
+      allow delete: if isAdminRole();
+    }
+
+    // ── settings: เอกสารตั้งค่าระบบ (เช่น URL แคตตาล็อก PDF, ข้อมูลติดต่อทั้งเว็บ) — admin เท่านั้น ──
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── orders (คำสั่งผลิต): admin login เท่านั้นทั้งอ่านและเขียน ──
+    // ใช้โดย Production Console (console.html) — เดิม hero (index.html) เคย login
+    // อ่าน orders ได้ตรงจากหน้าแรกด้วย แต่เอาช่องทาง login นั้นออกแล้ว (2569-07-02)
+    // ตอนนี้ widget ใน hero เป็น read-only และจะเห็นข้อมูลจริงเฉพาะกรณีมี session
+    // ของแอดมินที่ login ค้างไว้จาก admin.html/console.html เท่านั้น
+    match /orders/{id} {
+      allow read: if isAdmin();
+
+      allow create: if isAdmin()
+                    && incomingData().keys().hasAll(['code','customer','item','qty','status'])
+                    && incomingData().keys().hasOnly([
+                         'code','customer','phone','item','category','product_id','unit_price','qty','status','progress',
+                         'compliant','dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId'
+                       ])
+                    && incomingData().qty is number && incomingData().qty > 0
+                    && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
+                    && (!('unit_price' in incomingData()) || incomingData().unit_price is number)
+                    && (!('progress' in incomingData()) || (incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100));
+
+      allow update: if isAdmin()
+                    && incomingData().keys().hasOnly([
+                         'code','customer','phone','item','category','product_id','unit_price','qty','status','progress',
+                         'compliant','dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId'
+                       ])
+                    && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
+                    && (!('unit_price' in incomingData()) || incomingData().unit_price is number)
+                    && (!('progress' in incomingData()) || (incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100));
+
+      allow delete: if isAdminRole();
+    }
+
+    // ── staff: บัญชี/บทบาทของทีมงาน (uid = Firebase Auth uid) — ใช้แยกสิทธิ์ admin/staff ──
+    // เพิ่มพนักงานใหม่: สร้าง Auth user ที่ Firebase Console ก่อน (ฟรี ไม่ต้องผูกบัตร)
+    // แล้วค่อยมาสร้าง doc นี้จากแท็บ "บัญชีผู้ใช้ทีมงาน" ในหน้าตั้งค่า
+    match /staff/{uid} {
+      allow read: if isAdmin();
+      allow write: if isAdminRole();
+    }
+
+    // ── auditLog: บันทึก "ใคร แก้/ลบอะไร เมื่อไหร่" — เขียนได้ทุกคนที่ login แต่แก้ไข/ลบไม่ได้เลย
+    // (เป็น log ที่แก้ย้อนหลังไม่ได้ ถึงจะเชื่อถือได้) อ่านได้เฉพาะ role admin เท่านั้น
+    match /auditLog/{id} {
+      allow read: if isAdminRole();
+      allow create: if isAdmin()
+                    && incomingData().uid == request.auth.uid
+                    && incomingData().keys().hasAll(['uid','action','targetType','createdAt'])
+                    && incomingData().keys().hasOnly(['uid','email','action','targetType','targetId','meta','createdAt'])
+                    && incomingData().action is string && incomingData().action.size() < 100
+                    && incomingData().targetType is string && incomingData().targetType.size() < 100
+                    && (!('targetId' in incomingData()) || (incomingData().targetId is string && incomingData().targetId.size() < 200))
+                    && (!('meta' in incomingData()) || (incomingData().meta is string && incomingData().meta.size() < 500));
+      allow update, delete: if false;
+    }
+
+    // ── order_tracking: สำเนา "เฉพาะข้อมูลที่ปลอดภัยให้คนนอกเห็น" ของ orders ──────────
+    // ใช้โดยหน้า track.html ให้ลูกค้าเช็คสถานะเองแบบ public ไม่ต้อง login
+    // doc id = เลข PO + เบอร์โทร 4 หลักสุดท้าย (ดู buildTrackingId ใน js/db.js) จึง "get"
+    // ทีละ doc ตรง ๆ ได้แบบ public แต่ "list" ทั้ง collection ปิดไว้ กันไล่ดูคำสั่งผลิตคนอื่น
+    // ไม่มี field ชื่อลูกค้า/หมายเหตุ/เบอร์โทรอยู่ใน doc นี้เลย — เขียนได้เฉพาะ admin เท่านั้น
+    match /order_tracking/{id} {
+      allow get: if true;
+      allow list: if false;
+
+      allow create, update: if isAdmin()
+                    && incomingData().keys().hasOnly([
+                         'code','item','category','qty','status','progress','compliant','dueDate','updatedAt'
+                       ])
+                    && incomingData().qty is number && incomingData().qty > 0
+                    && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
+                    && incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100;
+
+      allow delete: if isAdminRole();
+    }
+  }
+}

@@ -1,0 +1,721 @@
+/* ============================================================
+   CS.SIGN — FANCY EFFECTS LAYER
+   Neon/LED sign flicker-on text.
+   Theme rationale: this is a signage manufacturer, so headings
+   power on the way a lit sign does — char by char, flickering
+   into place — instead of a plain fade-in.
+   Native mouse cursor is left completely untouched.
+   All motion respects prefers-reduced-motion.
+   ============================================================ */
+
+:root{
+  --fx-glow: var(--primary-light, #2E86D1);
+  --fx-glow-rgb: var(--primary-rgb, 11,90,150);
+  --fx-accent: var(--accent, #C6862A);
+  --fx-accent-rgb: var(--accent-rgb, 198,134,42);
+}
+
+/* ---------- Neon / LED flicker-on heading text ----------
+   Animates the whole heading as one block (no character
+   splitting) so nested tags (<br>, <em>, <strong>) and Thai
+   vowel/tone-mark shaping are never touched or broken. */
+.fx-flicker{
+  opacity: 0;
+  filter: blur(6px);
+}
+.fx-flicker.fx-flicker--active{
+  animation: fxFlickerIn .9s ease forwards;
+}
+@keyframes fxFlickerIn{
+  0%{   opacity: 0;   filter: blur(10px); text-shadow: none; }
+  30%{  opacity: .4;  filter: blur(4px);  text-shadow: 0 0 16px rgba(var(--fx-glow-rgb), .5); }
+  45%{  opacity: .15; }
+  60%{  opacity: .85; filter: blur(1px);  text-shadow: 0 0 20px rgba(var(--fx-glow-rgb), .6); }
+  100%{ opacity: 1;   filter: blur(0);    text-shadow: 0 0 0 rgba(0,0,0,0); }
+}
+
+/* ---------- Magnetic / glow lift on primary buttons ---------- */
+@media (hover: hover) and (pointer: fine){
+  .btn-primary.fx-magnetic, .btn-secondary.fx-magnetic, .btn-white.fx-magnetic{
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease;
+  }
+  .fx-magnetic:hover{
+    box-shadow: 0 8px 24px -6px rgba(var(--fx-glow-rgb), .45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .fx-flicker{
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
+
+/* ============================================================
+   SECTION BACKGROUNDS — "fabrication blueprint" grid
+   Many sections on this site already have bespoke background
+   treatment (dot-grids, corner glows, drift animation on
+   .expertise-section, #services, .clients-section, .trust-section,
+   .stats-section, .nf-section, .pdp-section, .blog-grid-section,
+   .related-section, .pdp-related-section, .wg-section,
+   .section--tint, .article-hero, .contact-hero, CTA bands…).
+   Those are left untouched. This adds the same signature depth
+   to the plain sections that never got one, using a faint
+   engineering/blueprint grid — a nod to the technical drawings
+   behind every fabricated sign — instead of duplicating the
+   corner-glow look already used everywhere else.
+   Applied via background-image only (never a positioned overlay),
+   so it always paints behind in-flow content automatically —
+   no z-index tricks, nothing can be covered by it.
+   Kept static on purpose (no drift animation): an every-frame
+   background-position crawl repeated across every plain section,
+   on every page, all running at once, is real continuous repaint
+   cost for something purely decorative that nobody would notice
+   moving anyway — trimmed as "too much effect" per review.
+   ============================================================ */
+.section:not(.section--tint):not(.expertise-section):not(.services-section):not(.trust-section):not(.clients-section):not(.wg-section):not(.fp-section):not(.blog-grid-section):not(.pdp-section):not(.pdp-related-section):not(.related-section):not(.stats-section):not(.nf-section){
+  background-image:
+    radial-gradient(560px 320px at 4% 4%,  rgba(var(--fx-glow-rgb),   .045), transparent 60%),
+    radial-gradient(560px 320px at 96% 96%, rgba(var(--fx-accent-rgb), .045), transparent 60%),
+    repeating-linear-gradient(0deg,  rgba(var(--fx-glow-rgb), .035) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(var(--fx-glow-rgb), .035) 0 1px, transparent 1px 44px);
+  background-position: 0 0, 0 0, center, center;
+}
+
+/* ---- Interior page hero bands that never got the corner-glow
+   mesh treatment other heroes (.contact-hero, .article-hero)
+   already have — .pr-hero (products), .pf-hero (portfolio),
+   .about-hero. Same soft brand-colour wash, same low opacity,
+   consistent with the rest of the site. ---- */
+.pr-hero::before, .pf-hero::before, .about-hero::before{
+  content:'';
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(520px 320px at 6% -8%,   rgba(var(--fx-glow-rgb),   .06), transparent 60%),
+    radial-gradient(480px 300px at 100% 108%, rgba(var(--fx-accent-rgb), .06), transparent 60%);
+}
+
+/* ============================================================
+   SAFETY-SIGN MOTIFS
+   Small, functional touches drawn from the product itself —
+   hazard tape, a bolted sign plate, laser-cut registration
+   marks — instead of generic decoration. Kept restrained: one
+   thin bar, small corner details on hover, a refined focus ring.
+   ============================================================ */
+
+/* ---- Reading progress, styled as diagonal hazard tape.
+   Doubles as a real scroll-progress indicator so it earns its
+   place functionally, not just decoratively. ---- */
+#fx-progress{
+  position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+  z-index: 2147483000;
+  background: repeating-linear-gradient(135deg,
+    var(--fx-glow) 0 14px,
+    var(--fx-accent) 14px 28px);
+  box-shadow: 0 0 8px rgba(var(--fx-glow-rgb), .35);
+  transition: width .12s linear;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce){ #fx-progress{ transition: none; } }
+
+/* ---- Corner rivets on card-type components — a nod to a sign
+   plate bolted to a wall. Appears on hover/focus so it reads as
+   a considered detail, not clutter on first paint. Injected as
+   real elements (not ::before/::after) so it never fights with
+   the top-accent-bar or glow effects those same cards already
+   use on ::before/::after. ---- */
+.fx-rivet{
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--fx-glow) 55%, var(--primary-dark, #073E6B) 100%);
+  box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.35) inset;
+  opacity: 0;
+  transform: scale(.4);
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+.fx-rivet--tl{ top: 10px; left: 10px; }
+.fx-rivet--tr{ top: 10px; right: 10px; }
+[data-fx-card]:hover .fx-rivet,
+[data-fx-card]:focus-within .fx-rivet{
+  opacity: .85;
+  transform: scale(1);
+}
+@media (prefers-reduced-motion: reduce){
+  .fx-rivet{ transition: opacity .01s; }
+}
+
+/* ---- Numbered step badges ("01", "02"…) used for pillars/process
+   steps (.qp-pillar-num, .ab-consult-num) currently just sit there
+   static. Small nod to the CNC/laser readouts on the shop floor —
+   the number ticks up into place counting from one digit below,
+   like a machine display locking onto a value, instead of a plain
+   fade. One-shot on scroll-into-view, not a loop. ---- */
+.fx-tick{
+  opacity: 0;
+}
+.fx-tick.fx-tick--active{
+  animation: fxTickIn .5s cubic-bezier(.2,.8,.2,1) forwards;
+}
+@keyframes fxTickIn{
+  0%{   opacity: 0; transform: translateY(6px); filter: blur(2px); }
+  60%{  opacity: 1; transform: translateY(-1px); filter: blur(0); }
+  100%{ opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 404 page: the little "ไม่พบหน้าที่ต้องการ" pill reads like a
+   small hazard/route sign, so it gets the one thing an actual sign
+   post has that nothing else on the site needs — a faint, slow
+   sway, as if hanging loose. Very small amplitude on purpose; this
+   should read as "this page came unbolted", not cartoonish. ---- */
+.fx-sway{
+  animation: fxSway 5s ease-in-out infinite;
+  transform-origin: 50% -12px;
+}
+@keyframes fxSway{
+  0%, 100%{ transform: rotate(-1.1deg); }
+  50%{      transform: rotate(1.1deg); }
+}
+
+/* ---- Focus ring refined into a registration-mark bracket: the
+   existing brass outline stays (accessibility contract unchanged),
+   with a soft brand-blue halo added around it — same visual family
+   as the laser/CNC alignment marks used to cut a physical sign. ---- */
+:focus-visible{
+  box-shadow: 0 0 0 5px rgba(var(--fx-glow-rgb), .18);
+}
+
+/* ============================================================
+   ROAD-LANE SECTION DIVIDERS
+   Auto-inserted between top-level <section> elements sitewide
+   (see fancy-effects.js:initLaneDividers) — a thin dashed line
+   with a diamond "road stud" at centre, standing in for the
+   painted lane markings / cat's-eye reflectors on the roads
+   these signs are made for. Gives every page the same quiet
+   structural rhythm the homepage already implies, instead of
+   relying on section padding alone to separate content blocks.
+   Static by design — a structural cue, not a loop, so it doesn't
+   compete with the flicker/tick/rivet moments above.
+   ============================================================ */
+.fx-lane{
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+}
+.fx-lane-track{
+  flex: 1 1 auto;
+  height: 2px;
+  border-radius: 2px;
+  background-image: repeating-linear-gradient(90deg,
+    rgba(var(--fx-glow-rgb), .28) 0 24px,
+    transparent 24px 44px);
+}
+.fx-lane-stud{
+  flex: 0 0 auto;
+  width: 6px; height: 6px;
+  margin: 0 11px;
+  background: var(--fx-accent);
+  border-radius: 1px;
+  transform: rotate(45deg);
+  box-shadow: 0 0 7px rgba(var(--fx-accent-rgb), .5);
+}
+@media (max-width: 640px){
+  .fx-lane{ padding: 0 20px; height: 20px; }
+  .fx-lane-track{ background-image: repeating-linear-gradient(90deg,
+    rgba(var(--fx-glow-rgb), .28) 0 16px, transparent 16px 30px); }
+}
+
+/* ============================================================
+   CERTIFICATION-BADGE FOIL GLINT
+   Product cards carry a small compliance pill (มอก.635, DOH
+   Standard, …). On hover it now catches light like the actual
+   retroreflective/foil compliance stickers applied to real signs
+   — a one-shot diagonal glint, not a loop, so it reads as light
+   hitting a surface rather than decoration.
+   ============================================================ */
+.product-badge{
+  overflow: hidden;
+  border: 1px solid rgba(var(--fx-accent-rgb), .3);
+}
+.product-badge::after{
+  content:'';
+  position:absolute; top:0; left:-70%; width:35%; height:100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,.9) 50%, transparent);
+  transform: skewX(-20deg);
+  transition: left .6s ease;
+  pointer-events:none;
+}
+.product-card:hover .product-badge::after,
+.product-card:focus-within .product-badge::after{
+  left: 130%;
+}
+@media (prefers-reduced-motion: reduce){
+  .product-badge::after{ transition:none; display:none; }
+}
+
+/* ============================================================
+   STEP BADGES AS SIGN PLATES
+   The "01 / 02 / 03…" circles in the consulting-process steps
+   (about.html, .ab-consult-num) are re-cut from a plain circle
+   into an octagon — the stop-sign silhouette — since these badges
+   already exist purely as a numbered sequence marker, the same
+   role a regulatory sign plays on the road. Purely a clip-path
+   swap: sizing, colour and centring are untouched so nothing
+   about the existing layout shifts.
+   ============================================================ */
+.ab-consult-num{
+  border-radius: 0;
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+}
+
+/* ============================================================
+   CTA-CARD HAZARD CORNER
+   The dark closing CTA card used at the end of products/portfolio/
+   about/blog/contact/quality-policy (.site-cta-card) gets a small
+   diagonal hazard-stripe corner fold — the amber/ink stripe pairing
+   used on physical warning tape — tucked into the top-left corner
+   behind the copy. Small and low-opacity on purpose: a material
+   cue, not a banner.
+   ============================================================ */
+.site-cta-card::before{
+  content:'';
+  position:absolute; top:0; left:0; z-index:1; pointer-events:none;
+  width:58px; height:58px;
+  background: repeating-linear-gradient(45deg,
+    var(--fx-accent) 0 7px,
+    var(--gray-900) 7px 14px);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  opacity: .8;
+}
+
+/* ============================================================
+   DIGITAL-READOUT STAT COUNTERS
+   The "20+ ปี / 24 ชม." counters (.stat-num[data-count], plus the
+   matching footer figures) already tick up on scroll via main.js —
+   this only adds the look of a digital sign readout underneath
+   that existing animation: tabular figures so digits don't jitter
+   sideways as they change, plus a soft glow instead of flat ink,
+   the same colour language as the LED-flicker headings above.
+   ============================================================ */
+.stat-num[data-count],
+.footer-stat-num{
+  font-variant-numeric: tabular-nums;
+}
+.stat-num[data-count]{
+  text-shadow: 0 0 16px rgba(var(--fx-glow-rgb), .22);
+}
+.trust-stat-card .stat-num[data-count]{
+  text-shadow: 0 0 12px rgba(var(--fx-glow-rgb), .16);
+}
+
+/* ============================================================
+   HAZARD-STRIPE SCROLLBAR
+   Subtle brand-gradient thumb by default; the hazard-tape pattern
+   (same stripe pairing as #fx-progress) only appears on hover, so
+   it reads as a considered detail rather than a loud gimmick.
+   Firefox gets the closest equivalent it supports (flat colours,
+   no gradients/patterns possible via scrollbar-color).
+   ============================================================ */
+html{
+  scrollbar-color: var(--fx-glow) var(--gray-100);
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar{ width: 11px; height: 11px; }
+::-webkit-scrollbar-track{ background: var(--gray-100); }
+::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, var(--fx-glow), var(--primary-dark, #073E6B));
+  border-radius: 7px;
+  border: 2px solid var(--gray-100);
+}
+::-webkit-scrollbar-thumb:hover{
+  background: repeating-linear-gradient(135deg,
+    var(--fx-accent) 0 6px,
+    var(--gray-900) 6px 12px);
+}
+
+/* ============================================================
+   LASER-ALIGNMENT FORM FOCUS
+   Extends the registration-mark focus halo (see :focus-visible
+   above) to the site's actual text inputs — a second, wider ring
+   in the accent colour layered outside each field's own existing
+   focus ring, so a focused field reads as two nested alignment
+   marks locking onto the input, like a laser cutter finding its
+   registration point before it cuts.
+   ============================================================ */
+.cf-input:focus,
+.cif-input:focus,
+.qmodal-input:focus{
+  box-shadow: 0 0 0 3px rgba(var(--fx-glow-rgb), .10), 0 0 0 5px rgba(var(--fx-accent-rgb), .22);
+}
+
+/* ============================================================
+   ROUTE-MARKER LIST NUMBERING
+   Numbered lists inside long-form policy content (terms, privacy,
+   accessibility — .article-content ol) traded the plain browser
+   decimal marker for a small squared chip, the same silhouette as
+   a highway distance/route marker, echoing the numbered pillars
+   and consulting steps used elsewhere on the site.
+   ============================================================ */
+.article-content ol{
+  list-style: none;
+  margin: 0 0 20px;
+  padding-left: 0;
+  counter-reset: fx-step;
+}
+.article-content ol > li{
+  position: relative;
+  padding-left: 34px;
+  counter-increment: fx-step;
+}
+.article-content ol > li::before{
+  content: counter(fx-step);
+  position: absolute; left: 0; top: 1px;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 700;
+  color: #fff;
+  background: var(--fx-glow);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+
+/* ---- Unordered list bullets, restyled to match: a small hazard
+   triangle (the universal "note/caution" glyph) instead of the
+   plain browser disc, in the warning-amber used elsewhere for
+   caution states — the bulleted counterpart to the numbered
+   route-marker steps above. ---- */
+.article-content ul{
+  list-style: none;
+  margin: 0 0 20px;
+  padding-left: 0;
+}
+.article-content ul > li{
+  position: relative;
+  padding-left: 26px;
+}
+.article-content ul > li::before{
+  content: '';
+  position: absolute; left: 2px; top: 6px;
+  width: 11px; height: 10px;
+  background: var(--fx-accent);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  box-shadow: 0 1px 2px rgba(0,0,0,.15);
+}
+
+/* ============================================================
+   ROUTE-CHEVRON BREADCRUMB SEPARATORS
+   The plain "/" text separator in breadcrumb trails (.article-
+   breadcrumb, .pdp-breadcrumb — see fancy-effects.js:initBread
+   crumbChevrons) is swapped for a small accent-coloured chevron,
+   the same route-marker language as the numbered list styling
+   above, so a breadcrumb reads as a little wayfinding trail
+   rather than a raw file-path separator.
+   ============================================================ */
+.fx-crumb-sep{
+  display: inline-block;
+  margin: 0 5px;
+  color: var(--fx-accent);
+  font-weight: 700;
+  font-size: .92em;
+}
+
+/* ============================================================
+   QUIET DETAILS
+   Two intentionally low-key touches — visible on close inspection,
+   invisible at a glance, so they read as material/craft rather
+   than decoration.
+   ============================================================ */
+
+/* Policy-page tables (terms/privacy/accessibility) get dashed
+   rules instead of solid ones — the same line quality as a
+   technical drawing, same grey as before. */
+.article-table th,
+.article-table td{
+  border-style: dashed;
+}
+
+/* A near-invisible diagonal grain on white card surfaces — product,
+   benefit and certificate cards — standing in for the brushed-metal
+   finish of an actual aluminium sign blank. Kept at ~1% opacity on
+   purpose: felt more than seen. */
+.product-card,
+.benefit-card,
+.cert-card{
+  background-image: repeating-linear-gradient(115deg,
+    rgba(var(--fx-glow-rgb), .012) 0 3px,
+    transparent 3px 7px);
+}
+
+/* ============================================================
+   CATEGORY-COLOURED FILTER TABS
+   .product-tab already tints a small dot per category (safety /
+   traffic / equipment — see the [data-filter] rules above this
+   file). The active tab now picks up that same colour as a short
+   underline instead of just the generic primary-blue state, so
+   which category is selected reads at a glance — like a coloured
+   route marker rather than a plain "selected" pill.
+   ============================================================ */
+.product-tab.active::after{
+  content:'';
+  position:absolute; left:16px; right:16px; bottom:2px; height:2px;
+  border-radius:2px;
+  background: var(--primary);
+}
+.product-tab[data-filter="safety"].active::after{ background: var(--warning); }
+.product-tab[data-filter="traffic"].active::after{ background: var(--success); }
+.product-tab[data-filter="equip"].active::after{ background: var(--gray-700); }
+
+/* ============================================================
+   POPUP / MODAL "SIGN MOUNT" EFFECTS
+   Every customer-facing popup — quote request, order-status
+   tracker, portfolio lightbox, site search, chat widget, cookie
+   banner, toast notifications — gets the same small "power-on"
+   cue: a diagonal hazard-stripe bar sweeps across the top edge
+   once as the panel appears, like a warning light bar flashing
+   on, plus the existing bolted-corner rivet treatment already
+   used on cards elsewhere on the site. Dashboard/admin popups
+   (.cp-confirm-overlay, admin.html, console.html) are deliberately
+   left untouched — this layer is customer-facing only.
+   Kept to one shot on open, never a loop, and fully disabled
+   under prefers-reduced-motion.
+   ============================================================ */
+
+@keyframes fxHazardSweep{
+  0%{   width:0;    opacity:1; }
+  65%{  width:100%; opacity:1; }
+  100%{ width:100%; opacity:0; }
+}
+
+/* Quote modal + order-tracking modal: both remount (display:none →
+   flex) on every open, so an animation declared here unconditionally
+   replays automatically each time — no JS class hook needed. */
+.qmodal::after,
+.tm-modal::after{
+  content:'';
+  position:absolute; top:0; left:0; height:3px; width:0;
+  border-radius:3px 3px 0 0;
+  background: repeating-linear-gradient(135deg, var(--fx-glow) 0 10px, var(--fx-accent) 10px 20px);
+  z-index:6; pointer-events:none;
+  animation: fxHazardSweep .55s ease-out .1s both;
+}
+
+/* Portfolio lightbox, site search, chat popup, cookie banner: these
+   stay mounted in the DOM and only toggle a class, so the sweep is
+   scoped to the "open" state so it retriggers correctly every time. */
+.pf-detail-overlay.show .pf-detail-box::after,
+.site-search-overlay.open .ss-panel::after,
+.chat-popup.open::after,
+.cookie-banner.show::after{
+  content:'';
+  position:absolute; top:0; left:0; height:3px; width:0;
+  border-radius:3px 3px 0 0;
+  background: repeating-linear-gradient(135deg, var(--fx-glow) 0 10px, var(--fx-accent) 10px 20px);
+  z-index:6; pointer-events:none;
+  animation: fxHazardSweep .55s ease-out .12s both;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .qmodal::after, .tm-modal::after,
+  .pf-detail-overlay.show .pf-detail-box::after,
+  .site-search-overlay.open .ss-panel::after,
+  .chat-popup.open::after,
+  .cookie-banner.show::after{ animation:none; opacity:0; }
+}
+
+/* ---- Close buttons: same "bolt loosening" quarter-turn already used
+   on .tm-close, extended to every other popup's close button so the
+   detail reads as one consistent piece of hardware sitewide. ---- */
+.qmodal-close:hover{ transform: rotate(90deg); }
+.pf-detail-close{ transition: background .18s var(--ease), transform .18s var(--ease); }
+.pf-detail-close:hover{ transform: rotate(90deg); }
+.ss-close{ transition: background .2s var(--ease), transform .18s var(--ease); }
+.ss-close:hover{ transform: rotate(90deg); }
+.chat-close-btn{ transition: background .2s var(--ease), transform .18s var(--ease); }
+.chat-close-btn:hover{ transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce){
+  .qmodal-close:hover, .pf-detail-close:hover, .ss-close:hover, .chat-close-btn:hover{ transform:none; }
+}
+
+/* ---- Toast notifications: a brief outward "ping" ring on arrival,
+   like an indicator light confirming a signal was received — colour
+   matches the toast's own type instead of a single generic glow. ---- */
+@keyframes fxToastPing{
+  0%{   box-shadow: var(--shadow-lg), 0 0 0 0 rgba(var(--fx-glow-rgb), .45); }
+  100%{ box-shadow: var(--shadow-lg), 0 0 0 9px rgba(var(--fx-glow-rgb), 0); }
+}
+@keyframes fxToastPingDanger{
+  0%{   box-shadow: var(--shadow-lg), 0 0 0 0 rgba(var(--danger-rgb), .45); }
+  100%{ box-shadow: var(--shadow-lg), 0 0 0 9px rgba(var(--danger-rgb), 0); }
+}
+@keyframes fxToastPingSuccess{
+  0%{   box-shadow: var(--shadow-lg), 0 0 0 0 rgba(var(--success-rgb), .4); }
+  100%{ box-shadow: var(--shadow-lg), 0 0 0 9px rgba(var(--success-rgb), 0); }
+}
+@keyframes fxToastPingWarn{
+  0%{   box-shadow: var(--shadow-lg), 0 0 0 0 rgba(var(--warning-rgb), .45); }
+  100%{ box-shadow: var(--shadow-lg), 0 0 0 9px rgba(var(--warning-rgb), 0); }
+}
+.cs-toast.is-visible{ animation: fxToastPing .6s ease-out .22s both; }
+.cs-toast--error.is-visible{ animation-name: fxToastPingDanger; }
+.cs-toast--success.is-visible{ animation-name: fxToastPingSuccess; }
+.cs-toast--warn.is-visible{ animation-name: fxToastPingWarn; }
+@media (prefers-reduced-motion: reduce){
+  .cs-toast.is-visible{ animation:none; }
+}
+
+/* ---- Chat badge: the unread-count bubble already sits on the FAB —
+   give it the same beacon pulse language as #fx-progress/hazard tape
+   instead of sitting static, so an unread reply reads as "something
+   is lit up", consistent with the rest of the warning-light motif. ---- */
+.chat-fab-badge{
+  animation: fxBeacon 1.8s ease-in-out infinite;
+}
+.chat-fab-badge.hide{ animation:none; }
+@keyframes fxBeacon{
+  0%, 100%{ box-shadow: 0 0 0 0 rgba(var(--danger-rgb), .55); }
+  50%{      box-shadow: 0 0 0 5px rgba(var(--danger-rgb), 0); }
+}
+@media (prefers-reduced-motion: reduce){
+  .chat-fab-badge{ animation:none; }
+}
+/* ============================================================
+   PORTFOLIO TILE INSPECTION SCAN
+   A single light band sweeps down each portfolio tile on hover —
+   a nod to an inspection scan passing over a finished sign before
+   it ships (the site's own gallery-quality-control photography
+   makes the same point in words). One-shot, not a loop; sits above
+   the existing dark caption gradient so it's visible on photo and
+   flat-colour tiles alike.
+   ============================================================ */
+.port-visual{ position: relative; }
+.port-visual::before{
+  content:'';
+  position:absolute; left:0; right:0; top:-25%; height:25%; z-index:3;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.4) 50%, transparent);
+  pointer-events:none;
+  transition: top .65s ease;
+}
+.port-card:hover .port-visual::before,
+.port-card:focus-within .port-visual::before{
+  top: 120%;
+}
+@media (prefers-reduced-motion: reduce){
+  .port-visual::before{ transition:none; display:none; }
+}
+
+/* ============================================================
+   ARTICLE PROSE — PULL-QUOTES, INLINE CODE, TABLES
+   Long-form content (blog posts, policy pages) had headings and
+   lists styled but no rule for a pasted-in blockquote, inline
+   code, or a raw <table> — a real gap for anything an author
+   writes beyond plain paragraphs. Same material language as the
+   rest of this file: a pull-quote reads like a small plaque
+   bolted to the margin, inline code like an engraved code-plate,
+   a table picks up the same dashed line-quality already used on
+   .article-table.
+   ============================================================ */
+.article-content blockquote{
+  position: relative;
+  margin: 28px 0;
+  padding: 20px 24px 20px 56px;
+  background: linear-gradient(180deg, rgba(var(--fx-glow-rgb),.05), rgba(var(--fx-glow-rgb),.02));
+  border: 1px solid rgba(var(--fx-glow-rgb), .16);
+  border-left: 3px solid var(--fx-glow);
+  border-radius: 0 10px 10px 0;
+  font-style: italic;
+  color: var(--text-heading);
+}
+.article-content blockquote::before{
+  content: '\201C';
+  position: absolute; left: 16px; top: 2px;
+  font-family: Georgia, serif;
+  font-size: 40px; line-height: 1;
+  font-style: normal;
+  color: var(--fx-glow);
+  opacity: .5;
+}
+.article-content blockquote p{ margin: 0; }
+.article-content blockquote p + p{ margin-top: 10px; }
+
+.article-content code{
+  font-family: var(--font-mono);
+  font-size: .88em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--gray-100);
+  border: 1px solid rgba(var(--fx-glow-rgb), .18);
+  color: var(--primary-dark, #073E6B);
+}
+.article-content pre{
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: var(--gray-900);
+  overflow-x: auto;
+  box-shadow: inset 0 0 0 1px rgba(var(--fx-glow-rgb), .25);
+}
+.article-content pre code{
+  background: none;
+  border: none;
+  padding: 0;
+  color: #e2e8f0;
+}
+
+.article-content table{
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 22px;
+  font-size: .95em;
+}
+.article-content table th,
+.article-content table td{
+  border: 1px dashed var(--gray-300);
+  padding: 10px 14px;
+  text-align: left;
+}
+.article-content table th{
+  background: rgba(var(--fx-glow-rgb), .06);
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+/* ============================================================
+   PRODUCT-DETAIL "LIGHT-BOOTH" GALLERY
+   The main product photo sat on a flat grey tile. Gets a soft
+   radial backdrop plus the same faint blueprint grid used on
+   plain sections sitewide, so the product reads as staged under
+   inspection light rather than pasted on a swatch. The active
+   thumbnail trades its static outline for a slow pulsing glow
+   ring — a small "this one's lit up" indicator, the same LED
+   language used throughout this file.
+   ============================================================ */
+.pdp-main-img{
+  background:
+    radial-gradient(120% 90% at 50% 15%, rgba(var(--fx-glow-rgb), .08), transparent 65%),
+    repeating-linear-gradient(0deg,  rgba(var(--fx-glow-rgb), .035) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, rgba(var(--fx-glow-rgb), .035) 0 1px, transparent 1px 40px),
+    var(--gray-25);
+}
+.pdp-thumb{
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease), transform .2s var(--ease);
+}
+.pdp-thumb:hover{ transform: translateY(-2px); }
+.pdp-thumb.active{
+  animation: fxThumbGlow 2.4s ease-in-out infinite;
+}
+@keyframes fxThumbGlow{
+  0%, 100%{ box-shadow: 0 0 0 2px rgba(var(--fx-glow-rgb), .22), 0 0 8px rgba(var(--fx-glow-rgb), .15); }
+  50%{      box-shadow: 0 0 0 2px rgba(var(--fx-glow-rgb), .35), 0 0 14px rgba(var(--fx-glow-rgb), .35); }
+}
+@media (prefers-reduced-motion: reduce){
+  .pdp-thumb.active{ animation: none; }
+  .pdp-thumb:hover{ transform: none; }
+}
+
