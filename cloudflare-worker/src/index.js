@@ -90,6 +90,12 @@ const JWKS = createRemoteJWKSet(
   new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
 
+// สำหรับเช็ค hostname ที่ siteverify คืนมา (ไม่มี scheme) — derive จาก ALLOWED_ORIGINS
+// เดียวกันด้านบน กันไม่ให้ต้องแก้ 2 ที่เวลาโดเมนเปลี่ยน
+const ALLOWED_HOSTNAMES = new Set(
+  [...ALLOWED_ORIGINS].map((o) => o.replace(/^https?:\/\//, ""))
+);
+
 function corsHeaders(origin) {
   const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "";
   return {
@@ -164,7 +170,11 @@ async function handleVerifyTurnstile(request, headers, env) {
     return json({ success: false, error: "siteverify_request_failed", message: String(err) }, 502, headers);
   }
 
-  return json({ success: !!data.success, errorCodes: data["error-codes"] || [] }, 200, headers);
+  // Defense-in-depth: siteverify คืน hostname ที่ widget ถูก solve จริง (คนละชั้นกับ CORS
+  // Origin header) — เช็คซ้ำกับ ALLOWED_HOSTNAMES กันกรณี token ถูกขโมยไปยิงจากที่อื่น
+  // (ALLOWED_ORIGINS ด้านบนเป็น "https://domain" ส่วน siteverify คืนแค่ "domain" เฉยๆ)
+  const ok = !!data.success && (!data.hostname || ALLOWED_HOSTNAMES.has(data.hostname));
+  return json({ success: ok, errorCodes: data["error-codes"] || [] }, 200, headers);
 }
 
 // ── /line-webhook (ชั่วคราว — ใช้หา User ID เท่านั้น ไม่ใช่ของถาวร) ──────
