@@ -80,9 +80,22 @@
 
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc,
          deleteDoc, orderBy, query, onSnapshot, runTransaction,
-         serverTimestamp }
+         serverTimestamp, deleteField }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { db, auth } from "./db.js";
+
+// field ที่ firestore.rules อนุญาตให้มีอยู่ใน "quotations/{id}" หลัง update เสมอ (ต้องตรงกับ
+// hasOnly([...]) ของ allow update ใน firestore.rules เป๊ะ) — ใช้เป็นรายการอ้างอิงกลาง
+// ให้ updateQuotation() เก็บกวาด field แปลกปลอมที่ค้างอยู่ในเอกสารเดิมทิ้งอัตโนมัติ (ดูเหตุผน
+// เต็มที่คอมเมนต์หัว updateQuotation() ด้านล่าง — pattern เดียวกับที่ js/db-orders.js
+// updateOrder() เคยแก้แบบ hardcode เฉพาะ field 'compliant' ตัวเดียว แต่ตัวนี้ทำแบบทั่วไป
+// ครอบคลุมทุก field แปลกปลอม ไม่ใช่แค่ตัวที่รู้จักล่วงหน้า)
+const QUOTATION_ALLOWED_FIELDS = new Set([
+  "quoteNo", "publicToken", "requestId", "billingName", "taxId", "billingAddress", "contactPerson",
+  "phone", "email", "shippingAddress", "items", "subtotal", "vatMode", "vatAmount",
+  "grandTotal", "paymentTerms", "validUntil", "notes", "status",
+  "createdAt", "updatedAt", "createdBy"
+]);
 
 /* VAT มาตรฐานประเทศไทย 7% — ค่าคงที่เดียว ใช้ร่วมกันทั้งไฟล์ (ไม่ผูกกับ settings/main เพราะ
    อัตรานี้กำหนดโดยกฎหมาย ไม่ใช่ค่าที่ธุรกิจปรับเองได้เหมือน taxId/companyNameOfficial) */
@@ -518,6 +531,21 @@ export async function updateQuotation(id, patch) {
   const { quoteNo, publicToken, createdAt, createdBy, ...rest } = patch || {};
   const payload = { ...rest, updatedAt: serverTimestamp() };
 
+  const ref = doc(db, "quotations", id);
+  const existingSnap = await getDoc(ref);
+  const existing = existingSnap.exists() ? existingSnap.data() : {};
+
+  // เก็บกวาด field แปลกปลอมที่ค้างอยู่ในเอกสารเดิม (จากสคีมารุ่นก่อนหน้าที่ยังไม่ตรงกับ
+  // QUOTATION_ALLOWED_FIELDS ปัจจุบัน) — Firestore rules ประเมิน hasOnly() จาก "เอกสารทั้งใบ
+  // หลัง merge" ไม่ใช่แค่ field ที่ส่งมาใหม่ ทำให้ถึงแม้ patch จะสะอาดแค่ไหน แต่ถ้าเอกสารเดิมยังมี
+  // field แปลกปลอมค้างอยู่ ก็จะทำให้ hasOnly() ปฏิเสธการ update ทุกครั้ง (permission-denied) —
+  // pattern เดียวกับที่ js/db-orders.js updateOrder() เจอกับ field 'compliant' มาก่อนแล้ว
+  // (ดูคอมเมนต์ตรงนั้น) ต่างกันแค่ตัวนี้เก็บกวาดแบบทั่วไป (ไล่เทียบทุก key ของเอกสารเดิมกับ
+  // whitelist) แทนที่จะ hardcode ชื่อ field ที่รู้จักล่วงหน้าเท่านั้น
+  for (const key of Object.keys(existing)) {
+    if (!QUOTATION_ALLOWED_FIELDS.has(key)) payload[key] = deleteField();
+  }
+
   if ("items" in payload || "vatMode" in payload) {
     const sanitizedItems = Array.isArray(payload.items) ? payload.items.map(sanitizeQuotationItem).filter(Boolean) : [];
     const vatMode = ["included", "excluded", "none"].includes(payload.vatMode) ? payload.vatMode : "excluded";
@@ -532,9 +560,6 @@ export async function updateQuotation(id, patch) {
     delete payload.status; // ค่าสถานะแปลกปลอม → ไม่แก้ (ทิ้งเงียบๆ แทน throw กันฟอร์มพังทั้งก้อน)
   }
 
-  const ref = doc(db, "quotations", id);
-  const existingSnap = await getDoc(ref);
-  const existing = existingSnap.exists() ? existingSnap.data() : {};
   const merged = { ...existing, ...payload };
 
   await updateDoc(ref, payload);
