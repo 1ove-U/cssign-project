@@ -298,6 +298,22 @@ export async function addOrder(order) {
   if (payload.trackingId) await upsertOrderTracking(payload);
 }
 
+// field ที่ firestore.rules อนุญาตให้มีอยู่ใน "orders/{id}" หลัง update เสมอ (ต้องตรงกับ
+// hasOnly([...]) ของ allow update ใน firestore.rules เป๊ะ) — ใช้เป็นรายการอ้างอิงกลางให้
+// updateOrder() เก็บกวาด field แปลกปลอมที่ค้างอยู่ในเอกสารเดิมทิ้งอัตโนมัติแบบทั่วไป (เดิมทำแบบ
+// hardcode เฉพาะ field 'compliant' ตัวเดียว — ดูคอมเมนต์เดิมด้านล่างที่อธิบายกลไก hasOnly()
+// ประเมินจาก "เอกสารทั้งใบหลัง merge" — ตอนนี้ครอบคลุมทุก field แปลกปลอม ไม่ใช่แค่ตัวที่รู้จัก
+// ล่วงหน้าเท่านั้น เผื่อมี field เก่าอื่นอีกจากสคีมารุ่นก่อนๆ ที่ยังไม่เจอ)
+const ORDER_ALLOWED_FIELDS = new Set([
+  "code", "customer", "phone", "email", "lineUserId", "item", "category", "product_id",
+  "unit_price", "qty", "status", "progress",
+  "dueDate", "notes", "createdAt", "updatedAt", "shippedAt", "completedAt", "createdBy", "trackingId",
+  "attachments", "designFiles",
+  "deposit", "paymentStatus", "discount", "vatIncluded", "invoiceAddress",
+  "shippingAddress", "recipient", "shippingMethod", "shippingCost", "shippingTrackingId",
+  "assignee", "assigneeName", "specs", "qcChecklist", "reviewRequestedAt"
+]);
+
 export async function updateOrder(id, patch) {
   const ref = doc(db, "orders", id);
   const existingSnap = await getDoc(ref);
@@ -312,6 +328,13 @@ export async function updateOrder(id, patch) {
   // แก้โดยสั่งลบ field นี้ทิ้งไปด้วยเสมอในทุกการ update — ปลอดภัยแม้เอกสารจะไม่มี field นี้อยู่แล้ว
   // (deleteField() บน field ที่ไม่มีอยู่ ไม่ error) เป็นการ "เก็บกวาด" ของเก่าไปในตัวโดยอัตโนมัติ
   payload.compliant = deleteField();
+  // ครอบคลุมเพิ่มเติม: field แปลกปลอมอื่นๆ ที่อาจค้างอยู่ในเอกสารเดิมจากสคีมารุ่นก่อนหน้าที่ไม่ใช่
+  // 'compliant' (กลไกเดียวกันกับด้านบน แต่ทั่วไปกว่า — ไล่เทียบทุก key ของเอกสารเดิมกับ
+  // ORDER_ALLOWED_FIELDS แทนที่จะรู้ชื่อ field ล่วงหน้า) กันบั๊ก permission-denied แบบเดียวกันนี้
+  // เกิดซ้ำจาก field เก่าตัวอื่นที่ยังไม่เจอ
+  for (const key of Object.keys(existing)) {
+    if (!ORDER_ALLOWED_FIELDS.has(key)) payload[key] = deleteField();
+  }
   if ("qty" in payload)      payload.qty = Number(payload.qty) || 1;
   if ("unit_price" in payload) payload.unit_price = Number(payload.unit_price) || 0;
   if ("progress" in payload) payload.progress = Math.max(0, Math.min(100, Number(payload.progress) || 0));
@@ -630,4 +653,3 @@ export async function listDesignApprovals(trackingId) {
     .map(d => ({ id: d.id, ...d.data() }))
     .filter(a => a.trackingId === trackingId);
 }
-
