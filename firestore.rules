@@ -542,10 +542,17 @@ service cloud.firestore {
       // เพิ่ม shippingMethod/shippingTrackingId (เลขพัสดุขนส่ง) เข้าไปในสำเนา public — ไม่ใช่ข้อมูล
       // อ่อนไหว (ไม่มีที่อยู่/ชื่อผู้รับ) และช่วยให้ลูกค้าเช็คสถานะพัสดุต่อกับขนส่งเองได้ทันที
       // ตัดฟิลด์ 'compliant' ออกแล้ว (ดูหมายเหตุเดียวกันที่ orders ด้านบน)
+      // เพิ่ม 'lineUserId' เข้า whitelist — js/db-orders.js upsertOrderTracking() คัดลอกฟิลด์นี้
+      // เข้ามาในสำเนา public มานานแล้ว (ใช้บอกหน้า track-modal.js ว่าควรโชว์ปุ่ม "เชื่อมบัญชี
+      // LINE" หรือไม่ — P1.5) แต่ whitelist ตรงนี้ไม่เคยถูกอัปเดตให้ตรงกัน ทำให้ทุกครั้งที่แอดมิน
+      // แก้ไขคำสั่งผลิตที่มี trackingId (เกือบทุกใบ) upsertOrderTracking() ที่ตามหลัง updateDoc()
+      // หลักจะถูกปฏิเสธด้วย hasOnly() เสมอ (permission-denied) — แม้เอกสาร orders/{id} หลักจะ
+      // บันทึกสำเร็จไปแล้วก็ตาม (ทำให้เห็นข้อมูลเปลี่ยนจริงในตาราง แต่ระบบยังโชว์ toast
+      // "บันทึกไม่สำเร็จ" เพราะ exception หลุดออกมาจากขั้นตอนถัดไปนี้)
       allow create, update: if isAuthenticated()
                     && incomingData().keys().hasOnly([
                          'code','item','category','qty','status','progress','dueDate','updatedAt',
-                         'shippingMethod','shippingTrackingId','designFiles'
+                         'shippingMethod','shippingTrackingId','designFiles','lineUserId'
                        ])
                     && incomingData().qty is number && incomingData().qty > 0
                     && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
