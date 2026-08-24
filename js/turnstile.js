@@ -3,22 +3,24 @@
  * โหลดและควบคุม Cloudflare Turnstile widget แบบใช้ร่วมกันได้ทุกฟอร์มในเว็บ
  * (contact form, inline contact form, catalog download form, qmodal ขอใบเสนอราคา)
  *
- * ⚠️ ค่า TURNSTILE_SITE_KEY ด้านล่างยังเป็น Cloudflare "test site key" (1x0000...AA)
- * ซึ่ง "ผ่านทุกครั้ง" ไว้ให้ demo ใช้งานได้ทันทีโดยไม่ต้องสมัคร Cloudflare ก่อน
- * คีย์นี้ไม่ป้องกันบอทจริง — ฟอร์มทุกอันบนเว็บจะไม่มีการกัน spam จนกว่าจะเปลี่ยนเป็น
- * Site Key จริงตามขั้นตอนนี้:
+ * ✅ TURNSTILE_SITE_KEY ด้านล่างตั้งเป็น Site Key จริงแล้ว (widget สร้างไว้แล้วบน
+ * Cloudflare dashboard — ไม่ใช่ "test site key" ที่ผ่านทุกครั้งอีกต่อไป) ค่านี้เปิดเผย
+ * ฝั่ง client ได้ปกติ ไม่ใช่ความลับ — ไม่ต้องแก้อะไรเพิ่มฝั่ง frontend
  *
- * วิธีตั้งค่าให้ใช้งานจริงบน production (ทำครั้งเดียว ฟรีทั้งหมด ไม่ต้องผูกบัตร):
- * 1) ไปที่ https://dash.cloudflare.com/?to=/:account/turnstile แล้วสร้าง Widget
- *    ใหม่ ตั้ง domain เป็นโดเมนจริงของเว็บ (เช่น cssign.co.th, www.cssign.co.th)
- * 2) เอา "Site Key" ที่ได้มาแทนค่า TURNSTILE_SITE_KEY ด้านล่างนี้ (ค่านี้เปิดเผย
- *    ฝั่ง client ได้ปกติ ไม่ใช่ความลับ)
- * 3) เอา "Secret Key" (ค่านี้ห้ามฝังฝั่ง client เด็ดขาด) ไปตั้งเป็น Worker secret:
+ * ⚠️ สิ่งที่ยังต้องเช็ค/ทำให้ครบฝั่ง server เพื่อให้การยืนยันตัวตนทำงานจริง (ทำครั้งเดียว
+ * ฟรีทั้งหมด ไม่ต้องผูกบัตร):
+ * 1) ตรวจว่า domain จริงของเว็บ (เช่น cssign.co.th, www.cssign.co.th) ถูกเพิ่มไว้ใน
+ *    widget นี้แล้วที่ https://dash.cloudflare.com/?to=/:account/turnstile — ถ้า Site Key
+ *    ผูกกับ domain อื่น/ยังไม่ได้เพิ่ม domain จริง widget จะขึ้น error ทันทีตอนโหลด
+ * 2) เอา "Secret Key" คู่กับ Site Key นี้ (ค่านี้ห้ามฝังฝั่ง client เด็ดขาด) ไปตั้งเป็น
+ *    Worker secret — ถ้ายังไม่ได้ตั้งหรือตั้งจาก widget/บัญชีคนละอันกับ Site Key นี้
+ *    /verify-turnstile จะตอบ error "server_misconfigured" หรือ siteverify จะ reject ทุก token:
  *      cd cloudflare-worker
  *      npx wrangler secret put TURNSTILE_SECRET_KEY
  *      npx wrangler deploy
  *    (endpoint ฝั่ง server อยู่ใน cloudflare-worker/src/index.js -> /verify-turnstile
- *    และถูกเรียกจาก js/leads.js -> verifyTurnstileToken() ก่อนบันทึก lead ทุกครั้ง)
+ *    และถูกเรียกจาก js/db-quote-requests.js / js/leads.js -> verifyTurnstileToken()
+ *    ก่อนบันทึกข้อมูลทุกครั้ง)
  *
  * UI: ห่อ widget ด้วยการ์ดโทนเดียวกับเว็บ (label + loading skeleton + error
  * state ที่กดลองใหม่ได้) แทนที่จะปล่อยเป็นกล่องเปล่าๆ รอ iframe ของ Cloudflare
