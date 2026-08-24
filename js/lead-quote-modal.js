@@ -16,30 +16,81 @@ import { wireLiveValidation, validateFormFields } from './form-validate.js';
   if (form) wireLiveValidation(form);
   var tsEl = document.getElementById('qm-turnstile');
 
-  /* Open modal from any "ขอใบเสนอราคา" button */
-  document.querySelectorAll('a[href="contact.html"].btn-primary, a[href="contact.html"].btn[class*="btn-primary"], a[href="contact.html"].btn-white, a[href="contact.html"].btn[class*="btn-white"]').forEach(function (el) {
+  /* ที่มาของ lead ต่างกันตามหน้า เพื่อให้รายงาน lead source ในหน้าแอดมินยังแยกหน้าได้
+     เหมือนก่อนรวมไฟล์ — ตั้งค่าด้วย <body data-page="contact|portfolio"> ถ้าไม่ตั้งไว้
+     (index.html, products.html, about.html, product-detail.html) ใช้ label เดิม 'quotation_modal' */
+  var PAGE_SOURCE_MAP = {
+    contact: 'quotation_modal_contact',
+    portfolio: 'quotation_modal_portfolio'
+  };
+  var leadSource = PAGE_SOURCE_MAP[document.body.dataset.page] || 'quotation_modal';
+
+  /* leadSource ที่ใช้จริงตอน submit — ปกติเท่ากับ leadSource ข้างบนตามหน้า
+     แต่ผู้เรียก openModal() รายอื่น (เช่น chat-widget.js) override ได้ผ่าน
+     opts.source เพื่อแยก report ใน admin ว่า lead มาจากช่องทางไหน โดยไม่ต้อง
+     แตะ saveLead()/schema เดิมเลย — reset กลับเป็นค่าเดิมของหน้าทุกครั้งที่เปิด
+     โมดัลใหม่โดยไม่ระบุ source ไว้ */
+  var activeLeadSource = leadSource;
+
+  /* Open modal from any "ขอใบเสนอราคา" button (รวม data-open-quote ที่ contact/portfolio ใช้) */
+  document.querySelectorAll('a[href="contact.html"].btn-primary, a[href="contact.html"].btn[class*="btn-primary"], a[href="contact.html"].btn-white, a[href="contact.html"].btn[class*="btn-white"], button[data-open-quote]').forEach(function (el) {
     el.addEventListener('click', function (e) {
       e.preventDefault();
       openModal('form');
     });
   });
 
-  window.openModal = function openModal(startTab) {
+  /* opts (optional): { source, message }
+     - source:  override lead source label for this open only (เช่น 'chat_widget')
+     - message: prefill ช่องรายละเอียด (qm-msg) ถ้ายังว่างอยู่ */
+  // 2026 refactor — accessibility phase (รอบที่ 58): เก็บ lastFocused ทุกครั้งที่เรียก
+  // openModal() (ไม่ใช่แค่จุดเดียว) เพราะโมดัลนี้เปิดได้หลายทาง (ปุ่ม "ขอใบเสนอราคา" ทั่วไซต์/
+  // estimator-quote-btn/chat-widget.js เรียก window.openModal() ตรงๆ)
+  var qmLastFocused = null;
+  window.openModal = function openModal(startTab, opts) {
+    qmLastFocused = document.activeElement;
     overlay.style.display = 'flex';
     if (tsEl) mountTurnstile(tsEl);
     document.body.style.overflow = 'hidden';
     var tab = startTab || 'form';
     if (typeof qmodalSwitchTab === 'function') qmodalSwitchTab(tab);
+
+    activeLeadSource = (opts && opts.source) ? opts.source : leadSource;
+    if (opts && opts.message) {
+      setTimeout(function () {
+        var msgEl = document.getElementById('qm-msg');
+        if (msgEl && !msgEl.value.trim()) msgEl.value = opts.message;
+      }, 100);
+    }
   };
 
   function closeModal() {
     overlay.style.display = 'none';
     document.body.style.overflow = '';
+    if (qmLastFocused && typeof qmLastFocused.focus === 'function') qmLastFocused.focus();
+    qmLastFocused = null;
   }
 
   closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+  // เพิ่ม focus-trap (Tab/Shift+Tab วนใน modal) — Escape/return-focus มีอยู่แล้วด้านบน
+  var QM_FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), ' +
+    'input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab' || overlay.style.display !== 'flex') return;
+    var focusables = Array.prototype.slice.call(overlay.querySelectorAll(QM_FOCUSABLE_SELECTOR));
+    if (!focusables.length) return;
+    var first = focusables[0];
+    var last = focusables[focusables.length - 1];
+    var active = document.activeElement;
+    if (e.shiftKey) {
+      if (active === first || !overlay.contains(active)) { e.preventDefault(); last.focus(); }
+    } else {
+      if (active === last || !overlay.contains(active)) { e.preventDefault(); first.focus(); }
+    }
+  });
 
   /* Estimator CTA on main page */
   var mainEstBtn = document.getElementById('estimator-quote-btn');
@@ -97,7 +148,7 @@ import { wireLiveValidation, validateFormFields } from './form-validate.js';
          หายไปเงียบๆ ไม่มีบันทึกที่ไหนเลย แก้แล้วโดยเช็คผลก่อนโชว์ success */
       var leadSaved = true;
       try {
-        await saveLead({ name, email, tel, service, message }, 'quotation_modal', getTurnstileToken(tsEl));
+        await saveLead({ name, email, tel, service, message }, activeLeadSource, getTurnstileToken(tsEl));
       } catch (err) {
         leadSaved = false;
         console.error('Lead save error:', err);
@@ -109,7 +160,7 @@ import { wireLiveValidation, validateFormFields } from './form-validate.js';
         submitBtn.classList.remove('is-loading');
         return;
       }
-      try { await sendLeadEmails({ name, email, phone: tel, service, message }, 'quotation_modal'); } catch(err) { console.error(err); }
+      try { await sendLeadEmails({ name, email, phone: tel, service, message }, activeLeadSource); } catch(err) { console.error(err); }
 
       resetTurnstile(tsEl);
       form.style.display = 'none';

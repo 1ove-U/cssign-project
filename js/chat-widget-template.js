@@ -33,7 +33,7 @@
         <span class="chat-online-dot"></span>
       </div>
       <div class="chat-header-info">
-        <div class="chat-header-name">ผู้ช่วย AI ฝ่ายขาย CS.SIGN</div>
+        <div class="chat-header-name">บอทตอบคำถาม (AI Chatbot)</div>
         <div class="chat-header-status">
           <span class="chat-status-dot"></span>ตอบโดยระบบ AI · พร้อมช่วยเหลือ
         </div>

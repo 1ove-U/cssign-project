@@ -4,10 +4,18 @@
 // หมายเหตุ: firestore.rules อนุญาต read บทความทุกสถานะ (รวม draft) แบบ public
 // ดังนั้นไฟล์นี้ "ต้อง" กรอง status === 'published' เองเสมอ ห้ามเชื่อ query ฝั่ง client ล้วนๆ
 
-import { getBlogs } from "./db.js";
+import { getBlogs } from "./db-blog.js";
 
 const GRID_EL = document.getElementById("blog-grid-dynamic");
 const FEATURED_EL = document.getElementById("blog-featured-dynamic");
+
+// หน้านี้ถูกใช้ร่วมกันทั้ง blog.html (root) และ en/blog.html — โพสต์จาก Firestore
+// เป็นเนื้อหาภาษาไทยเดี่ยว (ยังไม่มีฟิลด์แยกภาษา) ดังนั้นลิงก์ต้องขึ้นไปหา
+// blog-post.html ที่ root เสมอ ไม่ใช่ path สัมพัทธ์เฉยๆ — ไม่งั้นจากหน้า en/blog.html
+// จะ resolve ไปหา en/blog-post.html ซึ่งไม่มีไฟล์นี้อยู่จริง (404)
+const IN_EN_FOLDER = /\/en\//.test(window.location.pathname);
+const BLOG_POST_BASE = IN_EN_FOLDER ? "../blog-post.html" : "blog-post.html";
+const TH_ONLY_TAG = IN_EN_FOLDER ? ' <small class="lang-tag">TH</small>' : "";
 
 function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, (c) => ({
@@ -33,7 +41,7 @@ function estimateReadMinutes(content) {
 }
 
 function cardTemplate(post) {
-  const href = `blog-post.html?slug=${encodeURIComponent(post.slug || "")}`;
+  const href = `${BLOG_POST_BASE}?slug=${encodeURIComponent(post.slug || "")}`;
   const title = escapeHtml(post.title);
   const excerpt = escapeHtml(post.excerpt);
   const dateStr = formatThaiDate(post.createdAt);
@@ -59,7 +67,7 @@ function cardTemplate(post) {
         <p>${excerpt}</p>
         <div class="blog-card-foot">
           <span>${dateStr ? dateStr + " · " : ""}อ่าน ${readMin} นาที</span>
-          <span class="blog-card-link">อ่านต่อ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="13" height="13"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+          <span class="blog-card-link">อ่านต่อ${TH_ONLY_TAG} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="13" height="13"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
         </div>
       </div>
     </a>`;
@@ -74,7 +82,7 @@ function cardTemplate(post) {
    zero admin configuration needed.
    ----------------------------------------------------------- */
 function featuredCardTemplate(post) {
-  const href = `blog-post.html?slug=${encodeURIComponent(post.slug || "")}`;
+  const href = `${BLOG_POST_BASE}?slug=${encodeURIComponent(post.slug || "")}`;
   const title = escapeHtml(post.title);
   const excerpt = escapeHtml(post.excerpt);
   const dateStr = formatThaiDate(post.createdAt);
@@ -100,7 +108,7 @@ function featuredCardTemplate(post) {
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>อ่าน ${readMin} นาที</span>
         </div>
         <p>${excerpt}</p>
-        <span class="blog-card-link">อ่านบทความเต็ม <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+        <span class="blog-card-link">อ่านบทความเต็ม${TH_ONLY_TAG} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
       </div>
     </a>`;
 }
@@ -147,7 +155,9 @@ function showSkeleton() {
       GRID_EL.innerHTML = Array.from({ length: count }, skeletonCardHTML).join("");
     });
   }
-  if (FEATURED_EL && !FEATURED_EL.classList.contains("is-swapping")) {
+  // การ์ดเด่นบนหน้า EN ถูก pin ไว้กับบทความ static ที่แปลแล้วเสมอ (ดูหมายเหตุใน init())
+  // จึงไม่ต้องขึ้น skeleton ทับมันระหว่างรอ Firestore
+  if (FEATURED_EL && !IN_EN_FOLDER && !FEATURED_EL.classList.contains("is-swapping")) {
     crossfadeSwap(FEATURED_EL, () => {
       FEATURED_EL.innerHTML = skeletonFeaturedHTML();
     });
@@ -193,22 +203,31 @@ function renderEmpty() {
   // ไม่แตะ FEATURED_EL — ปล่อยการ์ด fallback ที่เขียนไว้ตรงๆ ใน blog.html ให้แสดงต่อไป
   // เมื่อยังไม่มีบทความใน Firestore เลย
   if (!GRID_EL) return;
+  const msg = IN_EN_FOLDER
+    ? "No published articles yet. Please check back soon."
+    : "ยังไม่มีบทความเผยแพร่ในขณะนี้ กลับมาดูใหม่เร็วๆ นี้นะครับ";
   crossfadeSwap(GRID_EL, () => {
-    GRID_EL.innerHTML = `<div class="blog-empty-state">ยังไม่มีบทความเผยแพร่ในขณะนี้ กลับมาดูใหม่เร็วๆ นี้นะครับ</div>`;
+    GRID_EL.innerHTML = `<div class="blog-empty-state">${msg}</div>`;
   });
 }
 
 function renderNoOtherPosts() {
   if (!GRID_EL) return;
+  const msg = IN_EN_FOLDER
+    ? "More articles are on the way. Please check back soon."
+    : "กำลังจัดทำบทความถัดไป กลับมาดูใหม่เร็วๆ นี้นะครับ";
   crossfadeSwap(GRID_EL, () => {
-    GRID_EL.innerHTML = `<div class="blog-empty-state">กำลังจัดทำบทความถัดไป กลับมาดูใหม่เร็วๆ นี้นะครับ</div>`;
+    GRID_EL.innerHTML = `<div class="blog-empty-state">${msg}</div>`;
   });
 }
 
 function renderError() {
   if (GRID_EL) {
+    const msg = IN_EN_FOLDER
+      ? "Couldn't load articles right now. Please refresh the page."
+      : "ไม่สามารถโหลดบทความได้ในขณะนี้ กรุณาลองรีเฟรชหน้าอีกครั้ง";
     crossfadeSwap(GRID_EL, () => {
-      GRID_EL.innerHTML = `<div class="blog-empty-state">ไม่สามารถโหลดบทความได้ในขณะนี้ กรุณาลองรีเฟรชหน้าอีกครั้ง</div>`;
+      GRID_EL.innerHTML = `<div class="blog-empty-state">${msg}</div>`;
     });
   }
   // FEATURED_EL: เก็บการ์ด fallback ไว้เหมือนเดิมเมื่อโหลดพลาด แทนที่จะเคลียร์ทิ้ง
@@ -244,20 +263,26 @@ async function init() {
 
   // getBlogs() มา orderBy createdAt desc อยู่แล้ว (ใหม่สุดก่อน) — ตัวแรกคือบทความล่าสุด
   // ใช้เป็นการ์ด "บทความล่าสุด" ด้านบนเสมอ โดยไม่ต้องตั้งค่า featured:true อีกต่อไป
+  //
+  // ข้อยกเว้นสำหรับหน้า EN: โพสต์ทุกอันจาก Firestore เป็นภาษาไทยเดี่ยว (ยังไม่มี
+  // ฟิลด์แยกภาษา) ดังนั้นการ์ดเด่นบน en/blog.html จะ pin ไว้กับบทความ static ที่
+  // แปลเป็นอังกฤษแล้วเสมอ (เขียนตรงๆ ใน en/blog.html) ไม่ให้ Firestore มาทับ —
+  // โพสต์ล่าสุดจาก Firestore จะไปโผล่เป็นการ์ดแรกในกริดด้านล่างแทน พร้อม tag TH
   const [latest, ...rest] = posts;
+  const gridPosts = IN_EN_FOLDER ? posts : rest;
 
-  if (FEATURED_EL) {
+  if (FEATURED_EL && !IN_EN_FOLDER) {
     crossfadeSwap(FEATURED_EL, () => {
       FEATURED_EL.innerHTML = featuredCardTemplate(latest);
     });
   }
 
   if (GRID_EL) {
-    if (!rest.length) {
+    if (!gridPosts.length) {
       renderNoOtherPosts();
     } else {
       crossfadeSwap(GRID_EL, () => {
-        GRID_EL.innerHTML = rest.map(cardTemplate).join("");
+        GRID_EL.innerHTML = gridPosts.map(cardTemplate).join("");
         observeCardsReveal();
       });
     }

@@ -12,6 +12,9 @@
 <meta property="og:image" content="https://cssign.co.th/assets/og-image.jpg">
 <meta property="og:locale" content="th_TH">
 <link rel="canonical" href="https://cssign.co.th/blog.html">
+<link rel="alternate" hreflang="th" href="https://cssign.co.th/blog.html">
+<link rel="alternate" hreflang="en" href="https://cssign.co.th/en/blog.html">
+<link rel="alternate" hreflang="x-default" href="https://cssign.co.th/blog.html">
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
 <link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
@@ -28,7 +31,9 @@
 
 <link rel="stylesheet" href="css/style.css?v=20260711a">
 <link rel="stylesheet" href="css/shared-widgets.css">
+<link rel="stylesheet" href="css/exit-intent-cta.css">
 <link rel="stylesheet" href="css/track-modal.css">
+<link rel="stylesheet" href="css/cart-modal.css">
 <style>
 /* ── Blog / Articles Page ──
    Hero background rebuilt to match .contact-hero on contact.html exactly
@@ -202,7 +207,7 @@
       </button>
       <div class="nav-lang-switch" aria-label="Language switch">
         <a href="#" class="is-active">TH</a>
-        <a href="en/index.html">EN</a>
+        <a href="en/blog.html">EN</a>
       </div>
     </div>
   </div>
@@ -211,7 +216,7 @@
 <header class="site-header" id="site-header">
   <div class="nav-inner">
     <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
       <span class="brand-text">
         <span class="brand-name">CS.SIGN</span>
         <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
@@ -223,7 +228,7 @@
 
       <div class="nav-item-dropdown">
         <button class="nav-link nav-dd-trigger" type="button">
-          หมวดหมู่
+          สินค้า
           <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="nav-dropdown nav-megamenu">
@@ -231,7 +236,7 @@
             <div class="nav-mega-col">
               <div class="nav-mega-title">ป้ายความปลอดภัย</div>
               <a href="products.html?cat=safety" class="nav-mega-item">
-                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+                <span><strong>ป้ายเตือน / ป้ายบังคับ</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
               </a>
               <a href="products.html?cat=safety" class="nav-mega-item">
                 <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
@@ -295,7 +300,7 @@
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-menu-top">
     <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
       <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
     </a>
     <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
@@ -305,7 +310,7 @@
   <div class="mobile-links">
     <a href="index.html">หน้าแรก</a>
     <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
-      หมวดหมู่
+      สินค้า
       <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="mobile-dd-panel" id="mobile-dd-panel">
@@ -322,7 +327,7 @@
   </div>
   <div class="mobile-lang-switch">
     <a href="#" class="is-active">TH · ไทย</a>
-    <a href="en/index.html">EN · English</a>
+    <a href="en/blog.html">EN · English</a>
   </div>
   <div class="mobile-email">
     <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
@@ -376,7 +381,7 @@
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>15 มิ.ย. 2569</span>
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>อ่าน 6 นาที</span>
         </div>
-        <p>สรุปกฎหมายและมาตรฐานหลักที่เกี่ยวข้องกับป้ายความปลอดภัยในสถานประกอบการไทย ตั้งแต่ พ.ร.บ. ความปลอดภัยฯ มอก. 635-2547 ไปจนถึง ISO 7010 พร้อมจุดที่กฎหมายกำหนดให้ต้องติดป้าย เพื่อให้ผ่านการตรวจสอบและลดความเสี่ยงอุบัติเหตุในสถานที่ทำงาน</p>
+        <p>สรุปกฎหมายและมาตรฐานหลักที่เกี่ยวข้องกับป้ายความปลอดภัยในสถานประกอบการไทย ตั้งแต่ พ.ร.บ. ความปลอดภัยฯ ไปจนถึง มอก. พร้อมจุดที่กฎหมายกำหนดให้ต้องติดป้าย เพื่อให้ผ่านการตรวจสอบและลดความเสี่ยงอุบัติเหตุในสถานที่ทำงาน</p>
         <span class="blog-card-link">อ่านบทความเต็ม <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
       </div>
     </a>
@@ -415,11 +420,11 @@
         <div class="img-ph img-ph--4-3">
           <div class="img-ph-inner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
-            <span class="img-ph-label">ISO 7010 คืออะไร</span>
+            <span class="img-ph-label">สัญลักษณ์ความปลอดภัยสากล</span>
           </div>
         </div>
         <div class="blog-card-body">
-          <h3>ISO 7010 คืออะไร และทำไมโรงงานส่งออกถึงต้องใช้สัญลักษณ์มาตรฐานนี้</h3>
+          <h3>สัญลักษณ์ความปลอดภัยสากลคืออะไร และทำไมโรงงานส่งออกถึงต้องใช้สัญลักษณ์มาตรฐานนี้</h3>
           <p>ทำความเข้าใจที่มาของสัญลักษณ์ความปลอดภัยสากล และความแตกต่างจากมาตรฐาน มอก. ที่ใช้ในประเทศไทย</p>
           <div class="blog-card-foot">
             <span>กำลังจัดทำเนื้อหา</span>
@@ -559,7 +564,7 @@
         <div class="footer-h">บริษัท</div>
         <div class="footer-links">
           <a href="about.html">เกี่ยวกับเรา</a>
-          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="index.html#services">ขั้นตอนการทำงาน</a>
           <a href="portfolio.html">ผลงานของเรา</a>
           <a href="quality-policy.html">นโยบายคุณภาพ</a>
           <a href="blog.html" style="color:var(--primary);">บทความ</a>
@@ -599,12 +604,17 @@
 
 <script src="js/tabs-overflow.js"></script>
 <script src="js/main.js"></script>
+<script src="js/main-effects.js"></script>
 <script src="js/cookie-consent.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/site-search-index.js"></script>
 <script src="js/site-search.js"></script>
 <script type="module" src="js/site-settings.js"></script>
 <script type="module" src="js/nav-menu.js"></script>
+<script type="module" src="js/cart-global.js"></script>
 <script type="module" src="js/blog-render.js"></script>
 <script type="module" src="js/home-dynamic.js"></script>
+<script type="module" src="js/home-dynamic-showcase.js"></script>
 
 <!-- ============================================================
      CS.SIGN AI CHAT POPUP
@@ -613,8 +623,13 @@
 <!-- FAB trigger button -->
 <script src="js/track-modal-template.js"></script>
 <script type="module" src="js/track-modal.js"></script>
+<script src="js/cart-modal-template.js"></script>
+<script src="js/cart-modal.js"></script>
+<script src="js/quote-form-template.js"></script>
+<script type="module" src="js/quote-form.js"></script>
 <script src="js/chat-widget-template.js"></script>
 
 <script type="module" src="js/chat-widget.js"></script>
+<script src="js/exit-intent-cta.js"></script>
 <script src="js/fancy-effects.js" defer></script>
 </body></html>

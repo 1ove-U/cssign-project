@@ -1,0 +1,468 @@
+// ===========================
+// js/orders-tab-modal.js — ป๊อปอัพ "เพิ่ม/แก้ไขคำสั่งผลิต" ของแท็บคำสั่งผลิต (js/orders-tab.js)
+//
+// 2026 refactor phase 3: ย้ายมาจาก js/orders-tab.js เดิม (ส่วน "Add/Edit modal" รวมถึง
+// ตัวเลือกสินค้า/พนักงานที่ผูกกับฟอร์มนี้โดยเฉพาะ) แบบไม่เปลี่ยน behavior ใดๆ — ไฟล์นี้
+// ครอบคลุม: ตัวเลือกสินค้า/พนักงาน (loadProductPicker/loadStaffPicker), การสลับหมวดย่อย
+// ในป๊อปอัพ (ข้อมูลงาน/การเงิน/การจัดส่ง/แนบไฟล์/ประวัติ), chip group (สถานะการชำระเงิน/
+// ช่องทางจัดส่ง), สรุปยอดเงินแบบเรียลไทม์, QC checklist, ไฟล์แนบ, ประวัติแก้ไข, และการ
+// เปิด/ปิด/ทำซ้ำ/บันทึกฟอร์มคำสั่งผลิตเอง
+//
+// export ออกไปให้ js/orders-tab.js เรียกใช้:
+//   - loadProductPicker()/loadStaffPicker() — เรียกครั้งเดียวตอน initOrdersTab()
+//   - openOrderModal(order)/openOrderModalClone(order) — เรียกตอนกดแถว/การ์ด "แก้ไข"/"ทำซ้ำ"
+//     ในตาราง/kanban ของ orders-tab.js (และปุ่ม "เพิ่มคำสั่งผลิต" ในไฟล์นี้เองเรียก
+//     openOrderModal(null))
+//
+// import showToast()/escapeHtml()/formatBaht() กลับจาก js/orders-tab.js (ไฟล์นั้นใช้เยอะ
+// สุดเลยอยู่ที่นั่น) — เกิด circular import ระหว่าง 2 ไฟล์นี้โดยตั้งใจ เหมือนรูปแบบ
+// admin-page.js ↔ admin-products.js ที่มีอยู่แล้วในโปรเจกต์นี้ ใช้ได้ปกติเพราะทุกจุดที่
+// เรียกใช้ข้ามไฟล์เป็นการเรียกภายในฟังก์ชัน/event handler ไม่ใช่ตอน module ประเมินค่า
+// ระดับบนสุด
+//
+// 2026 refactor phase 6: ส่วน "ไฟล์แนบ" (DOM ref, state currentAttachments, และการ
+// อัปโหลด) ถูกแยกไปเป็น js/orders-tab-modal-attach.js แล้ว — ไฟล์นี้ import
+// currentAttachments/setCurrentAttachments/renderAttachGrid/attachStatusEl กลับมาใช้แทน
+// (ดูรายละเอียดที่หัวไฟล์นั้น)
+//
+// 2026 refactor phase 7: ส่วน "QC checklist" (DOM ref, state currentQcChecklist, และการ
+// เพิ่ม/ลบ/แก้รายการ) ถูกแยกไปเป็น js/orders-tab-modal-qc.js แล้ว — ไฟล์นี้ import
+// currentQcChecklist/setCurrentQcChecklist/renderQcList กลับมาใช้แทน (ใช้แพทเทิร์นเดียวกับ
+// currentAttachments/setCurrentAttachments phase 6) ส่วน "ประวัติแก้ไข" (DOM ref +
+// loadOrderHistory()) ถูกแยกไปเป็น js/orders-tab-modal-history.js แล้ว — ไฟล์นั้นไม่มี state
+// เลยจึง import แค่ loadOrderHistory() มาเรียกใช้ตรงๆ (ดูรายละเอียดที่หัวไฟล์ทั้งสอง)
+//
+// P0.2c: เพิ่มหมวด "อนุมัติแบบ" (ประวัติที่ลูกค้ากดอนุมัติ/ขอแก้ไขแบบเองจากหน้า public) —
+// ดึง DOM ref + loadDesignApprovals() มาจาก js/orders-tab-modal-design-approvals.js ไฟล์ใหม่
+// เขียนตามแพทเทิร์นเดียวกับ orders-tab-modal-history.js เป๊ะ (ไม่มี state ข้ามไฟล์) ต่างกันแค่
+// รับ order ทั้งก้อนแทนที่จะรับแค่ id เพราะต้องคำนวณ trackingId เอง (ดูหมายเหตุหัวไฟล์นั้น) —
+// ส่วน checkbox "ลูกค้าเห็น" ต่อไฟล์แนบ (คัด designFiles) แก้อยู่ใน
+// js/orders-tab-modal-attach.js แทน (ไม่ต้อง import อะไรเพิ่มที่นี่ เพราะยังอ่านผ่าน
+// currentAttachments ตัวเดิมที่ import อยู่แล้ว — ดูตอนประกอบ payload ด้านล่าง)
+//
+// พบบั๊กเดิมระหว่างแยกไฟล์รอบนี้ (ไม่เกี่ยวกับการแยกไฟล์เอง — เกิดจากต้นฉบับเดิมไม่เคยประกาศ
+// ตัวแปร allProducts/catNameMap เลยสักที่ ทำให้ loadProductPicker() โยน ReferenceError
+// ทันทีที่มีการ assign เพราะ ES module เป็น strict mode เสมอ ใช้งานตัวเลือกสินค้าไม่ได้เลย
+// ตั้งแต่ต้น) — แก้โดยเพิ่มประกาศ `let allProducts = []; let catNameMap = {};` ไว้ตรงจุดที่
+// ควรอยู่ (ก่อน loadProductPicker) เป็นจุดเดียวที่เปลี่ยน logic จากของเดิมในไฟล์นี้ นอกเหนือ
+// จากการย้ายโค้ดไปไฟล์ใหม่ตามปกติ
+// ===========================
+import { logAudit, listStaff } from "./db.js";
+import { getProducts } from "./db-products.js";
+import { getCategories } from "./db-taxonomy.js";
+import { addOrder, updateOrder } from "./db-orders.js";
+import { orderGrandTotal, orderBalance } from "./db-orders-stats.js";
+import { attachInlineValidation, validateFormInline,
+         attachUnsavedGuard } from "./ui-form-validation.js";
+import { showToast, escapeHtml, formatBaht } from "./orders-tab.js";
+import { currentAttachments, setCurrentAttachments, renderAttachGrid, attachStatusEl } from "./orders-tab-modal-attach.js";
+import { currentQcChecklist, setCurrentQcChecklist, renderQcList } from "./orders-tab-modal-qc.js";
+import { loadOrderHistory } from "./orders-tab-modal-history.js";
+import { loadDesignApprovals } from "./orders-tab-modal-design-approvals.js";
+
+// ── Modal overlay helper (ดูคำอธิบายเดียวกันใน admin-utils.js) ──
+// 2026 refactor — accessibility phase (รอบที่ 58): เพิ่ม focus-trap + Escape + return-focus
+// แบบเดียวกับ admin-utils.js เป๊ะ (ก็อปคู่กันไว้ตั้งแต่ต้น ไม่ export/import ข้ามไฟล์ — ดูหมายเหตุ
+// เดิมที่หัวไฟล์นี้) ดูรายละเอียดเพิ่มเติมใน REFACTOR-PROGRESS.md หัวข้อ "รอบที่ 58"
+const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), ' +
+  'input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const openOverlayStack = [];
+let modalKeydownBound = false;
+
+function topOverlayEntry() {
+  return openOverlayStack.length ? openOverlayStack[openOverlayStack.length - 1] : null;
+}
+
+// ดูคำอธิบายเดียวกันใน admin-utils.js — confirmDialog() เป็น modal ซ้อนทับแยกต่างหาก ต้องปล่อยให้
+// มันจัดการ Escape/Tab ของตัวเองตอนที่เปิดอยู่ ไม่ trap/Escape ทับ
+function isConfirmDialogOpen() {
+  const el = document.querySelector(".cp-confirm-overlay");
+  return !!(el && el.style.display === "flex");
+}
+
+function handleModalKeydown(e) {
+  if (isConfirmDialogOpen()) return;
+  const top = topOverlayEntry();
+  if (!top || top.el.style.display === "none") return;
+
+  if (e.key === "Escape") {
+    if (e.defaultPrevented) return;
+    top.el.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    return;
+  }
+
+  if (e.key === "Tab") {
+    const focusables = Array.from(top.el.querySelectorAll(FOCUSABLE_SELECTOR));
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (e.shiftKey) {
+      if (active === first || !top.el.contains(active)) { e.preventDefault(); last.focus(); }
+    } else {
+      if (active === last || !top.el.contains(active)) { e.preventDefault(); first.focus(); }
+    }
+  }
+}
+
+let openOverlayCount = 0;
+function openOverlay(el) {
+  if (!el) return;
+  el.style.display = "flex";
+  const scrollBox = el.querySelector(".cp-modal, .ad-pf-view");
+  if (scrollBox) scrollBox.scrollTop = 0;
+  if (openOverlayCount === 0) {
+    const scrollbarW = window.innerWidth - document.documentElement.clientWidth;
+    document.body.classList.add("cp-scroll-locked");
+    if (scrollbarW > 0) document.body.style.paddingRight = scrollbarW + "px";
+  }
+  openOverlayCount++;
+  openOverlayStack.push({ el, lastFocused: document.activeElement });
+  if (!modalKeydownBound) {
+    modalKeydownBound = true;
+    document.addEventListener("keydown", handleModalKeydown);
+  }
+}
+function closeOverlay(el) {
+  if (!el) return;
+  el.style.display = "none";
+  openOverlayCount = Math.max(0, openOverlayCount - 1);
+  if (openOverlayCount === 0) {
+    document.body.classList.remove("cp-scroll-locked");
+    document.body.style.paddingRight = "";
+  }
+  for (let i = openOverlayStack.length - 1; i >= 0; i--) {
+    if (openOverlayStack[i].el === el) {
+      const [entry] = openOverlayStack.splice(i, 1);
+      if (entry.lastFocused && typeof entry.lastFocused.focus === "function") {
+        entry.lastFocused.focus();
+      }
+      break;
+    }
+  }
+}
+
+const orderOverlay = document.getElementById("cp-order-overlay");
+const orderForm     = document.getElementById("cp-order-form");
+const orderModalTitle = document.getElementById("cp-order-modal-title");
+const orderHeadCode   = document.getElementById("cp-o-head-code");
+const orderCancelBtn  = document.getElementById("cp-order-cancel");
+attachInlineValidation(orderForm);
+const productSelect     = document.getElementById("cp-o-product");
+const unitPriceRow      = document.getElementById("cp-o-unit-price-row");
+const unitPriceDisplay  = document.getElementById("cp-o-unit-price-display");
+const unitPriceHidden   = document.getElementById("cp-o-unit-price");
+const assigneeSelect    = document.getElementById("cp-o-assignee");
+const paymentChipsBox   = document.getElementById("cp-o-payment-chips");
+const shippingChipsBox  = document.getElementById("cp-o-shipping-chips");
+
+let allStaff = [];
+// แก้บั๊กเดิม (ดูหมายเหตุที่หัวไฟล์): ต้นฉบับไม่เคยประกาศ 2 ตัวแปรนี้เลย
+let allProducts = [];
+let catNameMap = {};
+
+// ── Product picker (ผูกคำสั่งผลิตกับสินค้าจริงในแคตตาล็อก เพื่อคำนวณยอดขาย) ──
+export async function loadProductPicker() {
+  try {
+    const [products, categories] = await Promise.all([getProducts(), getCategories()]);
+    allProducts = products || [];
+    catNameMap = {};
+    (categories || []).forEach(c => { catNameMap[c.id] = c.name; });
+    productSelect.innerHTML = '<option value="">— เลือกสินค้าจากแคตตาล็อก (ไม่บังคับ แต่จำเป็นถ้าต้องการนับยอดขาย) —</option>' +
+      allProducts.map(p => {
+        const priceLabel = p.price ? ` — ฿${Number(p.price).toLocaleString("th-TH")}` : "";
+        return `<option value="${p.id}">${escapeHtml(p.name || "สินค้า")}${priceLabel}</option>`;
+      }).join("");
+  } catch (err) {
+    console.warn("โหลดรายการสินค้าสำหรับผูกคำสั่งผลิตไม่สำเร็จ", err);
+  }
+}
+
+productSelect.addEventListener("change", () => {
+  const product = allProducts.find(p => p.id === productSelect.value);
+  if (!product) {
+    unitPriceRow.style.display = "none";
+    unitPriceHidden.value = "0";
+    return;
+  }
+  document.getElementById("cp-o-item").value = product.name || "";
+  document.getElementById("cp-o-category").value = catNameMap[product.cat_id] || "";
+  const price = Number(product.price) || 0;
+  unitPriceHidden.value = String(price);
+  unitPriceDisplay.value = price ? `฿${price.toLocaleString("th-TH")} / ${product.unit || "หน่วย"}` : "สินค้านี้ยังไม่ระบุราคา";
+  unitPriceRow.style.display = "";
+  updateFinanceSummary();
+});
+
+// ── Staff picker (ผูก assignee ของคำสั่งผลิตกับ collection "staff" — ดู listStaff() ใน js/db.js) ──
+export async function loadStaffPicker() {
+  try {
+    allStaff = await listStaff();
+    assigneeSelect.innerHTML = '<option value="">— ยังไม่มอบหมาย —</option>' +
+      allStaff.map(s => `<option value="${s.uid}">${escapeHtml(s.name || s.email || s.uid)}</option>`).join("");
+  } catch (err) {
+    console.warn("โหลดรายชื่อพนักงานสำหรับมอบหมายงานไม่สำเร็จ", err);
+  }
+}
+
+// ปุ่ม "เพิ่มคำสั่งผลิต" ใน toolbar ของแท็บ (ย้ายมาจาก DOM ref block ของ js/orders-tab.js เดิม
+// มาไว้ที่นี่ เพราะใช้แค่เปิดป๊อปอัพนี้เท่านั้น)
+const addBtn = document.getElementById("cp-add-btn");
+// ── Add/Edit modal ──────────────────────────────
+addBtn.addEventListener("click", () => openOrderModal(null));
+orderCancelBtn.addEventListener("click", () => orderFormGuard.guardedClose());
+orderOverlay.addEventListener("click", (e) => { if (e.target === orderOverlay) orderFormGuard.guardedClose(); });
+
+const orderFormGuard = attachUnsavedGuard({ overlay: orderOverlay, form: orderForm, doClose: closeOrderModal });
+
+// ── สลับหมวด/แท็บในป๊อปอัพ (ข้อมูลงาน/การเงิน/การจัดส่ง/แนบไฟล์/ประวัติ) ──
+// หมายเหตุแก้บัค: ป๊อปอัพนี้ไม่ได้ถูกสร้างใหม่ทุกครั้งที่เปิด (แค่ toggle display) ดังนั้น
+// ถ้าผู้ใช้เคยเลื่อนแถบแท็บ (.cp-od-tabs, overflow-x:auto) ไปทางขวาไว้ก่อนปิดป๊อปอัพ
+// ตำแหน่งเลื่อนจะค้างอยู่ พอเปิดครั้งถัดไปแถบแท็บจะ "ว่างเปล่า" (เลื่อนเลยตัวปุ่มทั้งหมดไปแล้ว)
+// เหมือนหัวข้อหายไป — จึงต้องเลื่อนแท็บที่ active กลับเข้ามาให้เห็นทุกครั้งที่สลับ/เปิดป๊อปอัพ
+function switchOdTab(tabName) {
+  let activeTabBtn = null;
+  orderForm.querySelectorAll(".cp-od-tab").forEach(btn => {
+    const isActive = btn.dataset.odTab === tabName;
+    btn.classList.toggle("active", isActive);
+    btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    if (isActive) activeTabBtn = btn;
+  });
+  orderForm.querySelectorAll(".cp-od-panel").forEach(panel => {
+    panel.classList.toggle("active", panel.dataset.odPanel === tabName);
+  });
+  // เลื่อนแถบแท็บให้เห็นปุ่มที่เพิ่ง active เสมอ (กันแถบว่างเปล่าตามที่อธิบายด้านบน)
+  if (activeTabBtn) {
+    activeTabBtn.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+  // เลื่อนเนื้อหาป๊อปอัพกลับขึ้นบนสุดทุกครั้งที่สลับหมวด กันเนื้อหาหมวดใหม่โผล่มาแบบเลื่อนค้างจากหมวดก่อนหน้า
+  orderForm.scrollTop = 0;
+}
+orderForm.querySelectorAll(".cp-od-tab").forEach(btn => {
+  btn.addEventListener("click", () => switchOdTab(btn.dataset.odTab));
+});
+
+// ── Chip group (ปุ่มเลือกแบบ chip แทน select ทึบๆ) — ใช้ทั้งสถานะการชำระเงินและช่องทางจัดส่ง ──
+function bindChipGroup(container, onChange) {
+  container.querySelectorAll(".cp-chip-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".cp-chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      if (onChange) onChange(btn.dataset.value);
+    });
+  });
+}
+function getChipValue(container, fallback) {
+  const active = container.querySelector(".cp-chip-btn.active");
+  return active ? active.dataset.value : fallback;
+}
+function setChipValue(container, value) {
+  container.querySelectorAll(".cp-chip-btn").forEach(b => b.classList.toggle("active", b.dataset.value === value));
+}
+bindChipGroup(paymentChipsBox, updateFinanceSummary);
+bindChipGroup(shippingChipsBox);
+
+// ── สรุปยอดเงินแบบเรียลไทม์ในหมวด "การเงิน" — คำนวณด้วย orderGrandTotal()/orderBalance()
+// จุดเดียวกับที่การ์ดสถิติ/CSV/พิมพ์รายงานใช้ กันเลขไม่ตรงกันระหว่างที่ต่างๆ ──
+function updateFinanceSummary() {
+  const tempOrder = {
+    unit_price:   Number(unitPriceHidden.value) || 0,
+    qty:          Number(document.getElementById("cp-o-qty").value) || 0,
+    discount:     Number(document.getElementById("cp-o-discount").value) || 0,
+    vatIncluded:  document.getElementById("cp-o-vat-included").checked,
+    shippingCost: Number(document.getElementById("cp-o-shipping-cost").value) || 0,
+    deposit:      Number(document.getElementById("cp-o-deposit").value) || 0,
+    paymentStatus: getChipValue(paymentChipsBox, "unpaid")
+  };
+  const total = orderGrandTotal(tempOrder);
+  const balance = orderBalance(tempOrder);
+  const goods = Math.max(0, total - tempOrder.shippingCost);
+  document.getElementById("cp-o-sum-goods").textContent    = formatBaht(goods);
+  document.getElementById("cp-o-sum-shipping").textContent = formatBaht(tempOrder.shippingCost);
+  document.getElementById("cp-o-sum-total").textContent    = formatBaht(total);
+  document.getElementById("cp-o-sum-deposit").textContent  = formatBaht(tempOrder.deposit);
+  document.getElementById("cp-o-sum-balance").textContent  = formatBaht(balance);
+}
+["cp-o-qty", "cp-o-discount", "cp-o-shipping-cost", "cp-o-deposit"].forEach(id => {
+  document.getElementById(id).addEventListener("input", updateFinanceSummary);
+});
+document.getElementById("cp-o-vat-included").addEventListener("change", updateFinanceSummary);
+
+export function openOrderModal(order) {
+  orderModalTitle.textContent = order ? "แก้ไขคำสั่งผลิต" : "เพิ่มคำสั่งผลิต";
+  orderHeadCode.textContent = order ? (order.code || "") : "";
+  switchOdTab("info");
+
+  document.getElementById("cp-o-id").value         = order ? order.id : "";
+  document.getElementById("cp-o-code").value       = order ? order.code || "" : "";
+  document.getElementById("cp-o-customer").value   = order ? order.customer || "" : "";
+  document.getElementById("cp-o-phone").value      = order ? order.phone || "" : "";
+  document.getElementById("cp-o-email").value      = order ? order.email || "" : "";
+  document.getElementById("cp-o-line-user-id").value = order ? order.lineUserId || "" : "";
+  productSelect.value                              = order ? order.product_id || "" : "";
+  document.getElementById("cp-o-item").value       = order ? order.item || "" : "";
+  document.getElementById("cp-o-category").value   = order ? order.category || "" : "";
+  const price = order ? Number(order.unit_price) || 0 : 0;
+  unitPriceHidden.value = String(price);
+  if (order && order.product_id && price) {
+    const product = allProducts.find(p => p.id === order.product_id);
+    unitPriceDisplay.value = `฿${price.toLocaleString("th-TH")} / ${(product && product.unit) || "หน่วย"}`;
+    unitPriceRow.style.display = "";
+  } else {
+    unitPriceRow.style.display = "none";
+  }
+  document.getElementById("cp-o-qty").value      = order ? order.qty || 1 : 1;
+  document.getElementById("cp-o-due").value      = order ? order.dueDate || "" : "";
+  document.getElementById("cp-o-status").value   = order ? order.status || "received" : "received";
+  document.getElementById("cp-o-progress").value = order ? order.progress || 0 : 0;
+  assigneeSelect.value = order ? order.assignee || "" : "";
+
+  document.getElementById("cp-o-spec-size").value     = order && order.specs ? order.specs.size || "" : "";
+  document.getElementById("cp-o-spec-material").value = order && order.specs ? order.specs.material || "" : "";
+  document.getElementById("cp-o-spec-color").value    = order && order.specs ? order.specs.color || "" : "";
+  document.getElementById("cp-o-spec-finish").value   = order && order.specs ? order.specs.finish || "" : "";
+
+  setCurrentQcChecklist(order && Array.isArray(order.qcChecklist)
+    ? order.qcChecklist.map(q => ({ label: q.label || "", checked: !!q.checked }))
+    : []);
+  renderQcList();
+  document.getElementById("cp-o-notes").value = order ? order.notes || "" : "";
+
+  // การเงิน
+  document.getElementById("cp-o-deposit").value  = order ? order.deposit || 0 : 0;
+  document.getElementById("cp-o-discount").value = order ? order.discount || 0 : 0;
+  document.getElementById("cp-o-vat-included").checked = order ? !!order.vatIncluded : false;
+  setChipValue(paymentChipsBox, order ? order.paymentStatus || "unpaid" : "unpaid");
+  document.getElementById("cp-o-invoice-address").value = order ? order.invoiceAddress || "" : "";
+
+  // การจัดส่ง
+  document.getElementById("cp-o-recipient").value       = order ? order.recipient || "" : "";
+  document.getElementById("cp-o-shipping-cost").value    = order ? order.shippingCost || 0 : 0;
+  document.getElementById("cp-o-shipping-address").value = order ? order.shippingAddress || "" : "";
+  setChipValue(shippingChipsBox, order ? order.shippingMethod || "pickup" : "pickup");
+  document.getElementById("cp-o-shipping-tracking").value = order ? order.shippingTrackingId || "" : "";
+
+  updateFinanceSummary();
+
+  // แนบไฟล์
+  setCurrentAttachments(order && Array.isArray(order.attachments) ? order.attachments.slice() : []);
+  renderAttachGrid();
+  attachStatusEl.textContent = "";
+
+  // อนุมัติแบบ (P0.2c)
+  loadDesignApprovals(order);
+
+  // ประวัติ
+  loadOrderHistory(order ? order.id : null);
+
+  openOverlay(orderOverlay);
+  orderFormGuard.capture();
+}
+
+function closeOrderModal() {
+  closeOverlay(orderOverlay);
+  orderForm.reset();
+  unitPriceRow.style.display = "none";
+  unitPriceHidden.value = "0";
+  setCurrentAttachments([]);
+  setCurrentQcChecklist([]);
+  renderQcList();
+  renderAttachGrid();
+  setChipValue(paymentChipsBox, "unpaid");
+  setChipValue(shippingChipsBox, "pickup");
+}
+
+// "ทำซ้ำ" — เปิดฟอร์ม "เพิ่มคำสั่งผลิต" พร้อมข้อมูลเดิมกรอกไว้ให้ (ไม่ใช่แก้ของเดิม) สำหรับงานที่คล้ายกัน
+// ล้างเลขที่คำสั่งผลิต/กำหนดส่ง/สถานะ/ความคืบหน้า/เลขพัสดุ เพราะเป็นค่าเฉพาะของงานใหม่แต่ละครั้ง
+export function openOrderModalClone(order) {
+  openOrderModal(order);
+  document.getElementById("cp-o-id").value = "";
+  document.getElementById("cp-o-code").value = "";
+  document.getElementById("cp-o-due").value = "";
+  document.getElementById("cp-o-status").value = "received";
+  document.getElementById("cp-o-progress").value = 0;
+  document.getElementById("cp-o-shipping-tracking").value = "";
+  orderHeadCode.textContent = "";
+  orderModalTitle.textContent = `ทำซ้ำคำสั่งผลิตจาก "${order.code || order.item || ""}"`;
+  loadOrderHistory(null);
+  loadDesignApprovals(null);
+  orderFormGuard.capture();
+}
+
+orderForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!validateFormInline(orderForm)) return;
+  const id = document.getElementById("cp-o-id").value;
+  const assigneeUid = assigneeSelect.value;
+  const assigneeStaff = allStaff.find(s => s.uid === assigneeUid);
+  const payload = {
+    code:      document.getElementById("cp-o-code").value.trim(),
+    customer:  document.getElementById("cp-o-customer").value.trim(),
+    phone:     document.getElementById("cp-o-phone").value.trim(),
+    email:     document.getElementById("cp-o-email").value.trim(),
+    lineUserId: document.getElementById("cp-o-line-user-id").value.trim(),
+    item:      document.getElementById("cp-o-item").value.trim(),
+    category:  document.getElementById("cp-o-category").value.trim(),
+    product_id: productSelect.value,
+    unit_price: Number(unitPriceHidden.value) || 0,
+    qty:       document.getElementById("cp-o-qty").value,
+    dueDate:   document.getElementById("cp-o-due").value,
+    status:    document.getElementById("cp-o-status").value,
+    progress:  document.getElementById("cp-o-progress").value,
+    notes:     document.getElementById("cp-o-notes").value.trim(),
+
+    // ── การผลิตเชิงลึก ──
+    assignee:     assigneeUid,
+    assigneeName: assigneeStaff ? (assigneeStaff.name || assigneeStaff.email || "") : "",
+    specs: {
+      size:     document.getElementById("cp-o-spec-size").value.trim(),
+      material: document.getElementById("cp-o-spec-material").value.trim(),
+      color:    document.getElementById("cp-o-spec-color").value.trim(),
+      finish:   document.getElementById("cp-o-spec-finish").value.trim()
+    },
+    qcChecklist: currentQcChecklist
+      .map(q => ({ label: q.label.trim(), checked: !!q.checked }))
+      .filter(q => q.label),
+
+    // ── การเงิน ──
+    deposit:        document.getElementById("cp-o-deposit").value,
+    paymentStatus:  getChipValue(paymentChipsBox, "unpaid"),
+    discount:       document.getElementById("cp-o-discount").value,
+    vatIncluded:    document.getElementById("cp-o-vat-included").checked,
+    invoiceAddress: document.getElementById("cp-o-invoice-address").value.trim(),
+
+    // ── โลจิสติกส์ ──
+    shippingAddress:    document.getElementById("cp-o-shipping-address").value.trim(),
+    recipient:          document.getElementById("cp-o-recipient").value.trim(),
+    shippingMethod:     getChipValue(shippingChipsBox, "pickup"),
+    shippingCost:       document.getElementById("cp-o-shipping-cost").value,
+    shippingTrackingId: document.getElementById("cp-o-shipping-tracking").value.trim(),
+
+    attachments: currentAttachments,
+    // P0.2c: คัดเฉพาะไฟล์แนบที่แอดมินติ๊ก "ลูกค้าเห็น" (a.showToCustomer, ดู
+    // js/orders-tab-modal-attach.js) ส่งเป็น designFiles แยกจาก attachments ทั้งก้อน —
+    // normalizeOrderExtras()/upsertOrderTracking() (js/db-orders.js) จะ sanitize รูปทรง
+    // { url, label, uploadedAt } อีกชั้นตอนบันทึกจริง (ไม่คัดลอก uploadedBy ไปด้วยตรงนี้ เพราะ
+    // ไม่ใช่ข้อมูลที่ควรโชว์ public — ดูหมายเหตุเดียวกันใน normalizeOrderExtras())
+    designFiles: currentAttachments
+      .filter(a => a.showToCustomer)
+      .map(a => ({ url: a.url, label: a.label || "", uploadedAt: a.uploadedAt || "" }))
+  };
+  const btn = orderForm.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = "กำลังบันทึก...";
+  try {
+    if (id) {
+      await updateOrder(id, payload);
+      logAudit("update", "order", id, payload.code || payload.item || "");
+    } else {
+      await addOrder(payload);
+    }
+    closeOrderModal();
+    showToast(id ? "บันทึกการแก้ไขแล้ว" : "เพิ่มคำสั่งผลิตแล้ว", "success");
+  } catch (err) {
+    showToast("บันทึกไม่สำเร็จ: " + err.message, "error");
+  } finally {
+    btn.disabled = false; btn.textContent = "บันทึก";
+  }
+});

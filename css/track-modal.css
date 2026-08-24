@@ -110,7 +110,9 @@
   animation:tmSpinner .7s linear infinite; flex-shrink:0;
 }
 .tm-submit.is-loading .tm-submit-spinner{ display:inline-block; }
-.tm-submit.is-loading .tm-submit-icon{ display:none; }
+.tm-submit.is-loading .tm-submit-icon,
+.tm-result,
+.tm-stage:first-child .tm-stage-line{ display:none; }
 .tm-submit.is-loading .tm-submit-label{ font-size:0; }
 .tm-submit.is-loading .tm-submit-label::after{ content:'กำลังค้นหา...'; font-size:14.5px; }
 @keyframes tmSpinner{ to{ transform:rotate(360deg); } }
@@ -126,7 +128,6 @@
 @keyframes tmErrIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
 
 /* ── ผลลัพธ์ ─────────────────────────────── */
-.tm-result{ display:none; }
 .tm-result.show{ display:block; animation:tmResIn .35s var(--ease); margin-top:22px; padding-top:22px; border-top:1px dashed var(--gray-200); }
 @keyframes tmResIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
 
@@ -151,8 +152,8 @@
 .tm-badge{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:99px; white-space:nowrap; }
 .tm-badge.received{ background:#EFF2F5; color:var(--gray-600); }
 .tm-badge.design{ background:#F3E8FD; color:#7C3AED; }
-.tm-badge.approval{ background:#FDF0E3; color:#B45309; }
-.tm-badge.production{ background:#FEF3E0; color:#9A6A0A; }
+.tm-badge.approval{ background:#FDF0E3; color:#B05109; }
+.tm-badge.production{ background:#FEF3E0; color:#926509; }
 .tm-badge.qc{ background:#E7EEFB; color:var(--primary-dark); }
 .tm-badge.packing{ background:#E9F5F3; color:#0F766E; }
 .tm-badge.shipping{ background:#E0F2FE; color:#075985; }
@@ -175,7 +176,6 @@
 .tm-stages{ position:relative; display:flex; margin-bottom:22px; padding:0 2px 6px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .tm-stage{ flex:0 0 64px; text-align:center; position:relative; }
 .tm-stage-line{ position:absolute; top:15px; left:calc(-50% + 15px); right:calc(50% + 15px); height:2px; background:var(--gray-200); z-index:0; }
-.tm-stage:first-child .tm-stage-line{ display:none; }
 .tm-stage.done .tm-stage-line, .tm-stage.current .tm-stage-line{ background:var(--primary); }
 .tm-stage-dot{
   position:relative; z-index:1;
@@ -194,20 +194,81 @@
 .tm-info-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; border-top:1px solid var(--gray-100); padding-top:18px; }
 .tm-info-item{ display:flex; align-items:flex-start; gap:9px; }
 .tm-info-item-icon{ width:30px; height:30px; border-radius:var(--r-sm); background:var(--gray-50); color:var(--gray-400); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.tm-info-item-icon svg{ width:14px; height:14px; }
+.tm-info-item-icon svg,
+.tm-approve-btn svg{ width:14px; height:14px; }
 .tm-info-item-label{ font-size:11px; color:var(--gray-500); margin-bottom:2px; }
 .tm-info-item-val{ font-size:13px; font-weight:700; color:var(--secondary); }
 .tm-info-item-val.overdue{ color:#B3261E; }
 .tm-info-item-val.duesoon{ color:#9A6A0A; }
 
+/* ── P0.2 (Design Proof Approval) — ส่วนอนุมัติ/ขอแก้ไขแบบ ────────────────────── */
+.tm-approval-section{ margin-bottom:22px; padding:16px; background:#F3E8FD; border:1px solid #E4CCF9; border-radius:var(--r-md); }
+.tm-approval-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#7C3AED; margin-bottom:12px; }
+.tm-approval-head svg,
+.tm-line-link-btn svg{ width:16px; height:16px; flex-shrink:0; }
+.tm-design-files{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+.tm-design-file{
+  display:flex; align-items:center; gap:8px; padding:9px 12px; background:#fff; border:1px solid var(--gray-200);
+  border-radius:var(--r-sm); color:var(--secondary); text-decoration:none; font-size:12.5px; font-weight:600;
+  transition:all .15s var(--ease);
+}
+.tm-design-file:hover{ border-color:#7C3AED; background:#FAF5FF; }
+.tm-design-file svg{ width:15px; height:15px; flex-shrink:0; color:#7C3AED; }
+.tm-approval-hint{ font-size:11.5px; color:var(--gray-600); margin:0 0 12px; line-height:1.6; }
+.tm-approval-actions{ display:flex; gap:10px; }
+.tm-approve-btn, .tm-request-changes-btn, .tm-submit-changes-btn{
+  flex:1; padding:10px 14px; font-size:13px; font-weight:700; border-radius:var(--r-sm); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px; transition:all .15s var(--ease); font-family:inherit;
+}
+.tm-approve-btn{ background:#7C3AED; color:#fff; border:none; }
+.tm-approve-btn:hover,
+.tm-submit-changes-btn:hover{ background:#6D28D9; }
+.tm-request-changes-btn{ background:#fff; color:#7C3AED; border:1px solid #E4CCF9; }
+.tm-request-changes-btn:hover{ background:#FAF5FF; }
+.tm-approve-btn:disabled, .tm-request-changes-btn:disabled, .tm-submit-changes-btn:disabled{ opacity:.6; cursor:not-allowed; }
+.tm-approval-comment-wrap textarea{
+  width:100%; padding:10px 12px; font-size:13px; font-family:inherit; color:var(--secondary);
+  border:1px solid var(--gray-200); border-radius:var(--r-sm); resize:vertical; margin-bottom:10px;
+}
+.tm-approval-comment-wrap textarea:focus{ outline:none; border-color:#7C3AED; }
+.tm-submit-changes-btn{ width:100%; background:#7C3AED; color:#fff; border:none; }
+.tm-approval-msg,
+.tm-line-link-msg{ font-size:12px; color:#B3261E; margin-top:8px; min-height:1em; }
+.tm-approval-thanks{ display:flex; align-items:center; gap:10px; color:#1F7A3E; font-size:13px; font-weight:600; line-height:1.6; }
+.tm-approval-thanks svg{ width:20px; height:20px; flex-shrink:0; }
+
 .tm-compliant{ display:flex; align-items:center; gap:8px; margin-top:16px; background:#F0FBF3; border:1px solid #BEE8C8; color:#1F7A3E; border-radius:var(--r-md); padding:10px 13px; font-size:12.5px; font-weight:700; }
+
+/* P2.8b (Portal ลูกค้าประจำ) — ปุ่ม "สั่งซ้ำ" แสดงเฉพาะออเดอร์ที่เสร็จสมบูรณ์แล้ว (ดู
+   shouldOfferReorder() ใน js/reorder-helper.js / renderResult() ใน js/track-modal.js) */
+.tm-reorder-btn{
+  width:100%; margin-top:16px; padding:11px 14px; font-size:13.5px; font-weight:700; font-family:inherit;
+  display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;
+  background:var(--primary); color:#fff; border:none; border-radius:var(--r-sm); transition:all .15s var(--ease);
+}
+.tm-reorder-btn:hover,
+.tm-line-link-btn:hover{ opacity:.9; }
+.tm-reorder-btn svg{ width:15px; height:15px; flex-shrink:0; }
+
+/* P1.5 (LIFF auto-link) — ปุ่ม "เชื่อมบัญชี LINE" (ยังไม่เชื่อม) + ข้อความยืนยัน (เชื่อมแล้ว
+   ใช้ class .tm-compliant เดิมร่วมกับเลขพัสดุขนส่งด้านบน แค่เพิ่ม .tm-line-linked เผื่อปรับสี
+   แยกในอนาคต — สีเขียวเดิมของ .tm-compliant ก็สื่อความหมาย "สำเร็จ" ตรงอยู่แล้ว) */
+.tm-line-link-section{ margin-top:16px; }
+.tm-line-link-btn{
+  width:100%; padding:11px 14px; font-size:13.5px; font-weight:700; font-family:inherit;
+  display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;
+  background:#06C755; color:#fff; border:none; border-radius:var(--r-sm); transition:all .15s var(--ease);
+}
+.tm-line-link-btn:disabled{ opacity:.65; cursor:not-allowed; }
+.tm-line-linked{ margin-top:0; }
 
 .tm-cta{ text-align:center; padding-top:18px; margin-top:18px; border-top:1px solid var(--gray-100); font-size:12.5px; color:var(--gray-600); line-height:1.7; }
 .tm-cta a{ color:var(--primary); font-weight:700; text-decoration:none; }
-.tm-cta a:hover{ text-decoration:underline; }
 
 .tm-help{ text-align:center; font-size:12.5px; color:var(--gray-500); line-height:1.7; margin-top:18px; margin-bottom:0; }
 .tm-help a{ color:var(--primary); font-weight:600; text-decoration:none; }
+
+.tm-cta a:hover,
 .tm-help a:hover{ text-decoration:underline; }
 
 @media (max-width:480px){

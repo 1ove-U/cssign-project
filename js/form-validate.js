@@ -39,8 +39,8 @@ export function showFieldError(input, message) {
   if (!err) {
     err = document.createElement('small');
     err.className = 'cs-field-err';
-    // select ที่ห่อด้วย wrap (cf-select-wrap / qmodal-select-wrap / cif-select-wrap) ต้องแทรกหลัง wrap ไม่ใช่หลัง select
-    var host = input.closest('.cf-select-wrap, .qmodal-select-wrap, .cif-select-wrap') || input;
+    // select ที่ห่อด้วย wrap (qmodal-select-wrap / cif-select-wrap) ต้องแทรกหลัง wrap ไม่ใช่หลัง select
+    var host = input.closest('.qmodal-select-wrap, .cif-select-wrap') || input;
     host.insertAdjacentElement('afterend', err);
   }
   err.textContent = message;
@@ -52,7 +52,7 @@ export function clearFieldError(input) {
   if (!input) return;
   input.classList.remove('has-error');
   input.removeAttribute('aria-invalid');
-  var host = input.closest('.cf-select-wrap, .qmodal-select-wrap, .cif-select-wrap') || input;
+  var host = input.closest('.qmodal-select-wrap, .cif-select-wrap') || input;
   var err = host.parentElement && host.parentElement.querySelector(':scope > .cs-field-err');
   if (err) err.remove();
 }

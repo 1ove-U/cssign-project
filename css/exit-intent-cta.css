@@ -1,0 +1,269 @@
+/* ══════════════════════════════════════════════════════
+   SCROLL-DEPTH QUOTE CTA
+   Lightweight, dismissible nudge — not a full modal/overlay.
+   Sitewide (logic in js/exit-intent-cta.js). Clicking through opens
+   the existing quote modal (js/lead-quote-modal.js) — this file only
+   styles the card.
+
+   Visual direction (v2 — calmer, more premium):
+   A single frosted glass panel, one soft accent glow, one clean
+   entrance move. Earlier version stacked a spinning conic ring +
+   a scan-line sweep + a double icon pulse/ping all running at once —
+   busy and "HUD-ish". This version keeps just enough motion to feel
+   alive without competing with itself:
+     1) ENTRANCE — blur+scale+slide in with a gentle overshoot
+                   ("spring"), feels crafted rather than mechanical
+     2) IDLE     — one slow ambient float + one soft icon glow pulse
+                   + a slim progress bar with a glowing leading tip
+     3) TILT     — subtle cursor-reactive 3D tilt while hovering
+                   (JS sets --eic-rx/--eic-ry custom props), a small
+                   "advanced" touch that only reveals itself on
+                   interaction instead of shouting at rest
+     4) EXIT     — quick blur+fade+shrink upward, distinct from the
+                   entrance so it doesn't read as rewind
+   Colors/type are still the site's own tokens (--primary/--primary-light
+   for the glow + CTA, --accent brass used once, sparingly, for the
+   live dot) — reads as this brand's idea of refined, not a generic
+   neon skin.
+   ══════════════════════════════════════════════════════ */
+
+.eic-popup {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 8500; /* below .qmodal-overlay (9999) and .chat-popup (8999) */
+  width: 356px;
+  max-width: calc(100vw - 40px);
+  color: #F4F7FB;
+  perspective: 900px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(120% 140% at 8% -10%, rgba(46, 134, 209, 0.24), transparent 58%),
+    linear-gradient(165deg, rgba(18, 28, 45, 0.92) 0%, rgba(13, 21, 36, 0.94) 55%, rgba(10, 18, 32, 0.96) 100%);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: 0 20px 50px rgba(3, 8, 16, 0.4), 0 2px 8px rgba(3, 8, 16, 0.25);
+  padding: 24px 26px 17px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  --eic-rx: 0deg;
+  --eic-ry: 0deg;
+  transform: translateY(22px) scale(0.95) rotateX(var(--eic-rx)) rotateY(var(--eic-ry));
+  filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.5s cubic-bezier(.22,1,.36,1),
+    transform 0.15s linear,
+    filter 0.5s cubic-bezier(.22,1,.36,1);
+}
+.eic-popup.show {
+  opacity: 1;
+  filter: blur(0);
+  pointer-events: auto;
+  animation: eic-enter 0.62s cubic-bezier(.2,1.15,.4,1) both,
+             eic-float 4.5s ease-in-out 0.62s infinite;
+}
+.eic-popup.show:hover { animation-play-state: running; }
+.eic-popup.hide {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(-8px) scale(0.93) rotateX(0) rotateY(0);
+  pointer-events: none;
+  animation: none;
+  transition: opacity 0.28s ease-in, transform 0.28s cubic-bezier(.4,0,1,1), filter 0.28s ease-in;
+}
+
+/* ENTRANCE — one clean move with a slight overshoot, so it lands with
+   a touch of spring instead of just easing flatly into place */
+@keyframes eic-enter {
+  0%   { transform: translateY(22px) scale(0.95) rotateX(0) rotateY(0); }
+  62%  { transform: translateY(-3px) scale(1.012) rotateX(0) rotateY(0); }
+  100% { transform: translateY(0) scale(1) rotateX(var(--eic-rx)) rotateY(var(--eic-ry)); }
+}
+
+/* IDLE — one slow ambient float, replaces the old spinning-ring/scan-line
+   combo. Subtle enough to read as "alive", not distracting. */
+@keyframes eic-float {
+  0%, 100% { transform: translateY(0) scale(1) rotateX(var(--eic-rx)) rotateY(var(--eic-ry)); }
+  50%      { transform: translateY(-4px) scale(1) rotateX(var(--eic-rx)) rotateY(var(--eic-ry)); }
+}
+
+/* thin single accent line along the top edge — static, not a moving scan;
+   quietly signals "premium" without animating for attention */
+.eic-popup::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 18px; right: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(46, 134, 209, 0.55), rgba(198, 134, 42, 0.4), transparent);
+  pointer-events: none;
+}
+
+.eic-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244, 247, 251, 0.6);
+}
+.eic-eyebrow i {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  font-style: normal;
+  box-shadow: 0 0 0 0 rgba(var(--accent-rgb), .5);
+}
+.eic-popup.show .eic-eyebrow i { animation: eic-dot-pulse 2.2s ease-in-out infinite; }
+@keyframes eic-dot-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(var(--accent-rgb), .5); }
+  50%      { opacity: .6; box-shadow: 0 0 0 5px rgba(var(--accent-rgb), 0); }
+}
+
+.eic-row { display: flex; gap: 14px; align-items: flex-start; }
+
+.eic-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(155deg, var(--primary-light), var(--primary));
+  box-shadow: 0 6px 16px rgba(11, 90, 150, 0.4), inset 0 1px 0 rgba(255,255,255,.16);
+}
+.eic-icon svg { width: 19px; height: 19px; position: relative; z-index: 1; }
+.eic-popup.show .eic-icon { animation: eic-icon-glow 3.4s ease-in-out .3s infinite; }
+@keyframes eic-icon-glow {
+  0%, 100% { box-shadow: 0 6px 16px rgba(11, 90, 150, 0.4), inset 0 1px 0 rgba(255,255,255,.16); transform: scale(1); }
+  50%      { box-shadow: 0 8px 24px rgba(11, 90, 150, 0.62), inset 0 1px 0 rgba(255,255,255,.2); transform: scale(1.05); }
+}
+
+.eic-body { flex: 1; min-width: 0; }
+.eic-title {
+  margin: 0 0 5px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+  line-height: 1.32;
+}
+.eic-sub {
+  margin: 0 0 13px;
+  font-size: 12.5px;
+  color: rgba(244, 247, 251, 0.62);
+  line-height: 1.55;
+}
+
+.eic-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 650;
+  font-family: var(--font-display);
+  color: #fff;
+  background: linear-gradient(120deg, var(--primary-light), var(--primary));
+  border: none;
+  border-radius: 9px;
+  padding: 9px 14px;
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(11, 90, 150, 0.38);
+  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease), filter 0.2s var(--ease);
+}
+.eic-cta:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 9px 22px rgba(11, 90, 150, 0.48); }
+.eic-cta:active { transform: translateY(0) scale(0.98); }
+.eic-cta svg { flex-shrink: 0; transition: transform 0.25s var(--ease); }
+.eic-cta:hover svg { transform: translateX(2px); }
+
+.eic-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(244, 247, 251, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.eic-close:hover { background: rgba(255, 255, 255, 0.14); color: #fff; transform: rotate(90deg); }
+.eic-close svg { width: 12px; height: 12px; }
+
+/* countdown bar along the bottom edge — a slim track with a small
+   glowing tip riding the leading edge, rather than a flat drained fill */
+.eic-progress {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: visible;
+}
+.eic-progress i {
+  position: absolute;
+  top: 50%; left: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--primary-light), var(--accent));
+  transform: translateY(-50%) scaleX(1);
+  transform-origin: left;
+  font-style: normal;
+}
+.eic-progress i::after {
+  content: '';
+  position: absolute;
+  top: 50%; right: 0;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px 2px rgba(var(--accent-rgb), .7);
+  transform: translate(50%, -50%);
+}
+.eic-popup.show .eic-progress i {
+  animation: eic-progress-drain 5s linear forwards;
+}
+@keyframes eic-progress-drain {
+  from { transform: translateY(-50%) scaleX(1); }
+  to   { transform: translateY(-50%) scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eic-popup,
+  .eic-popup.show,
+  .eic-popup.show .eic-icon,
+  .eic-popup.show .eic-eyebrow i { animation: none; transition: opacity 0.3s ease; }
+  .eic-popup { filter: none; }
+}
+
+@media (max-width: 640px) {
+  .eic-popup {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+@media (hover: none) {
+  .eic-popup { --eic-rx: 0deg; --eic-ry: 0deg; }
+}

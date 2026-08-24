@@ -3,25 +3,28 @@
  * โหลดและควบคุม Cloudflare Turnstile widget แบบใช้ร่วมกันได้ทุกฟอร์มในเว็บ
  * (contact form, inline contact form, catalog download form, qmodal ขอใบเสนอราคา)
  *
- * วิธีตั้งค่าให้ใช้งานจริงบน production:
- * 1) ไปที่ https://dash.cloudflare.com/?to=/:account/turnstile แล้วสร้าง Widget
- *    ใหม่ ตั้ง domain เป็นโดเมนจริงของเว็บ (เช่น cssign.co.th)
- * 2) เอา "Site Key" ที่ได้มาแทนค่า TURNSTILE_SITE_KEY ด้านล่างนี้
- * 3) เอา "Secret Key" ไปตั้งเป็น secret ฝั่ง Firebase Functions แล้ว deploy ใหม่
- *      firebase functions:secrets:set TURNSTILE_SECRET_KEY
- *      firebase deploy --only functions
- *    (ฟังก์ชันฝั่ง server อยู่ใน functions/index.js -> verifyTurnstile และถูกเรียก
- *    จาก js/leads.js ก่อนบันทึก lead ทุกครั้ง)
+ * ⚠️ ค่า TURNSTILE_SITE_KEY ด้านล่างยังเป็น Cloudflare "test site key" (1x0000...AA)
+ * ซึ่ง "ผ่านทุกครั้ง" ไว้ให้ demo ใช้งานได้ทันทีโดยไม่ต้องสมัคร Cloudflare ก่อน
+ * คีย์นี้ไม่ป้องกันบอทจริง — ฟอร์มทุกอันบนเว็บจะไม่มีการกัน spam จนกว่าจะเปลี่ยนเป็น
+ * Site Key จริงตามขั้นตอนนี้:
  *
- * หมายเหตุ: ตอนนี้ตั้งค่าเป็น Cloudflare "test site key" (1x0000...AA) ซึ่ง
- * "ผ่านทุกครั้ง" ไว้ให้ demo ใช้งานได้ทันทีโดยไม่ต้องสมัคร Cloudflare ก่อน
- * แต่คีย์นี้ไม่ป้องกันบอทจริง ต้องเปลี่ยนเป็น Site Key ของจริงก่อนใช้งานจริง
+ * วิธีตั้งค่าให้ใช้งานจริงบน production (ทำครั้งเดียว ฟรีทั้งหมด ไม่ต้องผูกบัตร):
+ * 1) ไปที่ https://dash.cloudflare.com/?to=/:account/turnstile แล้วสร้าง Widget
+ *    ใหม่ ตั้ง domain เป็นโดเมนจริงของเว็บ (เช่น cssign.co.th, www.cssign.co.th)
+ * 2) เอา "Site Key" ที่ได้มาแทนค่า TURNSTILE_SITE_KEY ด้านล่างนี้ (ค่านี้เปิดเผย
+ *    ฝั่ง client ได้ปกติ ไม่ใช่ความลับ)
+ * 3) เอา "Secret Key" (ค่านี้ห้ามฝังฝั่ง client เด็ดขาด) ไปตั้งเป็น Worker secret:
+ *      cd cloudflare-worker
+ *      npx wrangler secret put TURNSTILE_SECRET_KEY
+ *      npx wrangler deploy
+ *    (endpoint ฝั่ง server อยู่ใน cloudflare-worker/src/index.js -> /verify-turnstile
+ *    และถูกเรียกจาก js/leads.js -> verifyTurnstileToken() ก่อนบันทึก lead ทุกครั้ง)
  *
  * UI: ห่อ widget ด้วยการ์ดโทนเดียวกับเว็บ (label + loading skeleton + error
  * state ที่กดลองใหม่ได้) แทนที่จะปล่อยเป็นกล่องเปล่าๆ รอ iframe ของ Cloudflare
  */
 
-export const TURNSTILE_SITE_KEY = '1x00000000000000000000AA';
+export const TURNSTILE_SITE_KEY = '0x4AAAAAADu5qtbF4GwzlEVM';
 
 const API_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__csTurnstileReady&render=explicit';
 
@@ -125,7 +128,7 @@ export function getTurnstileToken(container) {
   if (!container || !window.turnstile || container.dataset.tsWidgetId === undefined) return '';
   try {
     return window.turnstile.getResponse(container.dataset.tsWidgetId) || '';
-  } catch (err) {
+  } catch {
     return '';
   }
 }
@@ -135,5 +138,5 @@ export function resetTurnstile(container) {
   if (!container || !window.turnstile || container.dataset.tsWidgetId === undefined) return;
   try {
     window.turnstile.reset(container.dataset.tsWidgetId);
-  } catch (err) { /* เงียบไว้ — ไม่ใช่ error ที่ต้องรบกวนผู้ใช้ */ }
+  } catch { /* เงียบไว้ — ไม่ใช่ error ที่ต้องรบกวนผู้ใช้ */ }
 }

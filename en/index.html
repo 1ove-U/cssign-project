@@ -19,7 +19,7 @@
 
 <meta name="twitter:card"        content="summary_large_image">
 <meta name="twitter:title"       content="CS.SIGN — International-Standard Safety Signage">
-<meta name="twitter:description" content="Traffic &amp; safety sign manufacturer. TIS 635 + ISO. 20+ years.">
+<meta name="twitter:description" content="Traffic &amp; safety sign manufacturer. TIS + ISO. 20+ years.">
 <meta name="twitter:image"       content="https://cssign.co.th/assets/og-image.jpg">
 
 <!-- Canonical -->
@@ -46,7 +46,7 @@
   "@id": "https://cssign.co.th/#localbusiness",
   "name": "CS.SIGN And Products Co., Ltd.",
   "alternateName": ["CS.SIGN", "CS Sign"],
-  "description": "Manufacturer of traffic and safety signs, produced to TIS 635-2547 and ISO 7010 standards, 20+ years of experience. Full service from consultation and design to production and on-site installation.",
+  "description": "Manufacturer of traffic and safety signs, produced to TIS standards, 20+ years of experience. Full service from consultation and design to production and on-site installation.",
   "url": "https://cssign.co.th/en/",
   "logo": "https://cssign.co.th/assets/logo.png",
   "image": "https://cssign.co.th/assets/og-image.jpg",
@@ -79,6 +79,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
 
 <link rel="stylesheet" href="../css/style.css?v=20260711a">
+<link rel="stylesheet" href="../css/shared-widgets.css">
+<link rel="stylesheet" href="../css/exit-intent-cta.css">
+<link rel="stylesheet" href="../css/track-modal.css">
+<link rel="stylesheet" href="../css/cart-modal.css">
 <style>
   /* Small "TH" badge next to links that lead to Thai-only pages —
      keeps the language switch honest instead of surprising visitors. */
@@ -99,6 +103,157 @@
     background:rgba(255,255,255,0.12);
     color:inherit;
   }
+
+/* ── Home: Articles (same card style as blog.html) ── */
+.home-blog-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:44px; transition:opacity .22s var(--ease); }
+.home-blog-grid .blog-card{ background:#fff; border:1px solid var(--gray-100); border-radius:var(--r-lg); overflow:hidden; display:flex; flex-direction:column; transition:transform .25s var(--ease), box-shadow .25s var(--ease); text-decoration:none; }
+.home-blog-grid .blog-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
+.home-blog-grid .blog-card .img-ph{ border-radius:0; border:none; border-bottom:1px solid var(--gray-100); }
+.home-blog-grid .blog-card-body{ padding:22px; display:flex; flex-direction:column; flex:1; }
+.home-blog-grid .blog-tag{ display:inline-flex; align-self:flex-start; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--primary); background:rgba(var(--primary-rgb),0.08); padding:4px 11px; border-radius:var(--r-pill); margin-bottom:12px; }
+.home-blog-grid .blog-card-body h3{ font-size:16.5px; font-weight:700; color:var(--text-heading); line-height:1.4; margin-bottom:10px; }
+.home-blog-grid .blog-card-body p{ font-size:13.5px; color:var(--gray-500); margin-bottom:16px; flex:1; }
+.home-blog-grid .blog-card-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; color:var(--gray-400); padding-top:14px; border-top:1px solid var(--gray-100); }
+.home-blog-grid .blog-card-foot > span:first-child{ display:flex; align-items:center; gap:5px; }
+.home-blog-grid .blog-card-foot svg{ width:13px; height:13px; flex-shrink:0; }
+.home-blog-grid .blog-card-img-real{ border:none!important; background:none!important; }
+.home-blog-grid .blog-card-img-real img{ width:100%; height:100%; object-fit:cover; display:block; }
+@media (max-width:900px){ .home-blog-grid{ grid-template-columns:1fr 1fr; } }
+@media (max-width:560px){ .home-blog-grid{ grid-template-columns:1fr; } }
+
+/* ── Home: What CS.SIGN Specializes In ── */
+.expertise-layout{ display:grid; grid-template-columns: 0.92fr 1fr; gap:64px; align-items:center; }
+.expertise-copy h2{ font-family: var(--font-display); font-weight:700; font-size: clamp(26px, 3vw, 36px); color: var(--accent); letter-spacing:-0.01em; margin-bottom:22px; line-height:1.3; }
+.expertise-copy p{ font-size:16px; line-height:1.9; color: var(--gray-600); margin-bottom:28px; }
+.expertise-visual .img-ph{ height:100%; min-height:360px; }
+@media (max-width:900px){
+  .expertise-layout{ grid-template-columns:1fr; gap:36px; }
+  .expertise-visual{ order:-1; }
+  .expertise-visual .img-ph{ min-height:260px; }
+}
+
+/* ── Home: warranty strip at the end of the trust section ── */
+.trust-warranty-strip{
+  display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+  margin-top:24px; background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg);
+  padding:26px 30px; box-shadow:var(--shadow-sm);
+}
+.tws-icon{
+  width:52px; height:52px; border-radius:var(--r-md); flex-shrink:0;
+  background:rgba(var(--primary-rgb),0.08); color:var(--primary);
+  display:flex; align-items:center; justify-content:center;
+}
+.tws-icon svg{ width:26px; height:26px; }
+.tws-text{ flex:1; min-width:220px; }
+.tws-text h3{ font-family:var(--font-display); font-weight:700; font-size:16.5px; color:var(--secondary); margin-bottom:4px; }
+.tws-text p{ font-size:13.5px; color:var(--gray-500); line-height:1.6; margin:0; }
+.tws-link{
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  font-size:13.5px; font-weight:700; color:var(--primary); text-decoration:none;
+}
+.tws-link:hover{ text-decoration:underline; }
+.tws-link svg{ width:15px; height:15px; }
+@media (max-width:620px){
+  .trust-warranty-strip{ flex-direction:column; align-items:flex-start; text-align:left; }
+}
+
+/* ── Home: contact CTA banner above the Articles section ── */
+.home-cta-band{
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-900) 100%);
+  padding: 64px 40px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+.home-cta-bg-art{ position:absolute; inset:0; z-index:0; pointer-events:none; }
+.home-cta-bg-art svg{ width:100%; height:100%; display:block; }
+.home-cta-content{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:28px; }
+.home-cta-title{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(20px, 2.6vw, 28px);
+  line-height: 1.55;
+  color: #fff;
+  max-width: 620px;
+  letter-spacing: -0.005em;
+}
+.home-cta-title .home-cta-accent{ color: var(--accent); }
+.home-cta-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--gray-900);
+  font-weight: 700;
+  font-size: 14.5px;
+  padding: 15px 38px;
+  border-radius: var(--r-pill);
+  text-decoration: none;
+  box-shadow: 0 10px 24px -8px rgba(var(--accent-rgb), 0.5);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+}
+.home-cta-btn:hover{ transform: translateY(-2px); background:#d9973a; box-shadow: 0 14px 28px -8px rgba(var(--accent-rgb), 0.55); }
+@media (max-width:640px){
+  .home-cta-band{ padding: 48px 24px; }
+}
+
+/* ── Home: Our Services — 5-icon summary ── */
+.services-head{ text-align: center; margin-bottom: 56px; }
+.services-head h2{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(24px, 2.8vw, 32px);
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+}
+.services-divider{
+  display: block;
+  width: 48px;
+  height: 2px;
+  background: var(--accent);
+  margin: 18px auto 0;
+}
+.services-grid{
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+.service-item{ text-align: center; padding: 40px 20px 30px; }
+.service-icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  margin-bottom: 22px;
+}
+.service-icon svg{ width: 28px; height: 28px; }
+.service-item h3{
+  font-size: 17.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+}
+.service-item p{
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--text-body);
+}
+@media (max-width: 1000px){
+  .services-grid{ grid-template-columns: repeat(3, 1fr); gap: 18px; }
+}
+@media (max-width: 640px){
+  .services-grid{ grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .service-item{ padding: 30px 14px 24px; }
+}
+@media (max-width: 420px){
+  .services-grid{ grid-template-columns: 1fr; }
+}
 </style>
 <link rel="stylesheet" href="../css/fancy-effects.css">
 </head>
@@ -123,6 +278,9 @@
       </a>
     </div>
     <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="Search the site">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
       <div class="nav-lang-switch" aria-label="Language switch">
         <a href="../index.html">TH</a>
         <a href="#top" class="is-active">EN</a>
@@ -134,7 +292,7 @@
 <header class="site-header" id="site-header">
   <div class="nav-inner">
     <a href="#top" class="brand">
-      <img src="../assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
       <span class="brand-text">
         <span class="brand-name">CS.SIGN</span>
         <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
@@ -146,64 +304,71 @@
 
       <div class="nav-item-dropdown">
         <button class="nav-link nav-dd-trigger" type="button">
-          Categories
+          Products
           <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="nav-dropdown nav-megamenu">
-          <div class="nav-mega-grid">
-            <div class="nav-mega-col">
-              <div class="nav-mega-title">Safety Signs</div>
-              <a href="../products.html?cat=safety" class="nav-mega-item">
-                <span><strong>Safety &amp; Warning Signs</strong><span>International standard, clearly visible in all lighting</span></span>
-              </a>
-              <a href="../products.html?cat=safety" class="nav-mega-item">
-                <span><strong>Emergency Evacuation Signs</strong><span>Clear escape routes and assembly points</span></span>
-              </a>
+        <div class="nav-dropdown nav-megamenu nav-megamenu--flyout">
+          <div class="nav-mega-grid nav-mega-grid--flyout">
+            <div class="nav-mega-groups">
+              <button type="button" class="nav-mega-group-btn active" data-group="safety">Safety Signs</button>
+              <button type="button" class="nav-mega-group-btn" data-group="traffic">Traffic Signs</button>
+              <button type="button" class="nav-mega-group-btn" data-group="equip">Traffic Equipment</button>
+              <button type="button" class="nav-mega-group-btn" data-group="industry">By Industry</button>
             </div>
-            <div class="nav-mega-col">
-              <div class="nav-mega-title">Traffic Signs</div>
-              <a href="../products.html?cat=traffic" class="nav-mega-item">
-                <span><strong>High-Intensity Reflective Signs</strong><span>Manufactured to Dept. of Highways / TIS standard</span></span>
-              </a>
-              <a href="../products.html?cat=traffic" class="nav-mega-item">
-                <span><strong>Warning / Construction-Zone Signs</strong><span>Improved safety for active work sites</span></span>
-              </a>
-              <a href="../products.html?cat=traffic" class="nav-mega-item">
-                <span><strong>Directional / Wayfinding Signs</strong><span>Designed to match your actual site layout</span></span>
-              </a>
-            </div>
-            <div class="nav-mega-col">
-              <div class="nav-mega-title">Traffic Equipment</div>
-              <a href="../products.html?cat=equip" class="nav-mega-item">
-                <span><strong>Traffic Cones / Barriers</strong><span>Durable, high-quality materials</span></span>
-              </a>
-              <a href="../products.html?cat=equip" class="nav-mega-item">
-                <span><strong>Flexible Posts / Road Barriers</strong><span>Easy to install, adaptable to any site</span></span>
-              </a>
-            </div>
-            <div class="nav-mega-col">
-              <div class="nav-mega-title">By Industry</div>
-              <a href="../products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Manufacturing Plants</strong></a>
-              <a href="../products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Government Agencies</strong></a>
-              <a href="../products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>Industrial Estates</strong></a>
-              <a href="../products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Hospitals / Healthcare</strong></a>
+            <div class="nav-mega-panel">
+              <div class="nav-mega-panel-group active" data-group="safety">
+                <a href="products.html?cat=safety" class="nav-mega-item">
+                  <span><strong>Safety &amp; Warning Signs</strong><span>International standard, clearly visible in all lighting</span></span>
+                </a>
+                <a href="products.html?cat=safety" class="nav-mega-item">
+                  <span><strong>Emergency Evacuation Signs</strong><span>Clear escape routes and assembly points</span></span>
+                </a>
+              </div>
+              <div class="nav-mega-panel-group" data-group="traffic">
+                <a href="products.html?cat=traffic" class="nav-mega-item">
+                  <span><strong>High-Intensity Reflective Signs</strong><span>Manufactured to Dept. of Highways standard</span></span>
+                </a>
+                <a href="products.html?cat=traffic" class="nav-mega-item">
+                  <span><strong>Warning / Construction-Zone Signs</strong><span>Improved safety for active work sites</span></span>
+                </a>
+                <a href="products.html?cat=traffic" class="nav-mega-item">
+                  <span><strong>Directional / Wayfinding Signs</strong><span>Designed to match your actual site layout</span></span>
+                </a>
+              </div>
+              <div class="nav-mega-panel-group" data-group="equip">
+                <a href="products.html?cat=equip" class="nav-mega-item">
+                  <span><strong>Traffic Cones / Barriers</strong><span>Durable, high-quality materials, built to last</span></span>
+                </a>
+                <a href="products.html?cat=equip" class="nav-mega-item">
+                  <span><strong>Flexible Posts / Road Barriers</strong><span>Easy to install, adaptable to any site</span></span>
+                </a>
+              </div>
+              <div class="nav-mega-panel-group" data-group="industry">
+                <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Manufacturing Plants</strong></a>
+                <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Government Agencies</strong></a>
+                <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>Industrial Estates</strong></a>
+                <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Hospitals / Healthcare</strong></a>
+              </div>
             </div>
           </div>
-          <a href="../products.html" class="nav-mega-foot">
-            View all products <small class="lang-tag">TH</small>
+          <a href="products.html" class="nav-mega-foot">
+            View all products
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
           </a>
         </div>
       </div>
 
-      <a href="../portfolio.html" class="nav-link" title="Page available in Thai only">Portfolio <small class="lang-tag">TH</small></a>
-      <a href="../about.html" class="nav-link" title="Page available in Thai only">About Us <small class="lang-tag">TH</small></a>
-      <a href="../blog.html" class="nav-link" title="Page available in Thai only">Articles <small class="lang-tag">TH</small></a>
-      <a href="#contact-en" class="nav-link">Contact</a>
+      <a href="portfolio.html" class="nav-link">Portfolio</a>
+      <a href="about.html" class="nav-link">About Us</a>
+      <a href="blog.html" class="nav-link">Articles</a>
+      <a href="contact.html" class="nav-link">Contact</a>
     </nav>
 
     <div class="nav-actions">
-      <a href="#contact-en" class="btn btn-primary btn-sm">Request a Quote</a>
+      <a href="contact.html" class="btn btn-primary btn-sm">Request a Quote</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="Track your order status" title="Track your order status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
       <button class="nav-burger" id="burger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
         <span></span><span></span><span></span>
       </button>
@@ -215,7 +380,7 @@
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-menu-top">
     <a href="#top" class="brand">
-      <img src="../assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
       <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
     </a>
     <button class="mobile-close" id="mobile-close-btn" aria-label="Close menu">
@@ -226,20 +391,57 @@
     <a href="#top">Home</a>
 
     <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
-      Categories
+      Products
       <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="mobile-dd-panel" id="mobile-dd-panel">
-      <a href="../products.html?cat=safety">Safety Signs <small class="lang-tag">TH</small></a>
-      <a href="../products.html?cat=traffic">Traffic Signs <small class="lang-tag">TH</small></a>
-      <a href="../products.html?cat=equip">Traffic Equipment <small class="lang-tag">TH</small></a>
-      <a href="../products.html">View all products <small class="lang-tag">TH</small></a>
+      <div class="mobile-dd-group">
+        <button type="button" class="mobile-dd-group-btn" data-group="safety">Safety Signs
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="mobile-dd-group-panel">
+          <a href="products.html?cat=safety">Safety &amp; Warning Signs</a>
+          <a href="products.html?cat=safety">Emergency Evacuation Signs</a>
+        </div>
+      </div>
+      <div class="mobile-dd-group">
+        <button type="button" class="mobile-dd-group-btn" data-group="traffic">Traffic Signs
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="mobile-dd-group-panel">
+          <a href="products.html?cat=traffic">High-Intensity Reflective Signs</a>
+          <a href="products.html?cat=traffic">Warning / Construction-Zone Signs</a>
+          <a href="products.html?cat=traffic">Directional / Wayfinding Signs</a>
+        </div>
+      </div>
+      <div class="mobile-dd-group">
+        <button type="button" class="mobile-dd-group-btn" data-group="equip">Traffic Equipment
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="mobile-dd-group-panel">
+          <a href="products.html?cat=equip">Traffic Cones / Barriers</a>
+          <a href="products.html?cat=equip">Flexible Posts / Road Barriers</a>
+        </div>
+      </div>
+      <div class="mobile-dd-group">
+        <button type="button" class="mobile-dd-group-btn" data-group="industry">By Industry
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="mobile-dd-group-panel">
+          <a href="products.html?cat=safety">Manufacturing Plants</a>
+          <a href="products.html?cat=safety">Government Agencies</a>
+          <a href="products.html?cat=traffic">Industrial Estates</a>
+          <a href="products.html?cat=safety">Hospitals / Healthcare</a>
+        </div>
+      </div>
+      <a href="products.html" class="mobile-dd-viewall">View all products</a>
     </div>
 
-    <a href="../portfolio.html">Portfolio <small class="lang-tag">TH</small></a>
-    <a href="../about.html">About Us <small class="lang-tag">TH</small></a>
-    <a href="../blog.html">Articles <small class="lang-tag">TH</small></a>
-    <a href="#contact-en">Contact</a>
+    <a href="portfolio.html">Portfolio</a>
+    <a href="about.html">About Us</a>
+    <a href="blog.html">Articles</a>
+    <a href="#" data-track-modal-open>Track your order status</a>
+    <a href="contact.html">Contact</a>
   </div>
   <div class="mobile-lang-switch">
     <a href="../index.html">TH · ไทย</a>
@@ -252,7 +454,7 @@
     <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>Add LINE @cssigngroup</a>
   </div>
   <div class="mobile-cta">
-    <a href="#contact-en" class="btn btn-primary btn-block">Request a Quote</a>
+    <a href="contact.html" class="btn btn-primary btn-block">Request a Quote</a>
     <a href="tel:0628833880" class="btn btn-secondary btn-block">Call +66 62-883-3880</a>
   </div>
 </div>
@@ -305,11 +507,11 @@
       </p>
 
       <div class="hero-cta-row">
-        <a href="#contact-en" class="btn btn-primary btn-lg">
+        <a href="contact.html" class="btn btn-primary btn-lg">
           Request a Quote
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </a>
-        <a href="../portfolio.html" class="btn btn-secondary btn-lg">See Our Work <small class="lang-tag">TH</small></a>
+        <a href="portfolio.html" class="btn btn-secondary btn-lg">See Our Work</a>
       </div>
 
     </div>
@@ -317,257 +519,268 @@
 </section>
 
 <!-- ============================================================
-     STATISTICS & RESULTS + TESTIMONIALS
+     PROMOTIONS & NEWS -- mirrors index.html #promo-updates. Filled by
+     js/home-dynamic.js (renderPromoUpdates) from admin-entered data,
+     which is Thai-only (no per-language field in the CMS yet), so
+     promo/news cards here will show in Thai even though the page
+     chrome is English.
      ============================================================ -->
-<section class="section stats-section" id="testimonials">
-  <div class="hero-bg-grid"></div>
-  <div class="stats-glow"></div>
-  <div class="wrap" style="position:relative;z-index:2;">
+<section class="section promo-section" id="promo-updates">
+  <div class="wrap">
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">PROMOTIONS &amp; LATEST NEWS</div>
+      <h2 class="h-section">Latest Updates from CS.SIGN</h2>
+      <p>Promotions, new products, and news, updated by our team whenever there is something new.</p>
+    </div>
+    <div class="promo-grid promo-grid--empty" id="home-promo-grid" data-reveal>
+      <!-- js/home-dynamic.js fills this with promo cards, or the "coming soon" card below if there is no data yet -->
+      <div class="promo-card promo-card--empty">
+        <div class="img-ph img-ph--16-9">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3.2 1.9"/></svg>
+            <span class="img-ph-label">More promotions &amp; news<br>coming soon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <div class="section-head center" data-reveal style="margin-left:auto;margin-right:auto;">
-      <div class="eyebrow eyebrow--light" style="justify-content:center;width:100%;">RESULTS THAT SPEAK</div>
-      <h2 class="h-section" style="color:#fff;">Numbers That Reflect Our Clients' Trust</h2>
+
+<!-- ============================================================
+     EXPERTISE
+     ============================================================ -->
+<section class="section expertise-section" id="expertise">
+  <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+  <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
+  <div class="wrap">
+    <div class="expertise-layout" data-reveal>
+      <div class="expertise-copy">
+        <h2>What CS.SIGN Specializes In</h2>
+        <p>We are full-service experts in safety and traffic signage, combining over 20 years of hands-on industry experience with a production and installation team ready to work on-site — delivering TIS-compliant signs to organizations on schedule, along with technical consultation to plan signage that truly fits your site for the long term.</p>
+        <a href="contact.html" class="btn btn-primary btn-lg">
+          Get Free Consultation
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="expertise-visual">
+        <div class="img-ph img-ph--4-3">
+          <picture>
+            <source srcset="../assets/expertise-team-photo.webp" type="image/webp">
+            <img class="real-photo" src="../assets/expertise-team-photo.jpg" alt="CS.SIGN team ready for on-site delivery" loading="lazy">
+          </picture>
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M3.5 20c.6-4 3-6.4 5.5-6.4s4.9 2.4 5.5 6.4"/><path d="M14.5 14.4c2 .3 3.7 2.3 4.2 5.6"/></svg>
+            <span class="img-ph-label">CS.SIGN Team<br>Ready for On-Site Delivery</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     OUR SERVICES
+     ============================================================ -->
+<section class="section section--tint services-section" id="services">
+  <div class="wrap">
+    <div class="services-head" data-reveal>
+      <h2>Our Services</h2>
+      <span class="services-divider"></span>
+    </div>
+    <div class="services-grid" data-reveal>
+      <div class="service-item">
+        <span class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83 3.83 11l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <h3>Sign Manufacturing</h3>
+        <p>Signs manufactured with standard-compliant equipment, with attention to every detail — fast turnaround, quality work.</p>
+      </div>
+      <div class="service-item">
+        <span class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="14.5" r="3.4"/><path d="M9.5 8.6V6.2M9.5 20.8v-2.4M4.9 14.5H2.5M16.5 14.5h-2.4M6.4 11.4 4.7 9.7M14.3 19.3l-1.7-1.7M12.6 11.4l1.7-1.7M4.7 19.3l1.7-1.7"/><path d="M18.5 6.2c1.3 0 2.4 1.1 2.4 2.4v.4c1 .3 1.6 1.3 1.4 2.3l-.2.7 1.3 1.3-1 1.7-1.7-.4c-.3.3-.7.6-1.1.8l-.4 1.7h-2l-.4-1.7"/></svg>
+        </span>
+        <h3>Sign Installation</h3>
+        <p>Installation carried out by a skilled, professional team with over 20 years of experience.</p>
+      </div>
+      <div class="service-item">
+        <span class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/><path d="M15 5l4 4"/></svg>
+        </span>
+        <h3>Design &amp; Consultation</h3>
+        <p>Signs designed to fit your site, with materials and installation methods matched to your concept.</p>
+      </div>
+      <div class="service-item">
+        <span class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4Z"/><path d="M9 4v13M15 6.5v13"/></svg>
+        </span>
+        <h3>Site Survey &amp; Quotation</h3>
+        <p>On-site survey before production and installation, to ensure accuracy and fit for real site conditions.</p>
+      </div>
+      <div class="service-item">
+        <span class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 6.5h8"/><rect x="8" y="10" width="2.2" height="2.2"/><rect x="10.9" y="10" width="2.2" height="2.2"/><rect x="13.8" y="10" width="2.2" height="2.2"/><rect x="8" y="13.2" width="2.2" height="2.2"/><rect x="10.9" y="13.2" width="2.2" height="2.2"/><rect x="13.8" y="13.2" width="2.2" height="5.4"/><rect x="8" y="16.4" width="5.1" height="2.2"/></svg>
+        </span>
+        <h3>Request a Quote</h3>
+        <p>Request a quotation and preliminary sign cost estimate to support your decision.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TRUST NUMBERS
+     ============================================================ -->
+<section class="section trust-section" id="trust">
+  <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+  <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
+  <div class="wrap">
+
+    <div class="trust-head" data-reveal>
+      <span class="trust-badge">Why Organizations Choose CS.SIGN</span>
+      <h2 class="trust-title">Real Experience, <em>With a Team That Delivers End to End</em></h2>
+      <p class="trust-sub">Manufactured to TIS standard, with a team overseeing every step. <br>Here's why organizations trust us with their safety signage.</p>
     </div>
 
-    <!-- See index.html for the note on why only the 20-years figure kept
-         its numeric counter — the other three were unverifiable claims. -->
-    <div class="stats-grid" data-reveal>
-      <div class="stat-cell">
+    <div class="trust-stats-grid" data-reveal>
+      <div class="trust-stat-card">
         <div class="stat-num" data-count="20"><span>+</span></div>
         <div class="stat-label">Years of industry experience</div>
       </div>
-      <div class="stat-cell stat-cell--text">
+      <div class="trust-stat-card">
+        <div class="stat-num" data-count="24"><span>&nbsp;hrs</span></div>
+        <div class="stat-label">Quote response time</div>
+      </div>
+      <div class="trust-stat-card">
         <div class="stat-num stat-num--text">Nationwide</div>
-        <div class="stat-label">Corporate and government clients</div>
+        <div class="stat-label">Site survey and installation service</div>
       </div>
-      <div class="stat-cell stat-cell--text">
-        <div class="stat-num stat-num--text">End to end</div>
-        <div class="stat-label">Consultation, design, production, installation</div>
-      </div>
-      <div class="stat-cell stat-cell--text">
-        <div class="stat-num stat-num--text">Risk assessed</div>
-        <div class="stat-label">Materials, symbols and colors matched to standard</div>
+      <div class="trust-stat-card">
+        <div class="stat-num stat-num--text">TIS</div>
+        <div class="stat-label">Standard upheld at every step of production</div>
       </div>
     </div>
 
-    <div class="stats-logos-wrap" data-reveal>
-      <div class="stats-logos-divider">
-        <span class="stats-logos-label">Trusted by leading organizations</span>
-      </div>
-      <div class="stats-logos-img-wrap stats-logos-ph" id="home-partner-logos">
-        <div class="stats-logos-ph-row">
-          <span class="stats-logos-ph-item"></span>
-          <span class="stats-logos-ph-item"></span>
-          <span class="stats-logos-ph-item"></span>
-          <span class="stats-logos-ph-item"></span>
-          <span class="stats-logos-ph-item"></span>
-          <span class="stats-logos-ph-item"></span>
+    <div class="trust-feature-grid" data-reveal>
+      <div class="trust-feature-card">
+        <div class="trust-feature-top">
+          <span class="trust-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <span class="trust-feature-tag">Standard</span>
         </div>
-        <span class="stats-logos-ph-tag">Our partner organizations</span>
+        <h3>20+ Years of Experience</h3>
+        <p>Long-standing manufacturer of industrial and safety signs, proven across a wide range of industries.</p>
       </div>
-    </div>
-
-    <!-- Testimonial carousel restored in placeholder form — per-segment
-         capability statements, NOT customer quotes. No invented person
-         names, no avatar-as-a-person, no star rating, no "verified" badge.
-         Swap each card's text for a real collected testimonial (real name
-         + real company, with permission) as they come in — see the
-         matching Thai section in ../index.html for the full rationale. -->
-    <div class="stats-testi-bridge" data-reveal>
-      <div class="eyebrow eyebrow--light" style="justify-content:center;width:100%;margin-bottom:8px;">HOW WE WORK</div>
-      <h3 class="stats-testi-title">Experience Across Client Segments</h3>
-    </div>
-
-    <div class="testi-wrap testi-wrap--dark" data-reveal>
-      <div class="testi-track-outer">
-        <div class="testi-track" id="testi-track">
-
-          <div class="testi-card testi-card--dark">
-            <div class="testi-post">
-              <div class="testi-post-head">
-                <div class="testi-post-logo">CS</div>
-                <div class="testi-post-headtext">
-                  <span class="testi-post-brand">Industrial Factories</span>
-                  <span class="testi-company">Manufacturing sector clients</span>
-                </div>
-              </div>
-              <p class="testi-quote">Consultation and production of high-voltage warning signs, safety signs, and prohibition signs built for factory-floor conditions, with supporting documents for internal safety audits.</p>
-            </div>
-          </div>
-
-          <div class="testi-card testi-card--dark">
-            <div class="testi-post">
-              <div class="testi-post-head">
-                <div class="testi-post-logo">CS</div>
-                <div class="testi-post-headtext">
-                  <span class="testi-post-brand">Industrial Estates</span>
-                  <span class="testi-company">Estate developers</span>
-                </div>
-              </div>
-              <p class="testi-quote">Coordinated signage systems across multiple factories within one estate, keeping symbols and color standards consistent estate-wide to reduce confusion for on-site workers.</p>
-            </div>
-          </div>
-
-          <div class="testi-card testi-card--dark">
-            <div class="testi-post">
-              <div class="testi-post-head">
-                <div class="testi-post-logo">CS</div>
-                <div class="testi-post-headtext">
-                  <span class="testi-post-brand">Government Agencies</span>
-                  <span class="testi-company">Public-sector clients</span>
-                </div>
-              </div>
-              <p class="testi-quote">Traffic and public signage produced to government procurement specifications, with documentation to support disbursement and acceptance inspection.</p>
-            </div>
-          </div>
-
-          <div class="testi-card testi-card--dark">
-            <div class="testi-post">
-              <div class="testi-post-head">
-                <div class="testi-post-logo">CS</div>
-                <div class="testi-post-headtext">
-                  <span class="testi-post-brand">Warehousing / Logistics</span>
-                  <span class="testi-company">Warehouse operators</span>
-                </div>
-              </div>
-              <p class="testi-quote">Directional signage and floor marking for storage areas and forklift routes, laid out to each warehouse's actual floor plan.</p>
-            </div>
-          </div>
-
+      <div class="trust-feature-card">
+        <div class="trust-feature-top">
+          <span class="trust-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+          <span class="trust-feature-tag">Clear Process</span>
         </div>
+        <h3>Full-Service Coverage</h3>
+        <p>Consultation, design, manufacturing, and installation — all in one place, with no middleman.</p>
       </div>
+      <div class="trust-feature-card">
+        <div class="trust-feature-top">
+          <span class="trust-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span>
+          <span class="trust-feature-tag">Real Team</span>
+        </div>
+        <h3>Professional Team</h3>
+        <p>Specialists oversee every stage, from design and manufacturing to on-site installation.</p>
+      </div>
+      <div class="trust-feature-card">
+        <div class="trust-feature-top">
+          <span class="trust-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>
+          <span class="trust-feature-tag">Design</span>
+        </div>
+        <h3>Designed to Your Requirements</h3>
+        <p>Signs matched to industry standards and each client's specific needs.</p>
+      </div>
+      <div class="trust-feature-card">
+        <div class="trust-feature-top">
+          <span class="trust-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+          <span class="trust-feature-tag">Consultation</span>
+        </div>
+        <h3>Free Consultation</h3>
+        <p>We help assess risk and plan materials, symbols, and colors before production begins.</p>
+      </div>
+      <div class="trust-feature-card">
+        <div class="trust-feature-top">
+          <span class="trust-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
+          <span class="trust-feature-tag">Support</span>
+        </div>
+        <h3>24-Hour Support</h3>
+        <p>Our team responds quickly with fast quotes and ongoing after-sales support.</p>
+      </div>
+    </div>
 
-      <div class="testi-arrows">
-        <button class="testi-arrow testi-arrow--light prev" id="testi-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <button class="testi-arrow testi-arrow--light next" id="testi-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2.4"><polyline points="9 18 15 12 9 6"/></svg></button>
+    <div class="trust-warranty-strip" data-reveal>
+      <span class="tws-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+      </span>
+      <div class="tws-text">
+        <h3>18-Month Warranty on Safety Signs</h3>
+        <p>Safety signs manufactured by CS.SIGN carry an 18-month warranty on materials and workmanship after delivery (other product groups carry a 6-month warranty), covering manufacturing defects. See full terms on our <a href="quality-policy.html#warranty" style="color:var(--primary);font-weight:600;">Quality Policy</a> page</p>
       </div>
-      <div class="testi-nav testi-nav--light" id="testi-dots"></div>
+      <a href="quality-policy.html#warranty" class="tws-link">
+        View warranty terms <small class="lang-tag">TH</small>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
     </div>
 
   </div>
 </section>
 
 <!-- ============================================================
-     WHY CHOOSE US
+     FEATURED PRODUCTS -- mirrors index.html #featured-products.
+     Filled by js/home-dynamic.js (renderFeaturedProducts) from
+     admin-starred products, which is Thai-only data (no per-language
+     field in the CMS yet), so product names/details will show in
+     Thai even though the page chrome is English. Hidden by CSS
+     (.fp-section) until real featured products exist.
      ============================================================ -->
-<section class="section" id="benefits">
+<!-- ============================================================
+     FEATURED PRODUCTS -- mirrors index.html #featured-products.
+     Filled by js/home-dynamic.js (renderFeaturedProducts) from
+     admin-starred products, which is Thai-only data (no per-language
+     field in the CMS yet), so product names/details will show in
+     Thai even though the page chrome is English. Hidden by CSS
+     (.fp-section) until real featured products exist.
+     ============================================================ -->
+<section class="section section--tint fp-section" id="featured-products">
   <div class="wrap">
-    <div class="section-head" data-reveal>
-      <div class="eyebrow">WHY ENTERPRISES CHOOSE US</div>
-      <h2 class="h-section">Safety You Can Measure.<br>Coverage For Every Need.</h2>
-      <p>Every step of our process is designed to be auditable, so your procurement and safety teams can trust every production order.</p>
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">FEATURED PRODUCTS</div>
+      <h2 class="h-section">Products Our Customers Trust</h2>
+      <p>A curated selection of our most popular products, updated regularly.</p>
     </div>
+    <div class="fp-marquee" id="home-fp-marquee" data-reveal></div>
+    <div style="text-align:center;margin-top:44px;" data-reveal>
+      <a href="../products.html" class="btn btn-secondary btn-lg">
+        View All Products <small class="lang-tag">TH</small>
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
 
-    <div class="benefits-grid" style="margin-bottom:56px;">
-      <div class="benefit-card" data-reveal>
-        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></div>
-        <h3>Verifiable Standards</h3>
-        <p>Every product is manufactured to TIS 635-2547 and ISO 7010 standards, with documentation available on request for procurement.</p>
-      </div>
-      <div class="benefit-card" data-reveal>
-        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21V13h6v8"/></svg></div>
-        <h3>In-House Manufacturing</h3>
-        <p>Full control over quality, cost, and lead times — no middlemen, and lower supply-chain risk.</p>
-      </div>
-      <div class="benefit-card" data-reveal>
-        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
-        <h3>End-to-End Service</h3>
-        <p>From consultation and risk assessment to free Artwork design, production, and professional on-site installation.</p>
-      </div>
-      <div class="benefit-card" data-reveal>
-        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>
-        <h3>Enterprise-Grade Support</h3>
-        <p>24-hour response times, 30-day credit terms, and full VAT invoicing for corporate clients.</p>
-      </div>
+<!-- ============================================================
+     PRODUCT VIDEOS -- mirrors index.html #intro-video. Filled by
+     js/home-dynamic.js (renderIntroVideo) from settings.introVideos.
+     ============================================================ -->
+<section class="section section--tint video-section" id="intro-video">
+  <div class="wrap">
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">PRODUCT VIDEOS</div>
+      <h2 class="h-section">Watch Our Product Videos</h2>
+      <p>Get a firsthand look at our signage and process in these short clips.</p>
     </div>
-
-    <div class="combined-caps-head" data-reveal>
-      <div class="eyebrow">FULL CAPABILITY RANGE</div>
-      <h3 class="h-sub">Complete Range of Signage &amp; Services</h3>
-    </div>
-    <div class="features-grid" data-reveal>
-      <div class="feature-cell">
-        <div class="feature-cell-img img-ph img-ph--16-9">
-          <img class="real-photo" src="assets/portfolio/feature-safety-signage.jpg" alt="Safety signs installed at a real customer site" loading="lazy" onerror="this.remove()">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.7 3.86a2 2 0 0 0-3.4 0z"/></svg></div>
-          <div class="img-ph-inner" style="padding-top:34px;">
-            <span class="img-ph-label">Safety signs</span>
+    <div class="video-frame-wrap" id="home-intro-video" data-reveal>
+      <!-- js/home-dynamic.js fills this with a video player, or the "coming soon" card below if there is no data yet -->
+      <div class="video-frame video-frame--empty">
+        <div class="img-ph img-ph--16-9">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="5" width="15" height="14" rx="2"/><path d="M23 7l-7 5 7 5V7z"/></svg>
+            <span class="img-ph-label">Product videos<br>coming soon</span>
           </div>
-        </div>
-        <div class="feature-cell-body">
-          <h3>Safety Signs</h3>
-          <p>Prohibition, warning, mandatory, and emergency signs to the international ISO 7010 standard.</p>
-          <span class="feature-tag">ISO 7010</span>
-        </div>
-      </div>
-      <div class="feature-cell">
-        <div class="feature-cell-img img-ph img-ph--16-9">
-          <img class="real-photo" src="assets/portfolio/feature-traffic-sign.jpg" alt="Reflective traffic signs manufactured and installed" loading="lazy" onerror="this.remove()">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-          <div class="img-ph-inner" style="padding-top:34px;">
-            <span class="img-ph-label">Traffic signs</span>
-          </div>
-        </div>
-        <div class="feature-cell-body">
-          <h3>Traffic Signs</h3>
-          <p>Engineering- and High-Intensity-grade reflective traffic signs to Dept. of Highways standard.</p>
-          <span class="feature-tag">DOH STANDARD</span>
-        </div>
-      </div>
-      <div class="feature-cell">
-        <div class="feature-cell-img img-ph img-ph--16-9">
-          <img class="real-photo" src="assets/portfolio/feature-plant-signage.jpg" alt="In-plant signage system installed at a factory" loading="lazy" onerror="this.remove()">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l8-4 8 4v14M9 21v-6h6v6"/></svg></div>
-          <div class="img-ph-inner" style="padding-top:34px;">
-            <span class="img-ph-label">Plant signage</span>
-          </div>
-        </div>
-        <div class="feature-cell-body">
-          <h3>Industrial Plant Signage</h3>
-          <p>Area-identification signs, hazard signage, and complete in-plant sign systems.</p>
-          <span class="feature-tag">PLANT SIGNAGE</span>
-        </div>
-      </div>
-      <div class="feature-cell">
-        <div class="feature-cell-img img-ph img-ph--16-9">
-          <img class="real-photo" src="assets/portfolio/feature-traffic-control.jpg" alt="Traffic cones, barriers, and on-site road marking" loading="lazy" onerror="this.remove()">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6M12 16v6M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M2 12h6M16 12h6M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24"/></svg></div>
-          <div class="img-ph-inner" style="padding-top:34px;">
-            <span class="img-ph-label">Traffic equipment</span>
-          </div>
-        </div>
-        <div class="feature-cell-body">
-          <h3>Traffic Equipment &amp; Road Marking</h3>
-          <p>Traffic cones, barriers, flexible posts, and on-site road marking services.</p>
-          <span class="feature-tag">TRAFFIC CONTROL</span>
-        </div>
-      </div>
-      <div class="feature-cell">
-        <div class="feature-cell-img img-ph img-ph--16-9">
-          <img class="real-photo" src="assets/portfolio/feature-custom-artwork.jpg" alt="Sample custom Artwork and made-to-order signage" loading="lazy" onerror="this.remove()">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg></div>
-          <div class="img-ph-inner" style="padding-top:34px;">
-            <span class="img-ph-label">Custom orders</span>
-          </div>
-        </div>
-        <div class="feature-cell-body">
-          <h3>Custom Design &amp; Orders</h3>
-          <p>Free Artwork design before production, including company logos and QR codes.</p>
-          <span class="feature-tag">FREE ARTWORK</span>
-        </div>
-      </div>
-      <div class="feature-cell">
-        <div class="feature-cell-img img-ph img-ph--16-9">
-          <img class="real-photo" src="assets/portfolio/feature-order-tracking.jpg" alt="Order tracking dashboard screenshot" loading="lazy" onerror="this.remove()">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
-          <div class="img-ph-inner" style="padding-top:34px;">
-            <span class="img-ph-label">Order tracking</span>
-          </div>
-        </div>
-        <div class="feature-cell-body">
-          <h3>Online Order Tracking</h3>
-          <p>Track production and delivery status in real time through our system.</p>
-          <span class="feature-tag">ORDER TRACKING</span>
         </div>
       </div>
     </div>
@@ -575,197 +788,122 @@
 </section>
 
 <!-- ============================================================
-     PROCESS / HOW IT WORKS
+     FEATURED WORK -- mirrors index.html #starred-works. Filled by
+     js/home-dynamic.js (renderStarredWorks) from admin-pinned
+     portfolio items (Thai-only captions). Uses .port-card together
+     with js/portfolio-lightbox.js already loaded on the site. Hidden
+     by CSS until real starred work exists.
      ============================================================ -->
-<section class="section section--tint" id="process">
+<section class="section wg-section" id="starred-works">
   <div class="wrap">
-    <div class="section-head center" data-reveal style="margin-left:auto;margin-right:auto;">
-      <div class="eyebrow" style="justify-content:center;width:100%;">HOW IT WORKS</div>
-      <h2 class="h-section">A Clear Process<br>Every Project, Fully Auditable</h2>
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">FEATURED WORK</div>
+      <h2 class="h-section">Examples of Our Work</h2>
+      <p>A selection of standout projects. Click any photo for details and more images.</p>
     </div>
-
-    <div class="process-grid" data-reveal>
-      <div class="process-step">
-        <div class="process-num">01</div>
-        <h3>Consultation &amp; Site Survey</h3>
-        <p>Our team assesses risk and advises based on the relevant safety standards.</p>
-      </div>
-      <div class="process-step">
-        <div class="process-num">02</div>
-        <h3>Design &amp; Artwork</h3>
-        <p>Free layout and Artwork, with revisions to your requirements before production.</p>
-      </div>
-      <div class="process-step">
-        <div class="process-num">03</div>
-        <h3>Standards-Compliant Manufacturing</h3>
-        <p>Produced with quality-checked machinery and materials, TIS-compliant at every step.</p>
-      </div>
-      <div class="process-step">
-        <div class="process-num">04</div>
-        <h3>Quality Inspection</h3>
-        <p>Clarity, color, and material strength checked before every shipment.</p>
-      </div>
-      <div class="process-step">
-        <div class="process-num">05</div>
-        <h3>Delivery &amp; Installation</h3>
-        <p>On-time delivery with an on-site installation crew and after-sales support.</p>
-      </div>
-    </div>
+    <div class="wg-grid" id="home-wg-grid" data-reveal></div>
   </div>
 </section>
 
 <!-- ============================================================
-     MANUFACTURING STANDARDS
+     ARTICLES & INSIGHTS -- mirrors index.html #home-blog. Filled by
+     js/home-dynamic.js (renderLatestBlogs) from published Thai
+     articles once available. The 3 cards below are the same static
+     fallback used in index.html (translated), shown until real posts
+     load; the linked articles themselves are Thai-only pages, marked
+     with the TH tag used elsewhere on this page.
      ============================================================ -->
-<section class="section section--tint" id="certifications">
+<section class="section" id="home-blog">
+  <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+  <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
   <div class="wrap">
-    <div class="section-head center" data-reveal style="margin-left:auto;margin-right:auto;">
-      <div class="eyebrow" style="justify-content:center;width:100%;">MANUFACTURING STANDARDS</div>
-      <h2 class="h-section">Standards We Produce To</h2>
-      <p style="max-width:560px;margin:0 auto;">Every sign is designed and manufactured to the technical standards below. For documentation to support a procurement submission, please contact our team — <a href="../quality-policy.html" style="color:var(--primary);font-weight:600;">see our quality policy</a> <small class="lang-tag">TH</small></p>
-    </div>
-    <div class="cert-grid" data-reveal>
-
-      <div class="cert-card">
-        <div class="cert-seal cert-seal--tis">
-          <div class="cert-seal-inner">
-            <div class="cert-seal-top">TIS</div>
-            <div class="cert-seal-num">635</div>
-            <div class="cert-seal-year">2004</div>
-          </div>
-        </div>
-        <div class="cert-body">
-          <h3>Thai Industrial Standard TIS 635-2547</h3>
-          <p>Safety signs are manufactured to the format, colour, and symbol requirements set out in TIS 635-2547.</p>
-        </div>
-      </div>
-
-      <div class="cert-card">
-        <div class="cert-seal cert-seal--iso7010">
-          <div class="cert-seal-inner">
-            <div class="cert-seal-top">ISO</div>
-            <div class="cert-seal-num">7010</div>
-            <div class="cert-seal-year">2019</div>
-          </div>
-        </div>
-        <div class="cert-body">
-          <h3>ISO 7010:2019 — Safety Symbols</h3>
-          <p>All signs are designed to the international ISO 7010 pictogram standard so meaning stays consistent across countries.</p>
-        </div>
-      </div>
-
-      <div class="cert-card">
-        <div class="cert-seal cert-seal--doh">
-          <div class="cert-seal-inner">
-            <div class="cert-seal-top">DOH</div>
-            <div class="cert-seal-num">STD</div>
-            <div class="cert-seal-year">2023</div>
-          </div>
-        </div>
-        <div class="cert-body">
-          <h3>Department of Highways Standard — Traffic Signs</h3>
-          <p>Every traffic sign is manufactured to Dept. of Highways requirements for materials, colour, size, and reflective film.</p>
-        </div>
-      </div>
-
+    <div class="section-head center" data-reveal>
+      <div class="eyebrow">ARTICLES &amp; INSIGHTS</div>
+      <h2 class="h-section">Latest Articles &amp; Insights</h2>
+      <p>The latest safety signage knowledge and standards, updated regularly by the CS.SIGN team.</p>
     </div>
 
-    <div class="cert-cta" data-reveal>
-      <div class="cert-cta-actions" style="width:100%;">
-        <p>Need documentation for a procurement submission?</p>
-        <div class="cert-cta-btns">
-          <a href="#contact-en" class="btn btn-primary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
-            Request documents
-          </a>
-          <a href="tel:0628833880" class="btn btn-secondary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3.65 3.18 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.09a16 16 0 0 0 5.93 5.93l1.16-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            Call us
-          </a>
-        </div>
-      </div>
+    <div class="home-blog-grid" id="home-blog-grid" data-reveal>
 
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================
-     CONTACT
-     ============================================================ -->
-<section class="section" id="contact-en">
-  <div class="wrap">
-    <div class="contact-inline-card" data-reveal>
-
-      <div class="contact-inline-photo">
-        <div class="contact-inline-bg-art">
-          <svg viewBox="0 0 400 480" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:absolute;inset:0;"><rect width="400" height="480" fill="url(#cibg)"/><circle cx="320" cy="80" r="120" fill="rgba(255,255,255,0.06)"/><circle cx="60" cy="380" r="160" fill="rgba(255,255,255,0.04)"/><path d="M80 240 L200 140 L320 240 L280 380 L120 380 Z" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none"/><defs><linearGradient id="cibg" x1="0" y1="0" x2="400" y2="480" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#0B5A96"/><stop offset="100%" stop-color="#2E86D1"/></linearGradient></defs></svg>
-          <div class="contact-inline-overlay-text">
-            <div class="cio-stat"><span class="cio-num" style="font-size:0.55em;">Nationwide</span><span class="cio-lbl">Corporate and government clients</span></div>
-            <div class="cio-stat"><span class="cio-num">20+</span><span class="cio-lbl">Years of experience</span></div>
-            <div class="cio-stat"><span class="cio-num" style="font-size:0.55em;">TIS</span><span class="cio-lbl">Manufactured to standard</span></div>
+      <a href="../blog-safety-sign-standards-th.html" class="blog-card">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+            <span class="img-ph-label">Thai legal safety<br>signage standards</span>
           </div>
         </div>
-        <div class="contact-inline-photo-badge">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10B981"/><path d="M8 12l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Reply within 24 hours
+        <div class="blog-card-body">
+          <span class="blog-tag">Featured Article <small class="lang-tag">TH</small></span>
+          <h3>Safety Signage Standards Required by Thai Law: What Business Owners Need to Know</h3>
+          <p>A summary of the key laws and standards governing safety signage in Thai workplaces, from the Occupational Safety Act to TIS.</p>
+          <div class="blog-card-foot">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>15 Jun 2026</span>
+            <span class="blog-card-link">Read more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+          </div>
         </div>
-      </div>
+      </a>
 
-      <div class="contact-inline-form-wrap">
-        <h2 class="contact-inline-title">Get in Touch<br><span>Free Consultation</span></h2>
-        <form id="contact-inline-form-en" onsubmit="handleInlineContactFormEN(event)" novalidate>
-          <div class="cif-row">
-            <div class="cif-field">
-              <label class="cif-label">Full Name / Company Name <span class="cif-req">*</span></label>
-              <input type="text" id="cif-name-en" class="cif-input" placeholder="Enter your name or company name" required autocomplete="name" />
-            </div>
-            <div class="cif-field">
-              <label class="cif-label">Email <span class="cif-req">*</span></label>
-              <input type="email" id="cif-email-en" class="cif-input" placeholder="Enter your email" required autocomplete="email" />
-            </div>
+      <a href="../blog.html" class="blog-card">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>
+            <span class="img-ph-label">Choosing traffic sign<br>materials for your site</span>
           </div>
-          <div class="cif-row">
-            <div class="cif-field">
-              <label class="cif-label">Phone Number <span class="cif-req">*</span></label>
-              <input type="tel" id="cif-tel-en" class="cif-input" placeholder="e.g. 08x-xxx-xxxx" required autocomplete="tel" inputmode="tel" pattern="0[0-9]([\s-]?[0-9]){7,8}" />
-            </div>
-            <div class="cif-field">
-              <label class="cif-label">Service of Interest <span class="cif-req">*</span></label>
-              <div class="cif-select-wrap">
-                <select id="cif-service-en" class="cif-input cif-select" required>
-                  <option value="" disabled selected>Select a service</option>
-                  <option>Safety Signs (TIS Standard)</option>
-                  <option>Standard Traffic Signs</option>
-                  <option>Custom Production</option>
-                  <option>Site Survey &amp; Installation</option>
-                  <option>Enterprise Quote Request</option>
-                </select>
-                <svg class="cif-select-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-            </div>
+        </div>
+        <div class="blog-card-body">
+          <span class="blog-tag">Materials &amp; Manufacturing <small class="lang-tag">TH</small></span>
+          <h3>How to Choose Traffic Sign Materials That Withstand Thailand's Sun and Rain: PVC, Acrylic, or Reflective Sticker</h3>
+          <p>Compare the pros and cons of each sign material, with guidance on choosing the right one for real-world site conditions.</p>
+          <div class="blog-card-foot">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Coming soon</span>
+            <span class="blog-card-link">Read more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
           </div>
-          <div class="cif-field">
-            <label class="cif-label">Message <span class="cif-req">*</span></label>
-            <textarea id="cif-msg-en" class="cif-input cif-textarea" placeholder="Tell us about your requirements..." rows="4" required></textarea>
+        </div>
+      </a>
+
+      <a href="../blog.html" class="blog-card">
+        <div class="img-ph img-ph--4-3">
+          <div class="img-ph-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+            <span class="img-ph-label">International safety symbols</span>
           </div>
-          <div class="cs-turnstile-wrap" id="cif-turnstile-en"></div>
-          <button type="submit" class="cif-submit">
-            Send Message
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <div class="cif-success" id="cif-success-en" style="display:none;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10B981"/><path d="M8 12l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Thank you! Our team will get back to you within 24 hours.
+        </div>
+        <div class="blog-card-body">
+          <span class="blog-tag">International Standards <small class="lang-tag">TH</small></span>
+          <h3>What Are International Safety Symbols, and Why Do Export Factories Need Them?</h3>
+          <p>Understand the origin of international safety symbols and how they differ from Thailand's TIS standard.</p>
+          <div class="blog-card-foot">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Coming soon</span>
+            <span class="blog-card-link">Read more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
           </div>
-        </form>
-      </div>
+        </div>
+      </a>
 
     </div>
 
-    <div class="faq-tagline" data-reveal>
-      <p class="faq-tagline-text">"Complete signage manufacturing to <strong>international standards</strong>, delivered nationwide."</p>
+    <div style="text-align:center;margin-top:44px;" data-reveal>
+      <a href="../blog.html" class="btn btn-secondary btn-lg">
+        View All Articles <small class="lang-tag">TH</small>
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
     </div>
 
+    <!-- CTA band -- links to the contact page -->
+    <div class="home-cta-band" data-reveal style="margin-top:64px;margin-bottom:8px;">
+      <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+      <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
+      <div class="home-cta-bg-art" aria-hidden="true">
+        <svg viewBox="0 0 1200 340" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <path d="M980 40C1080 40 1160 110 1160 190C1160 270 1080 320 990 320" stroke="rgba(255,255,255,0.06)" stroke-width="46" stroke-linecap="round" fill="none"/>
+          <path d="M840 20L1180 320M1180 20L840 320" stroke="rgba(255,255,255,0.045)" stroke-width="40" stroke-linecap="round"/>
+          <circle cx="150" cy="60" r="140" fill="rgba(255,255,255,0.035)"/>
+        </svg>
+      </div>
+      <div class="home-cta-content">
+        <h2 class="home-cta-title">Professional Expertise in Safety &amp; Traffic Signage<br>&mdash; Get a Free Consultation With <span class="home-cta-accent">CS.SIGN</span></h2>
+        <a href="contact.html" class="home-cta-btn">Contact Us</a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -800,12 +938,13 @@
       <div>
         <div class="footer-h">Company</div>
         <div class="footer-links">
-          <a href="../about.html">About Us <small class="lang-tag">TH</small></a>
-          <a href="#process">How It Works</a>
-          <a href="../portfolio.html">Our Work <small class="lang-tag">TH</small></a>
-          <a href="../quality-policy.html">Quality Policy <small class="lang-tag">TH</small></a>
-          <a href="../blog.html">Articles <small class="lang-tag">TH</small></a>
-          <a href="#contact-en">Contact Us</a>
+          <a href="about.html">About Us</a>
+          <a href="portfolio.html">Our Work</a>
+          <a href="quality-policy.html">Quality Policy</a>
+          <a href="blog.html">Articles</a>
+          <a href="about.html#faq">FAQ</a>
+          <a href="#" data-track-modal-open>Track your order status</a>
+          <a href="contact.html">Contact Us</a>
         </div>
       </div>
 
@@ -833,89 +972,50 @@
     <div class="footer-bottom">
       <span>© 2004–2026 CS.SIGN And Products Co., Ltd.</span>
       <span>Tax ID: 0105554109658</span>
-      <span><a href="../privacy-policy.html" style="color:inherit;">Privacy Policy</a> <small class="lang-tag lang-tag--dark">TH</small> · <a href="../terms.html" style="color:inherit;">Terms of Service</a> <small class="lang-tag lang-tag--dark">TH</small> &middot; <a href="../accessibility.html" style="color:inherit;">Accessibility Statement</a> <small class="lang-tag lang-tag--dark">TH</small></span>
+      <span><a href="privacy-policy.html" style="color:inherit;">Privacy Policy</a> · <a href="terms.html" style="color:inherit;">Terms of Service</a> &middot; <a href="accessibility.html" style="color:inherit;">Accessibility Statement</a></span>
     </div>
   </div>
 </footer>
 
 <script src="../js/tabs-overflow.js"></script>
+<script src="../js/img-error-fallback.js"></script>
 <script src="../js/hero-parallax.js"></script>
 <script src="../js/main.js"></script>
+<script src="../js/main-effects.js"></script>
 <script src="../js/cookie-consent.js"></script>
+<script src="../js/analytics.js"></script>
+<script src="../js/site-search-index.js"></script>
+<script src="../js/site-search.js"></script>
+<script type="module" src="../js/site-settings.js"></script>
+<script type="module" src="../js/nav-menu.js"></script>
+<script type="module" src="../js/cart-global.js"></script>
+<script type="module" src="../js/portfolio-lightbox.js"></script>
+<script type="module" src="../js/portfolio-render.js"></script>
+<script type="module" src="../js/home-dynamic.js"></script>
+<script type="module" src="../js/home-dynamic-showcase.js"></script>
+<!-- ============================================================
+     CS.SIGN AI CHAT POPUP
+     ============================================================ -->
 
-<script type="module">
-import { saveLead } from '../js/leads.js';
-import { sendLeadEmails } from '../js/email-notify.js';
-import { initAntiSpam, isSpamSubmission } from '../js/anti-spam.js';
-import { mountTurnstile, getTurnstileToken, resetTurnstile } from '../js/turnstile.js';
-import { showToast } from '../js/form-toast.js';
-import { wireLiveValidation, validateFormFields } from '../js/form-validate.js';
+<!-- FAB trigger button -->
+<script src="../js/track-modal-template.js"></script>
+<script type="module" src="../js/track-modal.js"></script>
+<script src="../js/cart-modal-template.js"></script>
+<script src="../js/cart-modal.js"></script>
+<script src="../js/quote-form-template.js"></script>
+<script type="module" src="../js/quote-form.js"></script>
+<script src="../js/chat-widget-template.js"></script>
 
-// ข้อความ error ภาษาอังกฤษ ใช้แทนค่าเริ่มต้นภาษาไทยของ form-validate.js
-var EN_MESSAGES = {
-  required: 'Please fill in this field.',
-  email:    'Please enter a valid email address, e.g. name@example.com',
-  tel:      'Please enter a valid Thai phone number, e.g. 08x-xxx-xxxx'
-};
+<!-- ============================================================
+     QUOTATION POPUP MODAL — redesigned, full-width estimator
+     ============================================================ -->
+<script src="../js/qmodal-template.js"></script>
 
-(function () {
-  var inlineForm = document.getElementById('contact-inline-form-en');
-  if (inlineForm) initAntiSpam(inlineForm);
-  if (inlineForm) wireLiveValidation(inlineForm, EN_MESSAGES);
-  var tsEl = document.getElementById('cif-turnstile-en');
-  if (tsEl) mountTurnstile(tsEl); // this form is always visible on the page (not a modal), so mount right away
-})();
-
-window.handleInlineContactFormEN = async function(e) {
-  e.preventDefault();
-  var form   = document.getElementById('contact-inline-form-en');
-  var btn    = form.querySelector('.cif-submit');
-  var success = document.getElementById('cif-success-en');
-  var tsEl    = document.getElementById('cif-turnstile-en');
-
-  if (isSpamSubmission(form)) {
-    /* looks like a bot — silently drop it but still show success, so bots don't adapt */
-    form.querySelectorAll('.cif-field, .cif-row, .cif-submit, .cs-turnstile-wrap').forEach(function(el){ el.style.display = 'none'; });
-    success.style.display = 'flex';
-    return;
-  }
-
-  var name    = document.getElementById('cif-name-en').value.trim();
-  var email   = document.getElementById('cif-email-en').value.trim();
-  var phone   = document.getElementById('cif-tel-en').value.trim();
-  var service = document.getElementById('cif-service-en').value;
-  var message = document.getElementById('cif-msg-en').value.trim();
-
-  if (!validateFormFields(form, EN_MESSAGES)) return; // checks email/phone format + all required fields, shows inline errors
-  if (!getTurnstileToken(tsEl)) {
-    showToast('Please complete the verification (Turnstile) before submitting.', 'warn');
-    return;
-  }
-
-  var originalBtnHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.textContent = 'Sending...';
-
-  var leadData = { name, email, phone, service, message, lang: 'en' };
-
-  try {
-    await saveLead(leadData, 'inline_contact_en', getTurnstileToken(tsEl));
-  } catch (err) {
-    console.error('Lead save error:', err);
-    showToast('Sorry, we could not save your message right now. Please try again or call us at +66 62-883-3880.', 'error');
-    resetTurnstile(tsEl);
-    btn.disabled = false;
-    btn.innerHTML = originalBtnHTML;
-    return;
-  }
-  sendLeadEmails(leadData, 'inline_contact_en');
-
-  resetTurnstile(tsEl);
-  form.querySelectorAll('.cif-field, .cif-row, .cif-submit, .cs-turnstile-wrap').forEach(function(el){ el.style.display = 'none'; });
-  success.style.display = 'flex';
-};
-</script>
-
+<script src="../js/qmodal.js"></script>
+<script type="module" src="../js/chat-widget.js"></script>
+<script type="module" src="../js/lead-quote-modal.js"></script>
+<script src="../js/exit-intent-cta.js"></script>
 <script src="../js/fancy-effects.js" defer></script>
+<script src="../js/pwa-register.js"></script>
 </body>
 </html>

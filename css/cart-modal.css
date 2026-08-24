@@ -1,0 +1,147 @@
+/* ===========================================================
+   css/cart-modal.css — ป๊อปอัพ "ตะกร้าของฉัน" (P3.0 Phase 1 รอบย่อย 4)
+   เปิดจากไอคอนตะกร้าบน navbar / เมนูมือถือ (ดู .nav-cart-trigger / .mobile-cart-link ใน
+   js/main.js ฟังก์ชัน cartNavIcon() — รอบย่อย 3) โครงสร้าง class/token เดียวกับ
+   css/track-modal.css ทุกประการ (prefix "cm-" แทน "tm-" กันชนกัน) — ยังไม่มี logic ผูกจริงในรอบนี้
+   (js/cart-modal.js มาในรอบย่อยถัดไป — ดู continue-prompt-p3.0-phase1-round4-cont.md) แต่ CSS
+   เตรียมสถานะที่ต้องใช้ไว้ครบแล้ว (ตะกร้าว่าง / มีรายการ / ปุ่มโหลด ฯลฯ)
+   =========================================================== */
+
+.cm-overlay{
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(6,12,24,0.72);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  animation:cmOverlayIn .22s ease;
+}
+@keyframes cmOverlayIn{ from{ opacity:0; } to{ opacity:1; } }
+
+.cm-modal{
+  position:relative;
+  width:100%; max-width:520px; max-height:92vh;
+  background:var(--gray-25);
+  border-radius:26px;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 40px 90px rgba(5,10,20,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  animation:cmModalIn .38s cubic-bezier(.22,1,.36,1);
+}
+@keyframes cmModalIn{
+  from{ opacity:0; transform:translateY(28px) scale(.96); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+.cm-close{
+  position:absolute; top:14px; right:14px; z-index:10;
+  width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,0.16); color:#fff; border:none; cursor:pointer;
+  transition:all .18s var(--ease);
+}
+.cm-close:hover{ background:rgba(255,255,255,0.3); transform:scale(1.08) rotate(90deg); }
+
+.cm-head{
+  position:relative; overflow:hidden;
+  background:linear-gradient(155deg, var(--primary-dark), var(--primary) 60%, var(--primary-light));
+  padding:30px 30px 22px;
+  color:#fff; flex-shrink:0;
+}
+.cm-eyebrow{
+  position:relative; z-index:1;
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:11.5px; font-weight:700; letter-spacing:.04em;
+  background:rgba(255,255,255,0.16); color:#fff;
+  padding:6px 13px; border-radius:99px; margin-bottom:12px;
+  border:1px solid rgba(255,255,255,0.2);
+}
+.cm-head h2{
+  position:relative; z-index:1;
+  font-family:var(--font-display); font-weight:700; letter-spacing:-0.01em;
+  font-size:22px; margin:0;
+}
+
+/* ── รายการสินค้าในตะกร้า ───────────────────────────── */
+.cm-body{ padding:22px 26px 24px; overflow-y:auto; }
+
+.cm-list{ display:flex; flex-direction:column; gap:14px; }
+
+.cm-item{
+  display:flex; align-items:flex-start; gap:12px;
+  padding:14px; background:#fff; border:1px solid var(--gray-100); border-radius:var(--r-md);
+}
+.cm-item-img{
+  width:56px; height:56px; border-radius:var(--r-sm); object-fit:cover; flex-shrink:0;
+  background:var(--gray-50); border:1px solid var(--gray-100);
+}
+.cm-item-info{ flex:1; min-width:0; }
+.cm-item-name{ font-size:13.5px; font-weight:700; color:var(--secondary); line-height:1.4; }
+.cm-item-meta{ font-size:12px; color:var(--gray-500); margin-top:2px; line-height:1.5; }
+.cm-item-price-hint{ font-size:12px; color:var(--gray-500); margin-top:6px; }
+.cm-item-price-hint strong{ color:var(--primary); font-weight:700; }
+
+.cm-item-side{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0; }
+.cm-item-remove{
+  background:none; border:none; color:var(--gray-400); cursor:pointer; padding:2px;
+  display:flex; align-items:center; justify-content:center; transition:color .15s var(--ease);
+}
+.cm-item-remove:hover{ color:#B3261E; }
+.cm-item-remove svg{ width:15px; height:15px; }
+
+.cm-qty{ display:flex; align-items:center; gap:6px; }
+.cm-qty-btn{
+  width:24px; height:24px; border-radius:var(--r-sm); border:1px solid var(--gray-200);
+  background:var(--gray-25); color:var(--secondary); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
+  transition:all .15s var(--ease);
+}
+.cm-qty-btn:hover{ background:#fff; border-color:var(--primary); color:var(--primary); }
+.cm-qty-btn:disabled{ opacity:.5; cursor:not-allowed; }
+.cm-qty-val{ min-width:22px; text-align:center; font-size:13px; font-weight:700; color:var(--secondary); font-family:var(--font-mono); }
+
+/* ── ตะกร้าว่าง ─────────────────────────────────────── */
+.cm-empty{ display:none; flex-direction:column; align-items:center; text-align:center; padding:32px 10px; }
+.cm-empty.show{ display:flex; }
+.cm-empty-icon{
+  width:56px; height:56px; border-radius:50%; background:var(--gray-50); color:var(--gray-400);
+  display:flex; align-items:center; justify-content:center; margin-bottom:14px;
+}
+.cm-empty-icon svg{ width:24px; height:24px; }
+.cm-empty-title{ font-size:14.5px; font-weight:700; color:var(--secondary); margin-bottom:4px; }
+.cm-empty-text{ font-size:12.5px; color:var(--gray-500); line-height:1.6; max-width:280px; }
+
+/* ── หมายเหตุราคาโดยประมาณ ───────────────────────────── */
+.cm-price-note{
+  display:flex; align-items:flex-start; gap:8px; margin-top:16px;
+  background:#FDF0E3; border:1px solid #F5DDBB; color:#8A5A12;
+  border-radius:var(--r-md); padding:10px 12px; font-size:11.5px; line-height:1.6;
+}
+.cm-price-note svg{ width:15px; height:15px; flex-shrink:0; margin-top:1px; }
+
+/* ── footer / CTA ───────────────────────────────────── */
+.cm-footer{ border-top:1px solid var(--gray-100); padding-top:18px; margin-top:18px; }
+.cm-footer-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-size:13px; color:var(--gray-600); }
+.cm-footer-row strong{ color:var(--secondary); font-family:var(--font-mono); font-size:14px; }
+
+.cm-quote-btn{
+  width:100%; padding:13.5px; font-size:14.5px; font-weight:700; font-family:var(--font-display); letter-spacing:.01em;
+  color:#fff; background:linear-gradient(120deg, var(--primary), var(--primary-light)); border:none; border-radius:var(--r-md);
+  cursor:pointer;
+  transition:filter .18s var(--ease), transform .18s var(--ease), box-shadow .18s var(--ease);
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 8px 20px rgba(var(--primary-rgb),0.28);
+}
+.cm-quote-btn:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+.cm-quote-btn:active{ transform:translateY(0); }
+.cm-quote-btn:disabled{ opacity:.6; cursor:not-allowed; transform:none; filter:none; }
+.cm-quote-btn svg{ width:16px; height:16px; flex-shrink:0; }
+
+@media (max-width:480px){
+  .cm-modal{ max-width:100%; border-radius:20px; }
+  .cm-head{ padding:26px 20px 20px; }
+  .cm-body{ padding:18px 20px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .cm-overlay, .cm-modal{ animation:none; }
+}

@@ -17,6 +17,14 @@
 
     if (reduceMotion) return; // leave headings exactly as authored
 
+    /* no IntersectionObserver support: leave headings at their default
+       visible styles (never add fx-flicker, which starts at opacity:0
+       until the IO fires --active) — same fallback contract as
+       getRevealIO() in js/main.js. Without this guard, constructing the
+       IO below throws a ReferenceError and silently kills every effect
+       that start() still had queued after initFlicker(). */
+    if (!('IntersectionObserver' in window)) return;
+
     targets.forEach(function(el){
       el.classList.add("fx-flicker");
     });
@@ -101,6 +109,11 @@
   function initTick(){
     var targets = document.querySelectorAll(".qp-pillar-num, .ab-consult-num");
     if (!targets.length || reduceMotion) return;
+
+    /* same IntersectionObserver feature-detection as initFlicker() above
+       — skip adding fx-tick (opacity:0 until --active) entirely rather
+       than throwing and leaving the numbers permanently invisible. */
+    if (!('IntersectionObserver' in window)) return;
 
     targets.forEach(function(el){ el.classList.add("fx-tick"); });
 

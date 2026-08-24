@@ -1,6 +1,23 @@
 /* ===========================================================
-   CS.SIGN — Enterprise Redesign — main.js
+   CS.SIGN — Enterprise Redesign — main.js (ส่วนที่ 1/2)
    Pure vanilla JS. No dependencies.
+
+   2026 refactor: ไฟล์นี้เดิมรวมทุกลูกเล่นหน้าเว็บไว้ในไฟล์เดียว (862 บรรทัด)
+   ถูกแยกเป็น 2 ไฟล์ตามความรับผิดชอบ:
+     - main.js (ไฟล์นี้): พฤติกรรมหลักของหน้า/นำทาง — page transition, sticky
+       nav, mobile menu, reveal-on-scroll (เปิดเป็น window.CSSIGN_observeReveal
+       ให้ products.js/portfolio-render.js/blog-render.js/home-dynamic*.js เรียกใช้
+       ซ้ำได้), stat counters, FAQ accordion, product tab filter, back-to-top
+     - main-effects.js (ไฟล์ใหม่): ลูกเล่นตกแต่งที่ไม่กระทบการใช้งานหลัก — footer
+       extras, cursor-spotlight/3D tilt, ripple/magnetic CTA/tab-title reaction
+   ทั้งสองไฟล์เป็น classic script (ไม่ใช่ ES module) เหมือนเดิม จึงสื่อสารกันผ่าน
+   window.CSSIGN_* เท่านั้น (ไม่มี import/export) — main-effects.js ต้องโหลดต่อจาก
+   ไฟล์นี้เสมอ (ดู <script> tag ในทุกหน้า HTML) เพราะใช้ window.CSSIGN_observeReveal
+   ที่ไฟล์นี้ตั้งไว้ ไม่มีการเปลี่ยน logic ใดๆ จากของเดิม เป็นแค่ย้ายโค้ดเชิงโครงสร้าง
+
+   2026 refactor รอบที่ 34: ลบส่วน "7. TESTIMONIAL CAROUSEL" (เดิม 135 บรรทัด,
+   window.CSSIGN_initTestiCarousel) ออกทั้งชุด เพราะเป็นโค้ดตายแล้ว — ดูเหตุผลเต็ม
+   ที่คอมเมนต์ตรงตำแหน่งเดิมของโค้ดด้านล่าง (หัวข้อ "7. TESTIMONIAL CAROUSEL")
    =========================================================== */
 (function(){
   "use strict";
@@ -51,7 +68,7 @@
 
       var url;
       try { url = new URL(href, window.location.href); }
-      catch (err) { return; }
+      catch { return; }
       if (url.origin !== window.location.origin) return;
       /* same page, different hash only — let the browser handle it */
       if (url.pathname === window.location.pathname && url.hash) return;
@@ -63,7 +80,7 @@
 
     /* if the page is restored from bfcache (back/forward), make sure
        it isn't left mid-fade from a previous navigation */
-    window.addEventListener('pageshow', function (evt) {
+    window.addEventListener('pageshow', function () {
       document.body.classList.remove('page-fade-out');
     });
   })();
@@ -76,7 +93,6 @@
      ----------------------------------------------------------- */
   var header = document.getElementById('site-header');
   var topbar = document.getElementById('topbar');
-  var hero = document.querySelector('.hero');
   var lastScrollY = window.scrollY || 0;
 
   /* ---- scroll-progress bar — a thin gradient strip injected once,
@@ -291,7 +307,6 @@
   var statEls = document.querySelectorAll('.stat-num[data-count]');
   function animateCount(el){
     var target = parseInt(el.getAttribute('data-count'), 10) || 0;
-    var suffixEl = el.querySelector('span');
     var duration = 1600;
     var start = null;
 
@@ -367,151 +382,29 @@
   });
 
   /* -----------------------------------------------------------
-     7. TESTIMONIAL CAROUSEL
-     Exposed as window.CSSIGN_initTestiCarousel so it can be safely
-     re-run by js/home-dynamic.js after it swaps in real testimonial
-     data from Firestore (the cards on first load are the hardcoded
-     placeholders baked into index.html). Re-running is idempotent:
-     old listeners/intervals are torn down first so calling it twice
-     never double-fires clicks, autoplay, or resize handling.
+     7. TESTIMONIAL CAROUSEL — ลบออกแล้ว (รอบที่ 34, เดิม 135 บรรทัดตรงนี้)
+     ตรวจสอบแล้วว่าเป็นโค้ดตายทั้งชุด: window.CSSIGN_initTestiCarousel ทำงานกับ
+     #testi-track/#testi-dots/#testi-prev/#testi-next/.testi-card/.testi-wrap
+     ซึ่งไม่มีที่ไหนในโปรเจกต์สร้าง element เหล่านี้ขึ้นมาอีกต่อไปแล้ว — เดิมเป็น
+     js/home-dynamic-social.js ที่ inject ผ่าน renderTestimonials() แต่ฟังก์ชัน
+     นั้นถูกลบไปแล้วตั้งแต่ "2026 refactor phase 25" (เหตุผลเต็ม: ดูคอมเมนต์หัวไฟล์
+     js/home-dynamic.js) เพราะ .testi-wrap ทั้งชุดเป็นดีไซน์รุ่นก่อนที่ถูกแทนที่
+     ด้วย .trust-stats-grid/.trust-feature-card ไปแล้ว — phase 25 ตอนนั้นจำกัด
+     ขอบเขตแค่ home-dynamic*.js เท่านั้น ไม่ได้ไล่มาที่ js/main.js (คนละไฟล์
+     คนละรอบ) จึงเหลือฟังก์ชันที่ไม่มีจุดเรียกใช้จริงติดค้างอยู่ที่นี่มาตลอด —
+     ยืนยันแล้วรอบนี้ว่า window.CSSIGN_initTestiCarousel ไม่มีไฟล์ไหนเรียกเลย
+     (เดิมควรจะเป็น home-dynamic.js ที่เรียกหลัง render แต่ถูกลบไปพร้อม
+     renderTestimonials() แล้ว) — grep ทั่วโปรเจกต์ทั้งหมด (js/*.js 98 ไฟล์เดิม,
+     HTML ทุกหน้า TH/EN, css/*.css) หา "testi-"/"initTestiCarousel"/
+     "CSSIGN_initTesti" เจอแค่คอมเมนต์อธิบายเหตุผลใน home-dynamic.js/
+     home-dynamic-social.js เท่านั้น ไม่มีจุดเรียกใช้งานจริงเหลือเลยสักจุด
+     (css/style.css ก็ไม่มี .testi-* หลงเหลือแล้ว — ถูกลบไปก่อนหน้านี้แล้วในรอบอื่น)
+     จึงลบทิ้งทั้งชุดแทนการย้ายไปไฟล์ใหม่เฉยๆ (ย้ายซากไปไฟล์ใหม่ไม่มีประโยชน์เพิ่ม)
+     — ถ้าต้องการรีวิวลูกค้าแบบ carousel กลับมาบนหน้าแรกอีกครั้งในอนาคต แนะนำ
+     ออกแบบ section ใหม่ให้เข้ากับดีไซน์ปัจจุบัน (.trust-stats-grid/
+     .trust-feature-card) แทนการกู้โค้ดชุดนี้กลับมาใช้ (อ้างอิง #testi-track ที่
+     ไม่มีอยู่แล้ว)
      ----------------------------------------------------------- */
-  var testiResizeHandler = null;
-  var testiAutoplay = null;
-
-  function initTestiCarousel(){
-    var track = document.getElementById('testi-track');
-    var dotsWrap = document.getElementById('testi-dots');
-    var prevBtn = document.getElementById('testi-prev');
-    var nextBtn = document.getElementById('testi-next');
-    if(!track) return;
-
-    // Tear down any previous instance before re-initializing.
-    if(testiResizeHandler){ window.removeEventListener('resize', testiResizeHandler); testiResizeHandler = null; }
-    if(testiAutoplay){ clearInterval(testiAutoplay); testiAutoplay = null; }
-    if(prevBtn){ var freshPrev = prevBtn.cloneNode(true); prevBtn.replaceWith(freshPrev); prevBtn = freshPrev; }
-    if(nextBtn){ var freshNext = nextBtn.cloneNode(true); nextBtn.replaceWith(freshNext); nextBtn = freshNext; }
-
-    var cards = track.querySelectorAll('.testi-card');
-    if(!cards.length) return;
-    // เริ่มต้นที่การ์ดใบที่ 2 (index 1) แทนใบแรก ตามที่ต้องการให้ตอนโหลดหน้า
-    // การ์ดกลาง/ที่ active อยู่คือใบที่สองเสมอ (กันกรณีมีการ์ดใบเดียวด้วย Math.min)
-    var index = Math.min(1, cards.length - 1);
-    // Coverflow mode: one card "active" (centered, full size) at a time, with
-    // neighbouring cards peeking at reduced scale/opacity on either side —
-    // matches the centred social-post carousel reference rather than the old
-    // fixed 1/2/3-per-view grid slider.
-    var maxIndex = cards.length - 1;
-
-    function buildDots(){
-      dotsWrap.innerHTML = '';
-      for(var i = 0; i <= maxIndex; i++){
-        var dot = document.createElement('button');
-        dot.className = 'testi-dot' + (i === index ? ' active' : '');
-        dot.setAttribute('aria-label', 'ไปที่รีวิว ' + (i + 1));
-        dot.addEventListener('click', function(idx){
-          return function(){ goTo(idx); };
-        }(i));
-        dotsWrap.appendChild(dot);
-      }
-    }
-
-    function update(skipTransition){
-      var cardWidth = cards[0].getBoundingClientRect().width;
-      var gap = 24;
-      var outerWidth = track.parentElement.getBoundingClientRect().width;
-      var activeCenter = index * (cardWidth + gap) + cardWidth / 2;
-      var offset = (outerWidth / 2) - activeCenter;
-      if(skipTransition){
-        // Jump to the new position with the transform transition switched
-        // off, so the fade (handled separately by the .testi-track--jump
-        // class) is the only motion the user sees — no whip-pan across
-        // the intervening cards.
-        var prevTransition = track.style.transition;
-        track.style.transition = 'none';
-        track.style.transform = 'translateX(' + offset + 'px)';
-        void track.offsetWidth; // force reflow so 'none' actually takes effect
-        track.style.transition = prevTransition || '';
-      } else {
-        track.style.transform = 'translateX(' + offset + 'px)';
-      }
-      cards.forEach(function(c, i){
-        c.classList.toggle('is-active', i === index);
-      });
-      dotsWrap.querySelectorAll('.testi-dot').forEach(function(d, i){
-        d.classList.toggle('active', i === index);
-      });
-    }
-
-    var jumpTimer = null;
-    function goTo(i){
-      var next = Math.max(0, Math.min(i, maxIndex));
-      if(next === index) return;
-      // Adjacent moves (the common case: arrows, autoplay) keep the smooth
-      // sliding transform — it already reads well over a single card's
-      // distance. Distant jumps (a far dot, wrapping last → first) swap
-      // the slide for a soft cross-fade instead of a fast whip-pan.
-      var isDistantJump = Math.abs(next - index) > 1;
-      index = next;
-      if(isDistantJump){
-        clearTimeout(jumpTimer);
-        track.classList.add('testi-track--jump');
-        jumpTimer = setTimeout(function(){
-          update(true);
-          requestAnimationFrame(function(){
-            requestAnimationFrame(function(){
-              track.classList.remove('testi-track--jump');
-            });
-          });
-        }, 260);
-      } else {
-        update();
-      }
-    }
-
-    if(prevBtn){ prevBtn.addEventListener('click', function(){ goTo(index - 1 < 0 ? maxIndex : index - 1); }); }
-    if(nextBtn){ nextBtn.addEventListener('click', function(){ goTo(index + 1 > maxIndex ? 0 : index + 1); }); }
-
-    // Tapping a card that isn't the active/centred one brings it to centre —
-    // feels natural for a coverflow-style feed carousel.
-    cards.forEach(function(c, i){
-      c.addEventListener('click', function(e){
-        if(i !== index){ goTo(i); }
-      });
-    });
-
-    testiResizeHandler = function(){
-      clearTimeout(testiResizeHandler._t);
-      testiResizeHandler._t = setTimeout(update, 150);
-    };
-    window.addEventListener('resize', testiResizeHandler);
-
-    buildDots();
-    update();
-
-    /* autoplay
-       บั๊กที่แก้: เดิมมีแค่ mouseenter ที่ clearInterval() แต่ไม่มี mouseleave ที่
-       ตั้ง interval ใหม่เลย ผลคือแค่เอาเมาส์ไปแตะ carousel ครั้งเดียว autoplay จะ
-       หยุดตลอดไปสำหรับที่เหลือของการเข้าชมหน้านั้น (ต้อง reload หน้าใหม่เท่านั้นถึง
-       จะกลับมาเลื่อนอัตโนมัติ) แก้แล้วโดยเก็บ interval ไว้ในตัวแปรเดียว เริ่มใหม่ได้
-       ทุกครั้งที่เมาส์ออกจาก carousel */
-    function startAutoplay(){
-      testiAutoplay = setInterval(function(){
-        goTo(index + 1 > maxIndex ? 0 : index + 1);
-      }, 5500);
-    }
-    startAutoplay();
-    var testiWrap = track.closest('.testi-wrap');
-    testiWrap.addEventListener('mouseenter', function(){ clearInterval(testiAutoplay); });
-    testiWrap.addEventListener('mouseleave', function(){ clearInterval(testiAutoplay); startAutoplay(); });
-    /* WCAG 2.2.2 (Pause, Stop, Hide): the hover handlers above don't help
-       keyboard users tabbing through the cards/arrows — auto-advance would
-       yank focus context out from under them mid-read. Pause on focus too. */
-    testiWrap.addEventListener('focusin', function(){ clearInterval(testiAutoplay); });
-    testiWrap.addEventListener('focusout', function(){ clearInterval(testiAutoplay); startAutoplay(); });
-  }
-
-  window.CSSIGN_initTestiCarousel = initTestiCarousel;
-  initTestiCarousel();
 
   /* -----------------------------------------------------------
      BACK TO TOP
@@ -524,7 +417,6 @@
   (function initBackToTop(){
     if(document.querySelector('.back-to-top')) return; // safety: never double-inject
 
-    var NS = 'http://www.w3.org/2000/svg';
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'back-to-top';
@@ -582,285 +474,145 @@
   })();
 
   /* -----------------------------------------------------------
-     FOOTER — extra interactive touches (ลูกเล่น), injected once
-     so every page picks these up automatically. Grouped in one
-     init so a failure in one part (e.g. clipboard permission)
-     can't take the others down with it.
+     X. "ออเดอร์ของฉัน" NAV LINK (P2.8c-H)
+     ลิงก์ไปหน้า my-orders.html (เข้าดูออเดอร์ทั้งหมดที่เชื่อมบัญชี LINE ไว้ — P2.8c-E)
+     ฉีดเข้า DOM แบบไดนามิกจากไฟล์นี้ที่โหลดอยู่แล้วทุกหน้า แทนที่จะไปแก้ nav/mobile-menu
+     ในไฟล์ HTML 26 ไฟล์ตรงๆ — เหตุผลเดียวกับปุ่ม LIFF auto-link ใน js/track-modal.js
+     (P1.5): single source of truth จุดเดียว ไม่มีความเสี่ยงที่บางหน้าจะลืมใส่/ใส่ไม่ตรงกัน
+     รอบ P2.8c-I เพิ่ม en/my-orders.html แล้ว — ฉีดลิงก์ทั้ง /en/ (label ภาษาอังกฤษ) และหน้าไทย
+     เดิมเหมือนกัน ยังคงข้ามเฉพาะหน้า my-orders.html/en/my-orders.html เอง (ไม่มีประโยชน์ลิงก์ไป
+     หาตัวเอง) — ไม่เพิ่ม CSS ใหม่เลย ใช้ class `.nav-icon-btn` (desktop) เดิมจาก css/style.css
+     และสไตล์ `.mobile-links a` เดิม (mobile)
      ----------------------------------------------------------- */
-  (function initFooterExtras(){
-    var footer = document.querySelector('.site-footer');
-    if(!footer) return;
+  (function myOrdersNavLink(){
+    // P2.9-C: เปลี่ยนจากลิงก์ "ออเดอร์ของฉัน" ตรงไป my-orders.html เป็นลิงก์ "บัญชีของฉัน" ไป
+    // my-account.html (hub กลาง) แทน — my-account.html มีเมนูลิงก์ไป my-orders.html ต่ออีกที
+    // (ดู p2.9-account-hub-plan.md) ชื่อฟังก์ชัน/ตัวแปรคงชื่อเดิมไว้ ไม่เปลี่ยนเพื่อลด diff
+    var path = window.location.pathname;
+    var isEn = /\/en\//.test(path);
+    if (/\/my-account\.html$/.test(path)) return; // อยู่หน้านี้อยู่แล้ว ไม่ต้องลิงก์ไปหาตัวเอง
 
-    /* ---- toast host, shared by the copy-to-clipboard buttons ---- */
-    var toastHost = null;
-    function showFooterToast(msg){
-      if(!toastHost){
-        toastHost = document.createElement('div');
-        toastHost.className = 'footer-toast-host';
-        toastHost.setAttribute('aria-live', 'polite');
-        document.body.appendChild(toastHost);
-      }
-      var el = document.createElement('div');
-      el.className = 'footer-toast';
-      el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span></span>';
-      el.querySelector('span').textContent = msg;
-      toastHost.appendChild(el);
-      requestAnimationFrame(function(){ el.classList.add('is-visible'); });
-      setTimeout(function(){
-        el.classList.remove('is-visible');
-        setTimeout(function(){ el.remove(); }, 250);
-      }, 2000);
+    var href = 'my-account.html'; // relative ใช้ได้ทั้งสองภาษาเพราะ en/*.html ลิงก์กันเองแบบ relative อยู่แล้ว (เช่น index.html, products.html)
+    var label = isEn ? 'My Account' : 'บัญชีของฉัน';
+
+    // เดสก์ท็อป: ปุ่มไอคอนใน .nav-actions ข้างปุ่ม "เช็คสถานะคำสั่งผลิต" เดิม
+    var navActions = document.querySelector('.nav-actions');
+    var navTrackTrigger = navActions && navActions.querySelector('.nav-track-trigger');
+    if (navActions && navTrackTrigger && !navActions.querySelector('.nav-my-orders-trigger')) {
+      var iconLink = document.createElement('a');
+      iconLink.href = href;
+      iconLink.className = 'nav-icon-btn nav-my-orders-trigger';
+      iconLink.setAttribute('aria-label', label);
+      iconLink.setAttribute('title', label);
+      iconLink.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      navActions.insertBefore(iconLink, navTrackTrigger);
     }
 
-    /* ---- 1. cursor-follow spotlight on the footer background ---- */
-    try{
-      if(window.matchMedia && window.matchMedia('(hover:hover)').matches){
-        var spot = document.createElement('div');
-        spot.className = 'footer-spotlight';
-        spot.setAttribute('aria-hidden', 'true');
-        footer.insertBefore(spot, footer.firstChild);
-        var spotRaf = null;
-        footer.addEventListener('mousemove', function(e){
-          if(spotRaf) return;
-          spotRaf = requestAnimationFrame(function(){
-            var r = footer.getBoundingClientRect();
-            spot.style.setProperty('--fx', (((e.clientX - r.left) / r.width) * 100) + '%');
-            spot.style.setProperty('--fy', (((e.clientY - r.top) / r.height) * 100) + '%');
-            spotRaf = null;
-          });
-        });
-      }
-    }catch(e){}
-
-    /* ---- 3. stagger the four footer-grid columns in as they reveal ---- */
-    try{
-      var gridEl = footer.querySelector('.footer-grid');
-      if(gridEl){
-        Array.prototype.forEach.call(gridEl.children, function(child, i){
-          child.setAttribute('data-reveal', '');
-          child.style.setProperty('--fd', (i * 90) + 'ms');
-        });
-        if(window.CSSIGN_observeReveal){ window.CSSIGN_observeReveal(gridEl); }
-      }
-    }catch(e){}
-
-    /* ---- 4. copy-to-clipboard on phone / fax / email / address ---- */
-    try{
-      function fallbackCopy(text){
-        var ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        var ok = false;
-        try{ ok = document.execCommand('copy'); }catch(e){ ok = false; }
-        document.body.removeChild(ta);
-        return ok;
-      }
-      var vals = footer.querySelectorAll('.footer-contact-val');
-      Array.prototype.forEach.call(vals, function(el){
-        var text = el.textContent.trim();
-        if(!text || el.closest('.footer-contact-row')) return;
-
-        var row = document.createElement('div');
-        row.className = 'footer-contact-row';
-        el.parentNode.insertBefore(row, el);
-        row.appendChild(el);
-
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'footer-copy-btn';
-        btn.setAttribute('aria-label', 'คัดลอกข้อมูลนี้');
-        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
-        row.appendChild(btn);
-
-        btn.addEventListener('click', function(e){
-          e.preventDefault();
-          e.stopPropagation();
-          var done = function(ok){
-            if(!ok) return;
-            showFooterToast('คัดลอกแล้ว!');
-            btn.classList.add('is-copied');
-            setTimeout(function(){ btn.classList.remove('is-copied'); }, 1500);
-          };
-          if(navigator.clipboard && navigator.clipboard.writeText){
-            navigator.clipboard.writeText(text).then(function(){ done(true); }).catch(function(){ done(fallbackCopy(text)); });
-          } else {
-            done(fallbackCopy(text));
-          }
-        });
-      });
-    }catch(e){}
-
-    /* ---- 5. live "เปิด/ปิดทำการ" badge, Mon–Sat 08:00–17:00 (Asia/Bangkok) ---- */
-    try{
-      var labels = footer.querySelectorAll('.footer-contact-label');
-      var hoursTarget = null;
-      Array.prototype.forEach.call(labels, function(l){
-        if(/โทรศัพท์|hotline|phone/i.test(l.textContent)) hoursTarget = l;
-      });
-      if(hoursTarget){
-        var parts = new Intl.DateTimeFormat('en-US', {
-          timeZone: 'Asia/Bangkok', hour: '2-digit', hour12: false, weekday: 'short'
-        }).formatToParts(new Date());
-        var hour = 0, weekday = '';
-        parts.forEach(function(p){
-          if(p.type === 'hour') hour = parseInt(p.value, 10);
-          if(p.type === 'weekday') weekday = p.value;
-        });
-        var isOpen = weekday !== 'Sun' && hour >= 8 && hour < 17;
-        var badge = document.createElement('span');
-        badge.className = 'footer-hours-badge' + (isOpen ? '' : ' is-closed');
-        badge.innerHTML = '<span class="fhb-dot"></span>' + (isOpen ? 'เปิดทำการอยู่' : 'ปิดทำการแล้ว');
-        hoursTarget.appendChild(badge);
-      }
-    }catch(e){}
-
-    /* ---- 6. confetti burst when a social icon is clicked ---- */
-    try{
-      var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if(!prefersReducedMotion){
-        var colors = ['#C6862A', '#2E86D1', '#3DDC7A', '#D3A047'];
-        var socialLinks = footer.querySelectorAll('.footer-social a');
-        Array.prototype.forEach.call(socialLinks, function(a){
-          a.addEventListener('click', function(){
-            var rect = a.getBoundingClientRect();
-            var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-            for(var i = 0; i < 8; i++){
-              var dot = document.createElement('div');
-              dot.className = 'footer-confetti-dot';
-              var angle = (Math.PI * 2 / 8) * i + Math.random() * 0.4;
-              var dist = 30 + Math.random() * 24;
-              dot.style.left = cx + 'px';
-              dot.style.top = cy + 'px';
-              dot.style.background = colors[i % colors.length];
-              dot.style.setProperty('--cx', Math.cos(angle) * dist + 'px');
-              dot.style.setProperty('--cy', Math.sin(angle) * dist + 'px');
-              document.body.appendChild(dot);
-              (function(d){ setTimeout(function(){ d.remove(); }, 750); })(dot);
-            }
-          });
-        });
-      }
-    }catch(e){}
+    // มือถือ: ลิงก์ข้อความต่อท้ายลิงก์ "เช็คสถานะคำสั่งผลิต" เดิมใน .mobile-links
+    var mobileLinks = document.querySelector('.mobile-links');
+    var mobileTrackLink = mobileLinks && mobileLinks.querySelector('[data-track-modal-open]');
+    if (mobileLinks && mobileTrackLink && !mobileLinks.querySelector('.mobile-my-orders-link')) {
+      var textLink = document.createElement('a');
+      textLink.href = href;
+      textLink.className = 'mobile-my-orders-link';
+      textLink.textContent = isEn ? 'My Account' : 'บัญชีของฉัน';
+      mobileTrackLink.insertAdjacentElement('afterend', textLink);
+    }
   })();
 
-})();
+  /* -----------------------------------------------------------
+     Y. ไอคอนตะกร้า + badge จำนวนสินค้า ใน nav (P3.0 Phase 1 รอบย่อย 3)
+     ฉีดเข้า DOM แบบเดียวกับ myOrdersNavLink() ด้านบนทุกประการ (single source of truth จุด
+     เดียว ไม่ต้องแก้ nav/mobile-menu ในไฟล์ HTML 28 ไฟล์ตรงๆ — มีแค่การเพิ่ม
+     <script type="module" src="js/cart-global.js"> เข้าไปในทุกหน้าเท่านั้นที่ต้องแก้ HTML)
 
-/* ===========================================================
-   PREMIUM FLOURISHES — cursor-spotlight cards + real 3D tilt
-   Separate top-level IIFE (rather than folded into the block
-   above) since it applies sitewide, not just inside the footer.
-   Skips entirely on touch devices and prefers-reduced-motion —
-   both effects are pure ambience, never load-bearing for content.
-   =========================================================== */
-(function(){
-  "use strict";
-  try{
-    if(!window.matchMedia || !window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
-    var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+     ต่างจาก myOrdersNavLink() ตรงที่ต้องอ่านจำนวนสินค้าจาก js/cart.js ซึ่งเป็น ES module — ไฟล์นี้
+     (main.js) เป็น classic script อ่านตรงไม่ได้ ต้องผ่านสะพาน window.CSSignCart.getCartCount()
+     จาก js/cart-global.js (module, defer โดยอัตโนมัติ) แทน ซึ่งหมายความว่าตอน IIFE นี้รันครั้งแรก
+     (classic script รันทันทีตอน parse เจอ — เร็วกว่า module เสมอ) window.CSSignCart ยังไม่พร้อม
+     แน่นอน — ใช้วิธี dispatch custom event 'cssign:cart-updated' จากฝั่ง cart-global.js แทนแนวทาง
+     polling: เพราะเราผูก listener ไว้ ณ จุดนี้ (ตอน main.js รัน ซึ่งเกิดก่อน module รันเสมอตาม
+     ลำดับการโหลดสคริปต์ของเบราว์เซอร์) module ฝั่ง cart-global.js รันเสร็จทีหลังแน่ๆ แล้วค่อย
+     dispatch event มาหา — รับประกันว่าไม่มีจังหวะพลาด ไม่ต้องเดา timing ด้วย setTimeout/setInterval
 
-    var SPOTLIGHT_SEL = '.service-item, .port-card, .blog-card, .cert-card, ' +
-      '.benefit-card, .trust-feature-card, .qp-doc-card, .ab-value-card, ' +
-      '.pdp-related-card, .nf-link-card, .trust-stat-card, .fp-tile, ' +
-      '.home-cta-band, .site-cta-card';
+     ปุ่มยังไม่คลิกได้จริงในรอบนี้ (ตัดสินใจแล้ว — ดู p3.0-quotation-cart-plan.md หัวข้อ "รอบย่อย 3"
+     สำหรับเหตุผลเต็ม): ยังไม่มีหน้า/modal ตะกร้าให้ไปจริงจนกว่าจะถึงรอบย่อย 4 จึงใส่แค่
+     title/aria-label บอกไว้ก่อน ไม่ผูก action ปลอมๆ ที่ต้องรื้อทิ้งทีหลัง
+     ----------------------------------------------------------- */
+  (function cartNavIcon(){
+    var isEn = /\/en\//.test(window.location.pathname);
+    var label = isEn ? 'Cart' : 'ตะกร้าสินค้า';
+    var cartIconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
 
-    var raf = null, lastEl = null, lastX = 0, lastY = 0;
-
-    function apply(){
-      raf = null;
-      if(!lastEl) return;
-      var r = lastEl.getBoundingClientRect();
-      var sx = ((lastX - r.left) / r.width) * 100;
-      var sy = ((lastY - r.top) / r.height) * 100;
-      lastEl.style.setProperty('--sx', sx + '%');
-      lastEl.style.setProperty('--sy', sy + '%');
-
-      /* real 3D tilt, value cards only — small rotation range so it
-         reads as "premium hover", not a gimmick */
-      if(!prefersReduced && lastEl.classList.contains('ab-value-card')){
-        var rx = ((sy / 100) - 0.5) * -10; /* up/down cursor tilts card toward you */
-        var ry = ((sx / 100) - 0.5) * 12;
-        lastEl.style.setProperty('--rx', rx.toFixed(2) + 'deg');
-        lastEl.style.setProperty('--ry', ry.toFixed(2) + 'deg');
-      }
+    // เดสก์ท็อป: วางไอคอนตะกร้าไว้ต่อจากปุ่ม "บัญชีของฉัน" (ถ้ามี — บางหน้าเช่น my-account.html
+    // เองไม่มีปุ่มนั้นเพราะ myOrdersNavLink() ข้ามตัวเอง) ไม่งั้น fallback ไปต่อจากปุ่มเช็คสถานะ
+    // คำสั่งผลิตเดิมแทน เพื่อให้ไอคอนตะกร้าโชว์ครบทุกหน้าเสมอไม่ขึ้นกับว่าอยู่หน้าไหน
+    var navActions = document.querySelector('.nav-actions');
+    var navCartAnchor = navActions && (navActions.querySelector('.nav-my-orders-trigger') || navActions.querySelector('.nav-track-trigger'));
+    if (navActions && navCartAnchor && !navActions.querySelector('.nav-cart-trigger')) {
+      var cartBtn = document.createElement('button');
+      cartBtn.type = 'button';
+      cartBtn.className = 'nav-icon-btn nav-cart-trigger';
+      cartBtn.setAttribute('aria-label', label);
+      cartBtn.setAttribute('title', label);
+      cartBtn.innerHTML = cartIconSvg + '<span class="nav-cart-badge" aria-hidden="true"></span>';
+      // P3.0 Phase 1 รอบย่อย 4 ต่อ: เปิด modal ตะกร้า (js/cart-modal.js) — เช็ค
+      // window.openCartModal แบบ lazy ตอน click เท่านั้น (ไม่ใช่ตอน bind ตรงนี้) เพราะ
+      // cart-modal.js อาจยังโหลด/รันไม่เสร็จตอน cartNavIcon() ทำงาน (คนละจังหวะกับตอนผู้ใช้
+      // กดจริง ซึ่งเกิดหลังหน้าโหลดเสร็จสมบูรณ์แล้วเสมอ) เผื่อบางหน้าลืมใส่
+      // <script src="js/cart-modal-template.js">/<script src="js/cart-modal.js"> ก็ไม่ throw
+      // แค่กดแล้วไม่มีอะไรเกิดขึ้นเงียบๆ เหมือนแพทเทิร์น updateCartBadge() ด้านล่างที่เช็ค
+      // window.CSSignCart ก่อนเรียกอยู่แล้ว
+      cartBtn.addEventListener('click', function () {
+        if (window.openCartModal) window.openCartModal();
+      });
+      navCartAnchor.insertAdjacentElement('afterend', cartBtn);
     }
 
-    document.addEventListener('pointermove', function(e){
-      var el = e.target.closest ? e.target.closest(SPOTLIGHT_SEL) : null;
-      if(el !== lastEl && lastEl && lastEl.classList.contains('ab-value-card')){
-        lastEl.style.setProperty('--rx', '0deg');
-        lastEl.style.setProperty('--ry', '0deg');
-      }
-      lastEl = el;
-      if(!el) return;
-      lastX = e.clientX; lastY = e.clientY;
-      if(!raf) raf = requestAnimationFrame(apply);
-    }, { passive:true });
-  }catch(e){}
-})();
+    // มือถือ: ต่อจากลิงก์ "บัญชีของฉัน" เดิมใน .mobile-links เช่นกัน (fallback ไปต่อจากลิงก์
+    // เช็คสถานะคำสั่งผลิตถ้าไม่มี) — ใช้ href="#" + preventDefault แทนการไม่ใส่ href เลย เพื่อให้
+    // ยังกด/แตะได้เหมือน element อื่นในลิสต์เดียวกัน (คีย์บอร์ด/screen reader โฟกัสได้ปกติ) แค่ยัง
+    // ไม่พาไปไหนจนกว่าจะถึงรอบย่อย 4
+    var mobileLinks = document.querySelector('.mobile-links');
+    var mobileCartAnchor = mobileLinks && (mobileLinks.querySelector('.mobile-my-orders-link') || mobileLinks.querySelector('[data-track-modal-open]'));
+    if (mobileLinks && mobileCartAnchor && !mobileLinks.querySelector('.mobile-cart-link')) {
+      var mobileCartLink = document.createElement('a');
+      mobileCartLink.href = '#';
+      mobileCartLink.className = 'mobile-cart-link';
+      mobileCartLink.setAttribute('aria-label', label);
+      // P3.0 Phase 1 รอบย่อย 4 ต่อ: preventDefault (กัน href="#" เลื่อนหน้าขึ้นบนสุด) + เปิด
+      // modal ตะกร้าในฟังก์ชันเดียวกัน (ไม่ใช่เพิ่ม listener ที่สองซ้อนทับของเดิม) — เช็ค
+      // window.openCartModal แบบ lazy ตอน click เหมือนฝั่งเดสก์ท็อปด้านบนทุกประการ
+      mobileCartLink.addEventListener('click', function(e){
+        e.preventDefault();
+        if (window.openCartModal) window.openCartModal();
+      });
+      mobileCartLink.appendChild(document.createTextNode(label));
+      var mobileBadge = document.createElement('span');
+      mobileBadge.className = 'mobile-cart-badge';
+      mobileCartLink.appendChild(mobileBadge);
+      mobileCartAnchor.insertAdjacentElement('afterend', mobileCartLink);
+    }
 
-/* ===========================================================
-   GENERAL POLISH — ripple, magnetic CTAs, tab-title reaction
-   Small sitewide touches, each independent and each safe to no-op
-   silently if its DOM target isn't present on a given page.
-   =========================================================== */
-(function(){
-  "use strict";
-
-  /* ---- 1. Ripple on every .btn — classic material-style click
-     feedback, works with mouse, touch and keyboard alike (Enter/Space
-     dispatch a click event, so this fires there too). Skipped under
-     reduced-motion via the CSS keyframe itself, not here, so keyboard
-     focus rings are unaffected either way. ---- */
-  document.addEventListener('click', function(e){
-    var btn = e.target.closest && e.target.closest('.btn');
-    if(!btn) return;
-    try{
-      var r = btn.getBoundingClientRect();
-      var size = Math.max(r.width, r.height) * 1.6;
-      var x = (typeof e.clientX === 'number' && e.clientX) ? e.clientX - r.left : r.width / 2;
-      var y = (typeof e.clientY === 'number' && e.clientY) ? e.clientY - r.top : r.height / 2;
-      var span = document.createElement('span');
-      span.className = 'btn-ripple';
-      span.style.width = span.style.height = size + 'px';
-      span.style.left = (x - size / 2) + 'px';
-      span.style.top = (y - size / 2) + 'px';
-      btn.appendChild(span);
-      span.addEventListener('animationend', function(){ span.remove(); });
-      setTimeout(function(){ if(span.parentNode) span.remove(); }, 900); /* safety net */
-    }catch(err){}
-  });
-
-  /* ---- 2. Magnetic pull for large CTA buttons — same technique
-     already used on the back-to-top button, generalized to every
-     .btn-lg so the site's primary calls-to-action all get the same
-     tiny "pulled toward the cursor" feel. Desktop + fine pointer only. ---- */
-  try{
-    if(window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches &&
-       !(window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
-      document.querySelectorAll('.btn-lg').forEach(function(btn){
-        btn.addEventListener('mousemove', function(e){
-          var r = btn.getBoundingClientRect();
-          var mx = e.clientX - (r.left + r.width / 2);
-          var my = e.clientY - (r.top + r.height / 2);
-          btn.style.transform = 'translate(' + (mx * 0.12) + 'px,' + (my * 0.22) + 'px)';
-        });
-        btn.addEventListener('mouseleave', function(){ btn.style.transform = ''; });
+    // อัปเดตเลขใน badge ทุกจุดที่โผล่อยู่ในหน้า (เดสก์ท็อป + มือถือ พร้อมกันในฟังก์ชันเดียว) —
+    // เผื่อ window.CSSignCart ไม่พร้อมเลย (เช่น หน้าไหนลืมใส่ <script type="module"
+    // src="js/cart-global.js"> ในอนาคต) ให้ตกกลับเป็น 0/ซ่อน badge เงียบๆ ไม่ throw
+    function updateCartBadge(){
+      var count = (window.CSSignCart && typeof window.CSSignCart.getCartCount === 'function')
+        ? window.CSSignCart.getCartCount()
+        : 0;
+      var displayCount = count > 99 ? '99+' : String(count);
+      document.querySelectorAll('.nav-cart-badge').forEach(function(el){
+        el.textContent = displayCount;
+        el.style.display = count > 0 ? 'block' : 'none';
+      });
+      document.querySelectorAll('.mobile-cart-badge').forEach(function(el){
+        el.textContent = count > 0 ? ' (' + displayCount + ')' : '';
       });
     }
-  }catch(e){}
 
-  /* ---- 3. Tab-title reaction — a small, friendly nudge in the
-     browser tab when someone switches away mid-visit and back again,
-     rather than the title just sitting there unchanged. Purely
-     cosmetic, reverts instantly on return. ---- */
-  try{
-    var originalTitle = document.title;
-    var awayTitle = '👋 กลับมาคุยกันต่อได้เลย — CS.SIGN';
-    document.addEventListener('visibilitychange', function(){
-      document.title = document.hidden ? awayTitle : originalTitle;
-    });
-  }catch(e){}
+    updateCartBadge(); // เผื่อไว้ (ปกติจะยังเป็น 0 ตอนนี้เพราะ cart-global.js ยังไม่รัน ดูคอมเมนต์ด้านบน)
+    window.addEventListener('cssign:cart-updated', updateCartBadge);
+  })();
+
 })();

@@ -23,7 +23,7 @@
    empty menu. This mirrors the fallback pattern used by
    js/products.js elsewhere on the site.
    =========================================================== */
-import { getGroups, getCategories } from './db.js';
+import { getGroups, getCategories } from "./db-taxonomy.js";
 
 (function () {
   "use strict";

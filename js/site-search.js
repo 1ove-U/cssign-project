@@ -1,65 +1,23 @@
 /* ===========================================================
-   CS.SIGN — Sitewide Search
-   Pure vanilla JS. No dependencies. Client-side search index
-   covering every page, product category, project, certification
-   and FAQ on the site.
+   CS.SIGN — Sitewide Search: UI overlay & wiring
+   Pure vanilla JS. No dependencies (นอกจาก js/site-search-index.js
+   ที่ต้องโหลดมาก่อนไฟล์นี้เสมอ — ดูหมายเหตุด้านล่าง)
+
+   2026 refactor: แยกส่วน "ดัชนีค้นหา" (STATIC_INDEX/dynamicIndex/
+   loadDynamicIndex/TYPE_LABEL/score/search — 319 → ไฟล์นี้เดิม)
+   ออกไปเป็น js/site-search-index.js แล้ว (ดูรายละเอียดที่หัวไฟล์
+   นั้น) ไฟล์นี้เหลือแค่ UI: สร้าง overlay, render ผลลัพธ์,
+   ผูก event listener (คลิก/พิมพ์/คีย์ลัด) — ไม่มีการเปลี่ยน logic
+   ใดๆ จากของเดิม เป็นแค่ย้ายโค้ดเชิงโครงสร้าง อ้างอิงส่วนดัชนีผ่าน
+   `window.__ssIndex.search()` / `window.__ssIndex.TYPE_LABEL` /
+   `window.__ssIndex.loadDynamicIndex()` แทนการเรียกฟังก์ชัน local
+   เดิม (ไฟล์นี้เป็น IIFE ธรรมดา ไม่ใช่ ES module เหมือน js/admin-*.js
+   จึงส่งค่าข้ามไฟล์ผ่าน window namespace แทน import/export — ต้อง
+   โหลด js/site-search-index.js ก่อนไฟล์นี้เสมอ ดู <script> tag ที่
+   เพิ่มในทุกไฟล์ HTML ที่โหลดไฟล์นี้)
    =========================================================== */
 (function(){
   "use strict";
-
-  /* -----------------------------------------------------------
-     SEARCH INDEX — add new entries here as the site grows
-     type: page | product | project | cert | faq
-     ----------------------------------------------------------- */
-  var INDEX = [
-    /* ---- Pages ---- */
-    { type:'page', title:'หน้าแรก', desc:'ภาพรวมบริการ ป้ายความปลอดภัยและป้ายจราจรครบวงจร', url:'index.html', keywords:'home หน้าแรก cssign ซีเอสไซน์ บริษัท' },
-    { type:'page', title:'สินค้าทั้งหมด', desc:'ป้ายความปลอดภัย ป้ายจราจร และอุปกรณ์จราจรทุกประเภท', url:'products.html', keywords:'สินค้า products รายการสินค้า' },
-    { type:'page', title:'ผลงานของเรา', desc:'ตัวอย่างโปรเจกต์จริงที่ส่งมอบให้องค์กรชั้นนำ', url:'portfolio.html', keywords:'portfolio ผลงาน เคส case study โครงการ' },
-    { type:'page', title:'เกี่ยวกับเรา', desc:'ประวัติบริษัท พันธกิจ ทีมงาน และมาตรฐานที่ได้รับการรับรอง', url:'about.html', keywords:'about เกี่ยวกับ บริษัท ประวัติ ทีมงาน โรงงาน' },
-    { type:'page', title:'ติดต่อเรา', desc:'ขอใบเสนอราคา ปรึกษาฟรี หรือสอบถามข้อมูลเพิ่มเติม', url:'contact.html', keywords:'contact ติดต่อ ใบเสนอราคา เบอร์โทร line แชท' },
-
-    /* ---- Product categories ---- */
-    { type:'product', title:'ป้ายเตือน / ป้ายบังคับ ISO 7010', desc:'มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง', url:'products.html?cat=safety', keywords:'ป้ายความปลอดภัย safety sign iso 7010 ป้ายเตือน ป้ายบังคับ ป้ายห้าม' },
-    { type:'product', title:'ป้ายอพยพฉุกเฉิน', desc:'บอกทางหนีไฟและจุดรวมพลชัดเจน', url:'products.html?cat=safety', keywords:'ป้ายอพยพ ทางหนีไฟ จุดรวมพล emergency exit' },
-    { type:'product', title:'ป้ายจราจรสะท้อนแสง HI', desc:'มาตรฐานกรมทางหลวง มอก. รับรอง', url:'products.html?cat=traffic', keywords:'ป้ายจราจร traffic sign สะท้อนแสง hi มอก กรมทางหลวง' },
-    { type:'product', title:'ป้ายเตือน / เขตก่อสร้าง', desc:'เพิ่มความปลอดภัยพื้นที่ก่อสร้าง', url:'products.html?cat=traffic', keywords:'ป้ายก่อสร้าง เขตก่อสร้าง construction' },
-    { type:'product', title:'ป้ายชี้ทาง / บอกทิศทาง', desc:'ออกแบบตามผังพื้นที่จริง', url:'products.html?cat=traffic', keywords:'ป้ายชี้ทาง บอกทิศทาง wayfinding' },
-    { type:'product', title:'กรวยจราจร / แบริเออร์', desc:'วัสดุคุณภาพ ทนทาน ใช้งานยาวนาน', url:'products.html?cat=equip', keywords:'กรวยจราจร แบริเออร์ traffic cone barrier อุปกรณ์จราจร' },
-    { type:'product', title:'เสาล้มลุก / แท่งกั้นถนน', desc:'ติดตั้งง่าย ปรับตามพื้นที่ใช้งาน', url:'products.html?cat=equip', keywords:'เสาล้มลุก แท่งกั้นถนน bollard' },
-    { type:'product', title:'ป้ายโรงงานอุตสาหกรรม', desc:'ป้ายชี้บ่งพื้นที่ ป้ายความเสี่ยง และระบบป้ายภายในโรงงาน', url:'products.html', keywords:'ป้ายโรงงาน plant signage 5s ชี้บ่งพื้นที่' },
-    { type:'product', title:'งานออกแบบ Custom Order', desc:'ทีมออกแบบจัดทำ Artwork ให้ฟรีก่อนผลิต รองรับโลโก้บริษัทและ QR Code', url:'products.html', keywords:'custom order ออกแบบ artwork โลโก้ qr code สั่งทำพิเศษ' },
-
-    /* ---- Portfolio / projects ---- */
-    { type:'project', title:'PTT Group — โรงกลั่นน้ำมัน ระยอง', desc:'ระบบป้ายความปลอดภัยครบวงจร มาตรฐาน ISO 7010 — 240 ป้าย', url:'portfolio.html', keywords:'ptt โรงกลั่น ระยอง โรงงานอุตสาหกรรม' },
-    { type:'project', title:'กรุงเทพมหานคร — ป้ายจราจรสะท้อนแสง HI', desc:'จัดหาป้ายจราจรมาตรฐานกรมทางหลวงพร้อมเอกสาร มอก. — 180 ป้าย', url:'portfolio.html', keywords:'bma กรุงเทพมหานคร ป้ายจราจร ภาครัฐ' },
-    { type:'project', title:'SCG — นิคมอุตสาหกรรมมาบตาพุด', desc:'ระบบป้ายชี้บ่งพื้นที่โรงงานครบชุด 3 อาคาร', url:'portfolio.html', keywords:'scg มาบตาพุด นิคมอุตสาหกรรม 5s' },
-    { type:'project', title:'EGAT — โรงไฟฟ้าพลังน้ำ', desc:'ป้ายเตือนไฟฟ้าแรงสูง Custom พร้อม QR Code — 320 ป้าย', url:'portfolio.html', keywords:'egat ไฟฟ้าแรงสูง โรงไฟฟ้า custom' },
-    { type:'project', title:'ไทยออยล์ — โรงกลั่นน้ำมัน ศรีราชา', desc:'ป้ายเตือนสารเคมีและทางหนีไฟ', url:'portfolio.html', keywords:'ไทยออยล์ thaioil ศรีราชา สารเคมี ทางหนีไฟ' },
-    { type:'project', title:'โรงพยาบาลรามาธิบดี', desc:'ระบบป้ายอพยพฉุกเฉิน', url:'portfolio.html', keywords:'รามาธิบดี โรงพยาบาล hospital อพยพฉุกเฉิน' },
-    { type:'project', title:'อมตะซิตี้ ชลบุรี', desc:'ระบบป้ายชี้ทาง — นิคมอุตสาหกรรมอมตะซิตี้', url:'portfolio.html', keywords:'amata อมตะ ชลบุรี นิคมอุตสาหกรรม' },
-    { type:'project', title:'เซ็นทรัลพัฒนา — ป้ายอาคารจอดรถ', desc:'Custom Branding สำหรับอาคารจอดรถ', url:'portfolio.html', keywords:'cpn เซ็นทรัลพัฒนา อาคารจอดรถ parking' },
-
-    /* ---- Certifications ---- */
-    { type:'cert', title:'มอก. 635-2547', desc:'มาตรฐานผลิตภัณฑ์อุตสาหกรรม ป้ายความปลอดภัย รับรองโดย สมอ.', url:'about.html#certs', keywords:'มอก 635 tis สมอ มาตรฐานอุตสาหกรรม' },
-    { type:'cert', title:'ISO 9001:2015', desc:'ระบบการจัดการคุณภาพ รับรองโดย Bureau Veritas', url:'about.html#certs', keywords:'iso 9001 คุณภาพ bureau veritas' },
-    { type:'cert', title:'ISO 7010:2019', desc:'สัญลักษณ์ความปลอดภัยสากล', url:'about.html#certs', keywords:'iso 7010 สัญลักษณ์ความปลอดภัย' },
-    { type:'cert', title:'มาตรฐานกรมทางหลวง', desc:'ป้ายจราจรทุกประเภทผลิตตามข้อกำหนดกรมทางหลวง', url:'about.html#certs', keywords:'กรมทางหลวง doh มาตรฐานป้ายจราจร' },
-
-    /* ---- FAQ ---- */
-    { type:'faq', title:'CS.SIGN ให้บริการด้านใดบ้าง?', desc:'คำตอบอยู่ในส่วนคำถามที่พบบ่อย หน้าเกี่ยวกับเรา', url:'about.html#faq', keywords:'บริการ faq คำถาม' },
-    { type:'faq', title:'หากต้องการเริ่มต้นใช้บริการ ต้องทำอย่างไร?', desc:'คำตอบอยู่ในส่วนคำถามที่พบบ่อย หน้าเกี่ยวกับเรา', url:'about.html#faq', keywords:'เริ่มต้น สั่งซื้อ ขั้นตอน faq' },
-    { type:'faq', title:'มีบริการดูแลหลังส่งมอบหรือไม่?', desc:'คำตอบอยู่ในส่วนคำถามที่พบบ่อย หน้าเกี่ยวกับเรา', url:'about.html#faq', keywords:'บริการหลังการขาย รับประกัน faq' },
-
-    /* ---- Contact shortcuts ---- */
-    { type:'page', title:'ขอใบเสนอราคา', desc:'กรอกฟอร์มเพื่อให้ทีมงานติดต่อกลับภายใน 24 ชั่วโมง', url:'contact.html', keywords:'ใบเสนอราคา quote เสนอราคา ฟอร์ม' },
-    { type:'page', title:'โทร 062-883-3880', desc:'ติดต่อทีมขายโดยตรง', url:'tel:0628833880', keywords:'เบอร์โทร โทรศัพท์ call' },
-    { type:'page', title:'แชท LINE @cssigngroup', desc:'พูดคุยกับทีมงานผ่าน LINE Official', url:'https://line.me/ti/p/@cssigngroup', keywords:'line แชท chat ไลน์' }
-  ];
-
-  var TYPE_LABEL = {
-    page:'หน้าเว็บ', product:'สินค้า', project:'ผลงาน', cert:'ใบรับรอง', faq:'คำถามที่พบบ่อย'
-  };
 
   /* -----------------------------------------------------------
      BUILD MARKUP — injected once per page, right after header
@@ -111,35 +69,17 @@
     return text.replace(re, '<mark>$1</mark>');
   }
 
-  function score(item, q){
-    var hay = (item.title + ' ' + item.desc + ' ' + item.keywords).toLowerCase();
-    if(item.title.toLowerCase().indexOf(q) === 0) return 3;
-    if(item.title.toLowerCase().indexOf(q) > -1) return 2;
-    if(hay.indexOf(q) > -1) return 1;
-    return 0;
-  }
-
-  function search(q){
-    q = q.trim().toLowerCase();
-    if(!q) return [];
-    return INDEX
-      .map(function(item){ return { item:item, s:score(item,q) }; })
-      .filter(function(r){ return r.s > 0; })
-      .sort(function(a,b){ return b.s - a.s; })
-      .slice(0, 8)
-      .map(function(r){ return r.item; });
-  }
-
   function init(){
     var overlay = buildOverlay();
-    var panel = overlay.querySelector('.ss-panel');
     var input = overlay.querySelector('#ss-input');
     var results = overlay.querySelector('#ss-results');
     var closeBtn = overlay.querySelector('#ss-close');
     var triggers = document.querySelectorAll('.nav-search-trigger');
-    var lastQuery = '';
     var searchDebounceTimer = null;
     var searchRequestId = 0;
+    var lastQuery = ""; // เดิมไม่เคยประกาศตัวแปรนี้เลย ใช้ "lastQuery = q;" ตรงๆ ใน
+    // renderResults() ภายใต้ "use strict" ทำให้โยน ReferenceError ทุกครั้งที่พิมพ์ในกล่องค้นหา
+    // (ตัวแปรนี้ไม่เคยถูกอ่านที่ไหนเลยในไฟล์ — คงไว้เฉยๆ เผื่อใช้ต่อในอนาคต แค่ประกาศให้ถูกต้อง)
 
     function renderEmpty(){
       results.innerHTML =
@@ -194,7 +134,7 @@
     function renderResults(q){
       lastQuery = q;
       if(!q.trim()){ renderEmpty(); return; }
-      var found = search(q);
+      var found = window.__ssIndex.search(q);
       if(!found.length){ renderNoMatch(q); return; }
       results.innerHTML = found.map(function(item, i){
         return (
@@ -204,16 +144,23 @@
               '<span class="ss-result-title">' + highlight(item.title, q) + '</span>' +
               '<span class="ss-result-desc">' + highlight(item.desc, q) + '</span>' +
             '</span>' +
-            '<span class="ss-result-tag">' + (TYPE_LABEL[item.type] || '') + '</span>' +
+            '<span class="ss-result-tag">' + (window.__ssIndex.TYPE_LABEL[item.type] || '') + '</span>' +
           '</a>'
         );
       }).join('');
     }
 
+    window.__ssRefreshResults = function () {
+      if (overlay.classList.contains('open') && input.value.trim()) {
+        renderResults(input.value);
+      }
+    };
+
     function open(){
       overlay.classList.add('open');
       document.body.style.overflow = 'hidden';
       renderEmpty();
+      window.__ssIndex.loadDynamicIndex();
       setTimeout(function(){ input.focus(); }, 30);
     }
     function close(){

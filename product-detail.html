@@ -29,6 +29,8 @@
 <link rel="stylesheet" href="css/style.css?v=20260711a">
 <link rel="stylesheet" href="css/shared-widgets.css">
 <link rel="stylesheet" href="css/track-modal.css">
+<link rel="stylesheet" href="css/cart-modal.css">
+<link rel="stylesheet" href="css/exit-intent-cta.css">
 <style>
 /* ── Loading / not-found states (same pattern as blog-post.html) ── */
 .pdp-state { padding: 160px 0 120px; text-align: center; }
@@ -174,7 +176,7 @@
 <header class="site-header" id="site-header">
   <div class="nav-inner">
     <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
       <span class="brand-text">
         <span class="brand-name">CS.SIGN</span>
         <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
@@ -186,7 +188,7 @@
 
       <div class="nav-item-dropdown">
         <button class="nav-link nav-dd-trigger" type="button">
-          หมวดหมู่
+          สินค้า
           <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="nav-dropdown nav-megamenu">
@@ -194,7 +196,7 @@
             <div class="nav-mega-col">
               <div class="nav-mega-title">ป้ายความปลอดภัย</div>
               <a href="products.html?cat=safety" class="nav-mega-item">
-                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+                <span><strong>ป้ายเตือน / ป้ายบังคับ</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
               </a>
               <a href="products.html?cat=safety" class="nav-mega-item">
                 <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
@@ -258,7 +260,7 @@
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-menu-top">
     <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
       <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
     </a>
     <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
@@ -268,7 +270,7 @@
   <div class="mobile-links">
     <a href="index.html">หน้าแรก</a>
     <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
-      หมวดหมู่
+      สินค้า
       <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="mobile-dd-panel" id="mobile-dd-panel">
@@ -377,11 +379,11 @@
           <div class="pdp-trust-bar">
             <span class="pdp-trust-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
-              รับประกันสินค้า 6 เดือน
+              รับประกันสินค้าสูงสุด 18 เดือน
             </span>
             <span class="pdp-trust-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/></svg>
-              ผลิตตามมาตรฐาน มอก. / ISO 7010
+              ผลิตตามมาตรฐาน มอก.
             </span>
             <span class="pdp-trust-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4Z"/><path d="M9 4v13M15 6.5v13"/></svg>
@@ -437,7 +439,7 @@
         <div class="footer-h">บริษัท</div>
         <div class="footer-links">
           <a href="about.html">เกี่ยวกับเรา</a>
-          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="index.html#services">ขั้นตอนการทำงาน</a>
           <a href="portfolio.html">ผลงานของเรา</a>
           <a href="quality-policy.html">นโยบายคุณภาพ</a>
           <a href="blog.html">บทความ</a>
@@ -477,18 +479,33 @@
 
 <script src="js/tabs-overflow.js"></script>
 <script src="js/main.js"></script>
+<script src="js/main-effects.js"></script>
 <script src="js/cookie-consent.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/site-search-index.js"></script>
 <script src="js/site-search.js"></script>
 <script type="module" src="js/site-settings.js"></script>
 <script type="module" src="js/nav-menu.js"></script>
+<script type="module" src="js/cart-global.js"></script>
 
 <!-- FAB trigger button -->
 <script src="js/track-modal-template.js"></script>
 <script type="module" src="js/track-modal.js"></script>
+<script src="js/cart-modal-template.js"></script>
+<script src="js/cart-modal.js"></script>
+<script src="js/quote-form-template.js"></script>
+<script type="module" src="js/quote-form.js"></script>
 <script src="js/chat-widget-template.js"></script>
 
+<!-- Shared Product JSON-LD node builder — also used by js/product-schema.js
+     on products.html. Add/change a schema field in ONE place (that file),
+     not here. Plain classic script (not type="module") so this module
+     block below can read window.CSSIGN_PRODUCT_SCHEMA off it. -->
+<script src="js/product-schema-core.js"></script>
+
 <script type="module">
-import { getProductBySlug, getProducts, getCategories } from "./js/db.js";
+import { getProductBySlug, getProducts } from "./js/db-products.js";
+import { getCategories } from "./js/db-taxonomy.js";
 
 const SITE_URL = "https://cssign.co.th/";
 
@@ -505,14 +522,6 @@ function formatPrice(price, unit) {
   const num = Number(price);
   if (!price || isNaN(num) || num <= 0) return "สอบถามราคา";
   return "เริ่มต้น ฿" + num.toLocaleString("th-TH") + (unit ? " / " + unit : "");
-}
-
-// เดียวกับ extractPrice() ใน js/product-schema.js — ดึงตัวเลขล้วนสำหรับ offers.price
-// รายการที่มีแต่ "ขอใบเสนอราคา" (ไม่มีตัวเลข) จะไม่ใส่ offers เลยแทนการเดาราคา
-function extractPriceNumber(price) {
-  if (!price) return null;
-  const n = Number(price);
-  return (!isNaN(n) && n > 0) ? String(n) : null;
 }
 
 // ข้ามแถวที่ไม่มีค่าจริง (ไม่ใช่ "-" หรือว่างเปล่า) — สินค้าที่ใช้ "ตัวเลือกสินค้า" (axes)
@@ -551,39 +560,25 @@ function updateMetaTags(product, url) {
   document.getElementById("canonical-link").setAttribute("href", url);
 }
 
-// Product JSON-LD สำหรับหน้านี้โดยเฉพาะ — ใช้ลำดับความสำคัญของ field เดียวกับ
-// js/product-schema.js (metaTitle/metaDescription ก่อน แล้วค่อย fallback เป็น
-// name/description) เพื่อให้ structured data ตรงกับ <title>/meta ที่เห็นจริง
+// Product JSON-LD สำหรับหน้านี้โดยเฉพาะ — เรียก builder กลางใน
+// js/product-schema-core.js ตัวเดียวกับที่ js/product-schema.js (products.html)
+// ใช้ ให้ field priority (metaTitle/metaDescription ก่อน แล้วค่อย fallback เป็น
+// name/description) กับ field ใหม่ๆ (เช่น aggregateRating) ตรงกันทั้งสองหน้า
+// โดยแก้แค่ที่เดียวคือ product-schema-core.js
 function injectProductSchema(product, catName, url) {
-  const node = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.metaTitle || product.name || "สินค้า CS.SIGN",
+  const node = window.CSSIGN_PRODUCT_SCHEMA.buildProductNode({
+    name: product.metaTitle || product.name,
     description: product.metaDescription || product.description || "",
     sku: product.code || "",
     category: catName || "",
-    brand: { "@type": "Brand", name: "CS.SIGN" },
-    manufacturer: { "@type": "Organization", "@id": SITE_URL + "#localbusiness" },
-    url
-  };
-  const img = imgUrlOf((product.images || [])[0]);
-  if (img) node.image = img;
-
-  const props = [];
-  if (product.material) props.push({ "@type": "PropertyValue", name: "วัสดุ", value: product.material });
-  if (product.size) props.push({ "@type": "PropertyValue", name: "ขนาด", value: product.size });
-  if (props.length) node.additionalProperty = props;
-
-  const priceNum = extractPriceNumber(product.price);
-  if (priceNum) {
-    node.offers = { "@type": "Offer", priceCurrency: "THB", price: priceNum, availability: "https://schema.org/InStock", url };
-  }
-
-  const script = document.createElement("script");
-  script.type = "application/ld+json";
-  script.id = "product-detail-schema";
-  script.textContent = JSON.stringify(node);
-  document.head.appendChild(script);
+    images: product.images,
+    material: product.material,
+    size: product.size,
+    url,
+    price: product.price // raw numeric field straight from Firestore, not a formatted string
+  });
+  node["@context"] = "https://schema.org";
+  window.CSSIGN_PRODUCT_SCHEMA.injectJsonLd("product-detail-schema", node);
 }
 
 let currentImages = [];
@@ -673,7 +668,7 @@ function renderVariantSection(product) {
       <div class="pdp-opt-label">จำนวน</div>
       <div class="pdp-qty-stepper">
         <button type="button" class="pdp-qty-btn" id="pdp-qty-minus" aria-label="ลดจำนวน">−</button>
-        <input type="number" id="pdp-qty" value="1" min="1" inputmode="numeric">
+        <input type="number" id="pdp-qty" value="1" min="1" inputmode="numeric" aria-label="จำนวน">
         <button type="button" class="pdp-qty-btn" id="pdp-qty-plus" aria-label="เพิ่มจำนวน">+</button>
       </div>
     </div>
@@ -879,6 +874,7 @@ init();
 <script src="js/qmodal.js"></script>
 <script type="module" src="js/chat-widget.js"></script>
 <script type="module" src="js/lead-quote-modal.js"></script>
+<script src="js/exit-intent-cta.js"></script>
 <script src="js/fancy-effects.js" defer></script>
 </body>
 </html>

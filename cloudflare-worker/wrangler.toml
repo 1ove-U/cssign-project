@@ -2,7 +2,24 @@ name = "cssign-cloudinary-delete"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
 
-# ค่า secret (CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) ตั้งผ่านคำสั่ง
+# ค่า secret (CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, TURNSTILE_SECRET_KEY,
+# LINE_CHANNEL_ACCESS_TOKEN, FIREBASE_SA_CLIENT_EMAIL, FIREBASE_SA_PRIVATE_KEY) ตั้งผ่านคำสั่ง
 #   npx wrangler secret put CLOUDINARY_API_KEY
 #   npx wrangler secret put CLOUDINARY_API_SECRET
+#   npx wrangler secret put TURNSTILE_SECRET_KEY
+#   npx wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
+#   npx wrangler secret put FIREBASE_SA_CLIENT_EMAIL
+#   npx wrangler secret put FIREBASE_SA_PRIVATE_KEY
 # ไม่ใส่ในไฟล์นี้ตรงๆ เพราะเป็นความลับ ห้าม commit ขึ้น git
+#
+# FIREBASE_SA_CLIENT_EMAIL / FIREBASE_SA_PRIVATE_KEY มาจากไฟล์ service account JSON ที่
+# ดาวน์โหลดจาก Firebase Console → Project Settings → Service Accounts → Generate new
+# private key — เอาแค่ field "client_email" กับ "private_key" สองตัวนี้พอ (ใช้เซ็น custom
+# token สำหรับ P1.5 เท่านั้น ไม่ใช่ service account ที่มีสิทธิ์เขียน Firestore ตรงๆ — ดู
+# handleLinkLine() ใน src/index.js)
+
+# P1.5 — LIFF ID ของ LIFF app ที่สร้างไว้ใน LINE Developers Console (ไม่ใช่ความลับ
+# เปิดเผยได้ปกติ เหมือน Firebase apiKey ฝั่ง client — ใช้เป็น audience ตอน verify
+# LIFF ID token เท่านั้น)
+[vars]
+LIFF_ID = "2011108044-Nmgfktx5"

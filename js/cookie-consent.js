@@ -25,7 +25,7 @@
       var parsed = JSON.parse(raw);
       if (!parsed || parsed.v !== VERSION) return null;
       return parsed;
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -38,7 +38,7 @@
       marketing: !!marketing,
       ts: new Date().toISOString()
     };
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(consent)); } catch (e) {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(consent)); } catch {}
     window.CSSIGN_CONSENT = consent;
     document.dispatchEvent(new CustomEvent('cssign:consent', { detail: consent }));
     return consent;

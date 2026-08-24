@@ -70,9 +70,12 @@
   flex: 1;
   padding: 32px;
 }
-.qm-body::-webkit-scrollbar { width: 4px; }
-.qm-body::-webkit-scrollbar-track { background: transparent; }
-.qm-body::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+.qm-body::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.qm-body::-webkit-scrollbar-track,
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.qm-body::-webkit-scrollbar-thumb,
+.chat-messages::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
 
 /* Shared typography */
 .qm-eyebrow {
@@ -83,171 +86,20 @@
   font-family: var(--font-display); font-size: clamp(20px,3vw,26px);
   font-weight: 700; color: var(--secondary); margin: 0 0 4px;
 }
-.qm-subtitle { font-size: 13.5px; color: var(--gray-500); margin: 0 0 24px; }
 
 /* ─── ESTIMATOR LAYOUT ─── */
-.qm-est-wrap {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 28px;
-  align-items: start;
-}
-
-.qm-est-header { margin-bottom: 22px; }
 
 /* Field */
-.qm-field { margin-bottom: 20px; }
-.qm-field-label {
-  display: flex; align-items: center; gap: 8px;
-  font-family: var(--font-display); font-size: 13px; font-weight: 700;
-  color: var(--gray-700); margin-bottom: 10px;
-}
-.qm-step {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: #fff; font-size: 10px; font-weight: 800; flex-shrink: 0;
-}
 
 /* Type/material chips */
-.qm-chip-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
-.qm-chip {
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-  gap: 5px; padding: 12px 8px;
-  border-radius: 12px; border: 1.5px solid var(--gray-200);
-  background: #fff; cursor: pointer;
-  transition:border-color .15s var(--ease), background .15s var(--ease), box-shadow .15s var(--ease), transform .12s var(--ease);
-  font-family: var(--font-body);
-}
-.qm-chip:hover { border-color: rgba(var(--primary-rgb),0.35); background: rgba(var(--primary-rgb),0.06); transform: translateY(-1px); }
-.qm-chip.active {
-  border-color: var(--primary);
-  background: linear-gradient(135deg,rgba(var(--primary-rgb),.07),rgba(var(--accent-rgb),.07));
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb),.12);
-}
-.qm-chip-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--gray-100); display: flex; align-items: center; justify-content: center;
-  color: var(--gray-500); transition:background .15s var(--ease), color .15s var(--ease);
-}
-.qm-chip.active .qm-chip-icon { background: rgba(var(--primary-rgb),.12); color: var(--primary); }
-.qm-chip-title { font-size: 12.5px; font-weight: 700; color: var(--gray-800); line-height: 1.2; }
-.qm-chip.active .qm-chip-title { color: var(--primary-dark); }
-.qm-chip-sub { font-size: 10.5px; color: var(--gray-400); }
 
 /* Size chips */
-.qm-size-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
-.qm-size-chip {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px; padding: 10px 6px;
-  border-radius: 10px; border: 1.5px solid var(--gray-200);
-  background: #fff; cursor: pointer;
-  transition:border-color .15s var(--ease), background .15s var(--ease), box-shadow .15s var(--ease);
-  font-family: var(--font-body);
-}
-.qm-size-chip:hover { border-color: rgba(var(--primary-rgb),0.35); background: rgba(var(--primary-rgb),0.06); }
-.qm-size-chip.active {
-  border-color: var(--primary); background: rgba(var(--primary-rgb),0.06);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb),.12);
-}
-.qm-size-letter { font-size: 15px; font-weight: 800; color: var(--gray-800); }
-.qm-size-chip.active .qm-size-letter { color: var(--primary); }
-.qm-size-dim { font-size: 9.5px; color: var(--gray-400); }
 
 /* 2-col row for size+qty */
-.qm-row-2col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
 
 /* Qty */
-.qm-qty-wrap {
-  display: flex; align-items: stretch;
-  border: 1.5px solid var(--gray-200); border-radius: 10px;
-  overflow: hidden; background: #fff;
-  max-width: 160px;
-}
-.qm-qty-btn {
-  width: 40px; flex-shrink: 0; background: var(--gray-100); border: none;
-  font-size: 18px; font-weight: 700; color: var(--primary); cursor: pointer;
-  transition:background .15s var(--ease);
-  display: flex; align-items: center; justify-content: center;
-}
-.qm-qty-btn:hover { background: rgba(var(--primary-rgb),0.12); }
-.qm-qty-input {
-  flex: 1; min-width: 0; border: none; text-align: center;
-  font-family: var(--font-display); font-weight: 700; font-size: 15px;
-  color: var(--secondary); -moz-appearance: textfield;
-}
-.qm-qty-input:focus { outline: none; }
-.qm-qty-input::-webkit-outer-spin-button,
-.qm-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-.qm-qty-hint {
-  margin-top: 8px; font-size: 11.5px; color: var(--primary); font-weight: 600;
-  line-height: 1.4;
-}
 
 /* ─── RESULT CARD ─── */
-.qm-est-result {
-  background: linear-gradient(155deg, var(--secondary) 0%, var(--primary-dark) 60%, var(--accent-dark) 100%);
-  border-radius: 18px;
-  padding: 24px 22px 20px;
-  color: #fff;
-  display: flex; flex-direction: column; gap: 0;
-  position: sticky; top: 0;
-  box-shadow: 0 12px 40px rgba(var(--primary-rgb),.25), 0 2px 8px rgba(0,0,0,.2);
-}
-.qm-result-badge {
-  display: inline-block; width: fit-content;
-  background: rgba(255,255,255,.15); border-radius: 999px;
-  padding: 3px 10px; font-size: 10px; font-weight: 700;
-  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px;
-}
-.qm-result-price-wrap {
-  display: flex; align-items: baseline; gap: 6px; margin-bottom: 3px;
-}
-.qm-result-price {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(32px,5vw,42px); line-height: 1;
-  background: linear-gradient(90deg,#fff,var(--accent-on-dark));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.qm-result-currency { font-size: 16px; font-weight: 600; opacity: .85; }
-.qm-result-unit { font-size: 12.5px; opacity: .8; margin-bottom: 20px; }
-.qm-result-disc { font-weight: 700; color: var(--success); margin-left: 3px; }
-
-.qm-result-breakdown {
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 12px;
-  padding: 12px 14px;
-  display: flex; flex-direction: column; gap: 8px;
-  margin-bottom: 20px;
-}
-.qm-bd-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-.qm-bd-row span:first-child { opacity: .6; }
-.qm-bd-row span:last-child { font-weight: 700; text-align: right; max-width: 60%; }
-
-.qm-result-divider {
-  height: 1px; background: rgba(255,255,255,.1); margin-bottom: 16px;
-}
-
-.qm-cta-btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 13px 20px;
-  background: linear-gradient(135deg,var(--primary),var(--accent));
-  border: none; border-radius: 12px;
-  font-family: var(--font-display); font-size: 14px; font-weight: 700;
-  color: #fff; cursor: pointer;
-  box-shadow: 0 4px 16px rgba(var(--primary-rgb),.45);
-  transition:transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease);
-  margin-bottom: 12px;
-}
-.qm-cta-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(var(--primary-rgb),.55);
-  filter: brightness(1.08);
-}
-.qm-cta-btn:active { transform: translateY(0); }
-
-.qm-disclaimer { font-size: 10px; opacity: .5; line-height: 1.5; margin: 0; }
 
 /* ─── FORM LAYOUT ─── */
 .qm-form-wrap { max-width: 640px; margin: 0 auto; }
@@ -273,7 +125,8 @@
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb),.12);
 }
-.qmodal-input::placeholder { color: var(--gray-400); }
+.qmodal-input::placeholder,
+.chat-input::placeholder { color: var(--gray-400); }
 .qmodal-select-wrap { position: relative; }
 .qmodal-select { appearance: none; cursor: pointer; padding-right: 32px; }
 .qmodal-select-icon {
@@ -281,6 +134,20 @@
   pointer-events: none; color: var(--gray-400); width: 16px; height: 16px;
 }
 .qmodal-textarea { resize: vertical; min-height: 100px; }
+
+/* ─── P3.0 Phase 2 รอบย่อย 2: สรุปรายการสินค้า read-only ในฟอร์มขอใบเสนอราคาจริง
+   (js/quote-form-template.js) — ใช้ .cm-item/.cm-item-name/.cm-item-meta ของ css/cart-modal.css
+   ซ้ำสำหรับแต่ละแถว (class-based ใช้ข้ามไฟล์ได้ทันที ทุกหน้าที่มีฟอร์มนี้โหลด cart-modal.css
+   อยู่แล้วเสมอ) แค่เพิ่ม wrapper กรอบ + label เล็กๆ ตรงนี้ ─── */
+.qr-items-block {
+  max-width: 640px; margin: 0 auto 20px; padding: 14px 16px;
+  background: var(--gray-50, #F8FAFC); border: 1.5px solid var(--gray-100); border-radius: 12px;
+}
+.qr-items-label {
+  font-family: var(--font-display); font-size: 11.5px; font-weight: 700; color: var(--gray-500);
+  text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px;
+}
+.qr-items-block .cm-list { gap: 10px; }
 
 .qm-form-footer {
   display: flex; align-items: center; justify-content: space-between;
@@ -331,19 +198,17 @@
 
 /* ─── Responsive ─── */
 @media (max-width: 640px) {
-  .qm-est-wrap { grid-template-columns: 1fr; }
-  .qm-est-result { position: static; }
+
   .qmodal-tabs { padding: 0 16px; }
   .qm-body { padding: 20px 16px; }
-  .qm-chip-row { grid-template-columns: repeat(3,1fr); gap: 6px; }
-  .qm-row-2col { grid-template-columns: 1fr; }
+
   .qm-form-row { grid-template-columns: 1fr; }
-  .qm-form-footer { flex-direction: column; align-items: stretch; }
+  .qm-form-footer,
+  .site-cta-content .btn-group { flex-direction: column; align-items: stretch; }
   .qm-submit-btn { justify-content: center; }
 }
 @media (max-width: 420px) {
-  .qm-chip { padding: 10px 5px; }
-  .qm-chip-icon { width: 28px; height: 28px; }
+
 }
 
 /* ─── CONTACT PANEL ─── */
@@ -424,12 +289,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  transition:transform 0.3s var(--ease), box-shadow 0.3s var(--ease), opacity 0.25s var(--ease), visibility 0.25s var(--ease);
   color: #fff;
 }
 .chat-fab:hover {
   transform: scale(1.08);
   box-shadow: 0 10px 32px rgba(var(--primary-rgb),0.48), 0 2px 8px rgba(var(--primary-rgb),0.22);
+}
+/* บัค UI ที่แก้: .eic-popup (ป๊อปอัพชวนขอราคาตอน scroll 70%) กว้างเกือบเต็มจอ
+   บนมือถือจอแคบ (max-width:calc(100vw - 40px), ยึดฝั่งซ้าย) พอชนกับปุ่มแชทลอย
+   ฝั่งขวา ปุ่มแชทซึ่ง z-index สูงกว่า (9000 > 8500) จะลอยทะลุกลางการ์ดป๊อปอัพ
+   พอดี — ซ่อนปุ่มแชทไว้ชั่วคราวเฉพาะตอนป๊อปอัพนี้เปิดอยู่บนจอแคบ */
+@media (max-width: 480px){
+  html.has-eic-popup .chat-fab{ opacity:0; visibility:hidden; pointer-events:none; }
 }
 .chat-fab-icon {
   position: absolute;
@@ -576,9 +448,6 @@
   max-height: 340px;
   scroll-behavior: smooth;
 }
-.chat-messages::-webkit-scrollbar { width: 4px; }
-.chat-messages::-webkit-scrollbar-track { background: transparent; }
-.chat-messages::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
 
 /* Bubble base */
 .chat-bubble {
@@ -699,7 +568,6 @@
   overflow-y: auto;
 }
 .chat-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(var(--primary-rgb),0.1); }
-.chat-input::placeholder { color: var(--gray-400); }
 
 .chat-send-btn {
   width: 38px; height: 38px;
@@ -791,32 +659,35 @@
   opacity: 0.7;
 }
 
+/* ico/title/sub ใช้สีขาว/ขาวโปร่งแสงเหมือนกันทุก variant (ต่างกันแค่สีพื้นหลังปุ่มเอง) —
+   รวม selector ไว้จุดเดียวกันดูซ้ำ (เดิมแยกซ้ำ 4 ครั้งต่อ property, check-duplicate-css เคยจับได้) */
+.chat-contact-btn--phone .chat-contact-ico,
+.chat-contact-btn--line .chat-contact-ico,
+.chat-contact-btn--email .chat-contact-ico,
+.chat-contact-btn--fb .chat-contact-ico { background: rgba(255,255,255,0.2); color: #fff; }
+.chat-contact-btn--phone .chat-contact-title,
+.chat-contact-btn--line .chat-contact-title,
+.chat-contact-btn--email .chat-contact-title,
+.chat-contact-btn--fb .chat-contact-title { color: #fff; }
+.chat-contact-btn--phone .chat-contact-sub,
+.chat-contact-btn--line .chat-contact-sub,
+.chat-contact-btn--email .chat-contact-sub,
+.chat-contact-btn--fb .chat-contact-sub { color: rgba(255,255,255,0.82); opacity:1; }
+
 /* Phone — solid blue */
 .chat-contact-btn--phone { background: var(--primary); border-color: var(--primary); }
-.chat-contact-btn--phone .chat-contact-ico { background: rgba(255,255,255,0.2); color: #fff; }
-.chat-contact-btn--phone .chat-contact-title { color: #fff; }
-.chat-contact-btn--phone .chat-contact-sub { color: rgba(255,255,255,0.82); opacity:1; }
 .chat-contact-btn--phone:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
 
 /* LINE — solid green */
 .chat-contact-btn--line { background: #06C755; border-color: #06C755; }
-.chat-contact-btn--line .chat-contact-ico { background: rgba(255,255,255,0.2); color: #fff; }
-.chat-contact-btn--line .chat-contact-title { color: #fff; }
-.chat-contact-btn--line .chat-contact-sub { color: rgba(255,255,255,0.82); opacity:1; }
 .chat-contact-btn--line:hover { background: #05b34b; border-color: #05b34b; }
 
 /* Email — solid teal */
 .chat-contact-btn--email { background: var(--accent); border-color: var(--accent); }
-.chat-contact-btn--email .chat-contact-ico { background: rgba(255,255,255,0.2); color: #fff; }
-.chat-contact-btn--email .chat-contact-title { color: #fff; }
-.chat-contact-btn--email .chat-contact-sub { color: rgba(255,255,255,0.82); opacity:1; }
 .chat-contact-btn--email:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
 
 /* Facebook — solid brand blue */
 .chat-contact-btn--fb { background: #1877F2; border-color: #1877F2; }
-.chat-contact-btn--fb .chat-contact-ico { background: rgba(255,255,255,0.2); color: #fff; }
-.chat-contact-btn--fb .chat-contact-title { color: #fff; }
-.chat-contact-btn--fb .chat-contact-sub { color: rgba(255,255,255,0.82); opacity:1; }
 .chat-contact-btn--fb:hover { background: #1260cc; border-color: #1260cc; }
 
 /* ---- Mobile ---- */
@@ -920,7 +791,6 @@
 
 @media (max-width: 640px){
   .site-cta-card{ padding: 44px 24px; }
-  .site-cta-content .btn-group{ flex-direction: column; align-items: stretch; }
 }
 
 /* ===========================================================================
@@ -935,8 +805,9 @@
    the same diagonal light-sweep-on-hover treatment already used on
    .btn-primary sitewide, so the modal's own buttons read as the same
    button family instead of a slightly flatter one-off. ---- */
-.qm-cta-btn, .qm-submit-btn{ position: relative; overflow: hidden; }
-.qm-cta-btn::after, .qm-submit-btn::after{
+.qm-submit-btn,
+.chat-header { position: relative; overflow: hidden; }
+.qm-submit-btn::after {
   content:'';
   position:absolute; top:0; left:-60%; width:40%; height:100%;
   background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
@@ -944,33 +815,13 @@
   transition: left .55s var(--ease);
   pointer-events:none;
 }
-.qm-cta-btn:hover::after, .qm-submit-btn:hover::after{ left: 130%; }
+.qm-submit-btn:hover::after { left: 130%; }
 @media (prefers-reduced-motion: reduce){
-  .qm-cta-btn::after, .qm-submit-btn::after{ transition:none; }
+  .qm-submit-btn::after { transition:none; }
 }
-
-/* ---- Estimate result card: this dark gradient summary card sits right next
-   to the CTA bands (home-cta-band / site-cta-card) which already got a slow
-   shimmer sweep in style.css; extend the same "alive, not flat" cue here so
-   the whole family of dark cards matches. ---- */
-.qm-est-result{ position: relative; overflow: hidden; }
-.qm-est-result::after{
-  content:'';
-  position:absolute; inset:0; z-index:0; pointer-events:none;
-  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
-  background-size: 220% 100%;
-  animation: qmResultShimmer 7s ease-in-out infinite;
-}
-.qm-est-result > *{ position: relative; z-index: 1; }
-@keyframes qmResultShimmer{
-  0%{ background-position: 130% 0; }
-  100%{ background-position: -30% 0; }
-}
-@media (prefers-reduced-motion: reduce){ .qm-est-result::after{ animation:none; } }
 
 /* ---- Chat header: soft ambient corner glow behind the existing gradient
    fill, matching the mesh-glow technique used on hero banners sitewide. ---- */
-.chat-header{ position: relative; overflow: hidden; }
 .chat-header::after{
   content:'';
   position:absolute; inset:0; z-index:0; pointer-events:none;
@@ -978,12 +829,3 @@
 }
 .chat-header-left, .chat-close-btn{ position: relative; z-index: 1; }
 
-/* ---- Active chip states (size/type selectors in the estimator): a gentle
-   glow pulse the first time a chip becomes active, echoing the eyebrow-dot
-   pulse used sitewide — subtle enough not to distract during repeated use. ---- */
-.qm-chip.active, .qm-size-chip.active{ animation: qmChipSettle .4s var(--ease); }
-@keyframes qmChipSettle{
-  0%{ box-shadow: 0 0 0 0 rgba(var(--primary-rgb),.35); }
-  100%{ box-shadow: 0 0 0 3px rgba(var(--primary-rgb),.12); }
-}
-@media (prefers-reduced-motion: reduce){ .qm-chip.active, .qm-size-chip.active{ animation:none; } }

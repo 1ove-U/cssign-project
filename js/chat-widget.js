@@ -1,11 +1,29 @@
 /* AI chat widget — shared across index, products, about */
-import { getProducts, getCategories, getFaqs, getSettings, getPortfolios } from './db.js';
+import { buildKnowledgeBlock, SYSTEM_RULES } from "./chat-widget-knowledge.js";
 
 (function () {
   /* ── state ── */
-  var history = [];  /* {role, content}[] for Claude API */
+  var history = [];  /* {role, content}[] — ส่งให้ chat proxy Worker ทุกครั้ง */
   var isOpen   = false;
   var isTyping = false;
+
+  /* ── rate limit ฝั่ง client ──
+     Gemini free tier จำกัดจำนวน request/วันต่อโปรเจกต์ (ไม่ใช่ต่อคน) และถ้า Gemini
+     เกินโควตา Worker จะ fallback ไป Grok ซึ่ง "ฟรี" แค่ช่วง credit รายเดือนที่ xAI ให้
+     มา — เกินจากนั้นจะเริ่มมีค่าใช้จ่ายจริงต่อ token ทันที คนแชทถี่ๆ คนเดียวจึงกิน
+     โควตารวมของทั้งเว็บได้ไม่ยาก จำกัดไว้ต่อ session (รีเฟรชหน้าคือเริ่มนับใหม่)
+     กันเบื้องต้นฝั่ง client ก่อน — ควรมี limit ฝั่ง Worker (server-side) ประกบด้วย
+     เพราะ client-side เพียงอย่างเดียวถูก bypass ได้ถ้ามีคนยิง request ตรงไปที่ Worker */
+  var MAX_MESSAGES_PER_SESSION = 20;
+  var messageCount = 0;
+
+  /* ── quote-intent detection ──
+     จับคำที่บ่งชี้ว่าลูกค้าอยากได้ราคา/ใบเสนอราคา แล้วเปิดฟอร์มขอใบเสนอราคา
+     (js/lead-quote-modal.js) ให้อัตโนมัติ แทนที่จะหวังพึ่งแค่คำแนะนำที่ AI
+     พิมพ์ตอบในแชท ซึ่งลูกค้าอาจไม่กดทำตาม — เปิดครั้งเดียวต่อ session
+     เพื่อไม่ให้ป๊อปอัพซ้ำทุกครั้งที่มีคำว่า "ราคา" โผล่มาในบทสนทนา */
+  var QUOTE_INTENT_RE = /ใบเสนอราคา|เสนอราคา|ขอราคา|สอบถามราคา|ราคาเท่าไห?ร่?|กี่บาท|เท่าไหร่|เท่าไร|สั่งซื้อ|สั่งผลิต|ขอใบเสนอ|quote|quotation/i;
+  var quoteModalOffered = false;
 
   /* ── elements ── */
   var fab      = document.getElementById('chat-fab');
@@ -17,128 +35,8 @@ import { getProducts, getCategories, getFaqs, getSettings, getPortfolios } from 
   var chips    = document.getElementById('chat-chips');
   var badge    = document.getElementById('chat-badge');
 
-  /* ── system prompt ──
-     Split in two: a fixed instruction block (rules never change),
-     plus a live "ข้อมูลปัจจุบันจากเว็บไซต์" block rebuilt from real
-     Firestore data every time the page loads (see buildKnowledgeBlock
-     below) — company contact info, the real product catalog with
-     current prices, real FAQ answers, and recent project references —
-     so the bot answers off what's actually published on the site
-     right now instead of a snapshot that goes stale the moment an
-     admin edits something in admin.html. If Firestore can't be
-     reached (offline, blocked, first paint before data loads), it
-     falls back to this static block so the bot still works. */
-  var STATIC_FALLBACK_KNOWLEDGE = `ข้อมูลบริษัท:
-- ที่อยู่: 17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพฯ 10150
-- โทร: 062-883-3880, 063-978-5670
-- โทรสาร (Fax): 02-115-0850
-- อีเมล: cssigngroup@gmail.com
-- LINE: @cssigngroup
-- Facebook: facebook.com/cssignonline
-
-มาตรฐาน: มอก. 635-2547, ISO 9001:2015 (Bureau Veritas), ISO 7010:2019, DOH Standard
-สินค้า: ป้ายความปลอดภัย ISO 7010, ป้ายจราจรสะท้อนแสง, ป้ายโรงงานอุตสาหกรรม, กรวยจราจร, แบริเออร์, เสาล้มลุก, Custom Order พร้อม Artwork ฟรี
-บริการ: สำรวจพื้นที่ฟรี, ออกแบบ Artwork ฟรี, ผลิต, ติดตั้ง, ออกใบกำกับภาษีเต็มรูปแบบ
-ราคาตัวอย่าง: กรวยจราจร เริ่ม ฿350/ชิ้น, เสาล้มลุก เริ่ม ฿280/ชิ้น — สินค้าอื่น ขอใบเสนอราคา
-ระยะเวลา: สต็อก 1-3 วัน, Custom 5-10 วันทำการ
-ลูกค้าอ้างอิง: PTT Group, SCG, EGAT, CP Group, กรุงเทพมหานคร
-(หมายเหตุ: นี่คือข้อมูลสำรอง ระบบไม่สามารถโหลดข้อมูลล่าสุดจากเว็บไซต์ได้ในขณะนี้)`;
-
-  var SYSTEM_RULES = `คุณคือผู้ช่วยขายของ CS.SIGN (บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด)
-ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์ 20+ ปี
-
-กฎ:
-- ใช้ "ข้อมูลปัจจุบันจากเว็บไซต์" ด้านล่างเป็นแหล่งความจริงหลักเสมอ เพราะดึงมาจากฐานข้อมูลจริงของเว็บไซต์ตอนนี้ ถ้าข้อมูลในนั้นขัดกับความรู้เดิมของคุณ ให้เชื่อข้อมูลด้านล่างนี้แทน
-- คุณคือ AI ผู้ช่วย ไม่ใช่พนักงานจริง หากลูกค้าถามว่าคุยกับคนหรือ AI หรือขอคุยกับพนักงาน/คนจริง ให้ตอบตรงไปตรงมาว่าคุณเป็น AI ผู้ช่วยตอบคำถามเบื้องต้น และแนะนำให้ติดต่อทีมขายจริงผ่านช่องทางที่ระบุไว้ด้านล่าง
-- ตอบเป็นภาษาไทยเสมอ สั้นกระชับ เป็นมิตร เป็นมืออาชีพ
-- ถ้าไม่แน่ใจในราคาหรือรายละเอียด หรือเป็นเรื่องที่ต้องใช้ดุลยพินิจ/เจรจา (เช่น ราคาต่อรอง เงื่อนไขพิเศษ) หรือสินค้าที่ไม่มีอยู่ในรายการด้านล่าง ให้แนะนำติดต่อพนักงานขายจริง หรือขอใบเสนอราคาแทนการเดาคำตอบ
-- ห้ามแต่งข้อมูลที่ไม่รู้ หรือไม่มีอยู่ใน "ข้อมูลปัจจุบันจากเว็บไซต์" ด้านล่าง โดยเฉพาะราคาและสเปกสินค้า
-- ตอบสูงสุด 3-4 ประโยค ยกเว้นถ้าถูกถามให้อธิบายละเอียด
-- ถ้าลูกค้าทักทายหรือพูดคุยเล็กน้อยที่ไม่เกี่ยวกับธุรกิจ (เช่น ทายทัก ถามสภาพอากาศ ชวนคุยเล่น) ตอบรับแบบสุภาพสั้นๆได้ แต่ให้วกกลับมาที่สินค้า/บริการของ CS.SIGN เสมอในประโยคถัดไป
-- ถ้าลูกค้าถามเรื่องที่ไม่เกี่ยวข้องกับ CS.SIGN เลยและไม่ใช่การพูดคุยทั่วไป (เช่น ขอให้แต่งเรื่อง ทำการบ้าน ถามความรู้ทั่วไปที่ไม่เกี่ยวกับป้าย) ให้ตอบสุภาพว่าช่วยเรื่องนี้ไม่ได้ และแนะนำให้ถามเกี่ยวกับป้ายความปลอดภัย/ป้ายจราจร หรือบริการของ CS.SIGN แทน
-
-ข้อมูลปัจจุบันจากเว็บไซต์:
-`;
-
-  /* ── build the live knowledge block from Firestore (products,
-     categories, FAQs, settings, recent projects). Runs once per page
-     load, in parallel with the rest of the page, cached in a promise
-     so askClaude() only ever waits on it the first time it's needed. ── */
-  function formatPrice(price, unit) {
-    var num = Number(price);
-    if (!price || isNaN(num) || num <= 0) return 'สอบถามราคา';
-    return '฿' + num.toLocaleString('th-TH') + (unit ? '/' + unit : '');
-  }
-
-  function buildKnowledgeBlock() {
-    return Promise.all([
-      getSettings().catch(function () { return null; }),
-      getProducts().catch(function () { return []; }),
-      getCategories().catch(function () { return []; }),
-      getFaqs().catch(function () { return []; }),
-      getPortfolios().catch(function () { return []; })
-    ]).then(function (results) {
-      var settings = results[0], products = results[1] || [], categories = results[2] || [],
-          faqs = results[3] || [], portfolios = results[4] || [];
-
-      var parts = [];
-
-      /* ── contact info: live settings, falling back per-field to the
-         same defaults used sitewide (see js/site-settings.js) ── */
-      var s = settings || {};
-      parts.push('ข้อมูลติดต่อบริษัท:\n' +
-        '- ที่อยู่: ' + (s.address || '17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพฯ 10150') + '\n' +
-        '- โทร: ' + (s.phone || '062-883-3880') + (s.phone2 ? ', ' + s.phone2 : '') + '\n' +
-        '- โทรสาร: ' + (s.fax || '02-115-0850') + '\n' +
-        '- อีเมล: ' + (s.email || 'cssigngroup@gmail.com') + '\n' +
-        '- LINE: ' + (s.lineUrl || '@cssigngroup') + '\n' +
-        '- Facebook: ' + (s.facebookUrl || 'facebook.com/cssignonline'));
-
-      /* ── catalog: only currently-published ("active") products,
-         same filter products.js itself uses for the public product
-         grid, so the bot never quotes a draft/hidden item ── */
-      var catNames = {};
-      categories.forEach(function (c) { catNames[c.id] = c.name; });
-      var live = products.filter(function (p) { return (p.status || 'active') === 'active'; });
-      if (live.length) {
-        var MAX_ITEMS = 60;
-        var lines = live.slice(0, MAX_ITEMS).map(function (p) {
-          var cat = catNames[p.cat_id] ? ' [' + catNames[p.cat_id] + ']' : '';
-          return '- ' + p.name + cat + ': ' + formatPrice(p.price, p.unit) +
-            (p.material ? ' | วัสดุ: ' + p.material : '') +
-            (p.size ? ' | ขนาด: ' + p.size : '');
-        });
-        var more = live.length > MAX_ITEMS ? '\n(และสินค้าอื่นอีก ' + (live.length - MAX_ITEMS) + ' รายการ ดูทั้งหมดได้ที่หน้าสินค้าบนเว็บไซต์)' : '';
-        parts.push('รายการสินค้าปัจจุบัน (' + live.length + ' รายการ):\n' + lines.join('\n') + more);
-      }
-
-      /* ── FAQs: real question/answer pairs maintained by the admin ── */
-      if (faqs.length) {
-        var faqLines = faqs.map(function (f) { return 'ถาม: ' + f.question + '\nตอบ: ' + f.answer; });
-        parts.push('คำถามที่พบบ่อย (FAQ):\n' + faqLines.join('\n\n'));
-      }
-
-      /* ── recent projects: a short list of client names/categories
-         only — enough to answer "เคยทำให้ใครบ้าง" without dumping
-         full case-study copy into the prompt ── */
-      if (portfolios.length) {
-        var clients = portfolios
-          .map(function (p) { return p.client; })
-          .filter(function (c, i, arr) { return c && arr.indexOf(c) === i; })
-          .slice(0, 20);
-        if (clients.length) {
-          parts.push('ลูกค้า/โครงการที่เคยทำ (ตัวอย่าง): ' + clients.join(', '));
-        }
-      }
-
-      return parts.length ? parts.join('\n\n') : STATIC_FALLBACK_KNOWLEDGE;
-    }).catch(function () {
-      return STATIC_FALLBACK_KNOWLEDGE;
-    });
-  }
-
   /* kick the fetch off immediately so it's usually already resolved
-     by the time the visitor sends their first message; askClaude()
+     by the time the visitor sends their first message; askBot()
      awaits this same cached promise rather than re-fetching per turn */
   var knowledgePromise = buildKnowledgeBlock();
 
@@ -181,13 +79,46 @@ import { getProducts, getCategories, getFaqs, getSettings, getPortfolios } from 
     if (el) el.remove();
   }
 
-  /* ── Cloud proxy endpoint (Cloudflare Worker → Google Gemini API, ฟรี ไม่ต้องผูกบัตร) ── */
+  /* เปิดฟอร์มขอใบเสนอราคาเดิม (js/lead-quote-modal.js) พร้อม prefill ข้อความ
+     ที่ลูกค้าพิมพ์ในแชท และ tag แหล่งที่มาว่า 'chat_widget' เพื่อแยกดูใน
+     admin ได้ — ไม่ต้องเขียน saveLead()/ฟอร์มใหม่เลย ใช้ของเดิมทั้งหมด */
+  function maybeOfferQuoteModal(userMsg) {
+    if (quoteModalOffered) return;
+    if (typeof window.openModal !== 'function') return;
+
+    quoteModalOffered = true;
+    window.openModal('form', {
+      source: 'chat_widget',
+      message: 'สนใจสอบถามจากแชท AI: ' + userMsg
+    });
+  }
+
+  /* ── Cloud proxy endpoint (Cloudflare Worker → Gemini API หลัก, Groq เป็นตัวสำรอง
+     ถ้า Gemini ล่ม/โควตาหมด — ทั้งคู่ฟรี ไม่ต้องผูกบัตร) ──
+     หมายเหตุ: Groq (groq.com, บริษัททำ inference เร็ว) คนละตัวกับ Grok (xAI/Elon
+     Musk) — สลับกันได้ง่ายเพราะออกเสียงเหมือนกัน ยืนยันจาก error จริงที่เจอ
+     (2569-07-21): "เรียก groq API ไม่สำเร็จ" + model "openai/gpt-oss-20b" ซึ่งเป็น
+     โมเดล open-source ที่รันบน Groq เท่านั้น ไม่มีทางมาจาก xAI ได้
+     ตัวเว็บ (ไฟล์นี้) ไม่รู้และไม่ควรต้องรู้ว่า Worker เลือกใช้โมเดลไหนอยู่จริง
+     แค่ยิง POST ไปตามรูปแบบเดียวกันเสมอ (system + messages) แล้วรอ response
+     กลับมาเป็น {content:[{text}]} — logic เลือก/สลับโมเดลอยู่ฝั่ง Worker ทั้งหมด
+     (source ของ Worker ตัวนี้ไม่ได้อยู่ในโปรเจกต์นี้ ดูแยกจาก repo ของ Worker) */
   /* แก้ URL ด้านล่างให้ตรงกับ Worker URL จริงหลัง deploy (ดู cloudflare-worker/README.md) */
   var CHAT_PROXY_URL = 'https://red-sun-9f54.zillergotspw.workers.dev';
 
-  /* ── Claude API call (ผ่าน chatProxy Cloud Function — ไม่เรียก api.anthropic.com ตรงจาก browser อีกต่อไป) ── */
-  async function askClaude(userMsg) {
+  /* Groq free tier (on-demand) จำกัด token/นาทีต่ำมาก (เจอจริง 8,000 TPM สำหรับ
+     openai/gpt-oss-20b) แต่ทุก request ที่ยิงไปตอนนี้แนบ "ประวัติแชททั้งหมด" ของ
+     session ไปด้วยเสมอ (ดู history.push ด้านล่าง) ทำให้ยิ่งคุยไปนาน ยิ่งกิน token/
+     ครั้งมากขึ้นเรื่อยๆ จนชนเพดานได้ง่ายหลังผ่านไปแค่ 2-3 ข้อความ — ตัดให้เหลือแค่
+     บทสนทนาล่าสุดที่ส่งจริง (เก็บของเดิมไว้ครบใน history เพื่อโชว์ในหน้าจอ แต่ตัด
+     เฉพาะตอนส่งให้ API) ช่วยลด token/request ได้มาก โดยที่บอทยังจำบริบทล่าสุด
+     พอสำหรับสนทนาสั้นๆ ทั่วไป */
+  var MAX_HISTORY_MESSAGES_SENT = 8; // ~4 รอบสนทนาล่าสุด (user+bot สลับกัน)
+
+  /* เรียก AI ผ่าน chat proxy Worker (ดูคอมเมนต์ด้านบน CHAT_PROXY_URL ว่าใช้โมเดลอะไรจริง) */
+  async function askBot(userMsg) {
     history.push({ role: 'user', content: userMsg });
+    var hasQuoteIntent = QUOTE_INTENT_RE.test(userMsg);
 
     isTyping = true;
     sendBtn.disabled = true;
@@ -195,12 +126,15 @@ import { getProducts, getCategories, getFaqs, getSettings, getPortfolios } from 
 
     try {
       var knowledge = await knowledgePromise;
+      var trimmedHistory = history.length > MAX_HISTORY_MESSAGES_SENT
+        ? history.slice(history.length - MAX_HISTORY_MESSAGES_SENT)
+        : history;
       var res = await fetch(CHAT_PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system: SYSTEM_RULES + knowledge,
-          messages: history
+          messages: trimmedHistory
         })
       });
 
@@ -212,13 +146,15 @@ import { getProducts, getCategories, getFaqs, getSettings, getPortfolios } from 
       history.push({ role: 'assistant', content: reply });
       removeTyping();
       addBubble(reply, 'bot');
-    } catch (err) {
+    } catch {
       removeTyping();
       addBubble('ขออภัยครับ เกิดข้อผิดพลาด กรุณาโทร 062-883-3880 หรือส่งอีเมลมาที่ cssigngroup@gmail.com', 'bot');
     }
 
     isTyping = false;
     sendBtn.disabled = input.value.trim().length === 0;
+
+    if (hasQuoteIntent) maybeOfferQuoteModal(userMsg);
   }
 
   /* ── send message ── */
@@ -234,11 +170,30 @@ import { getProducts, getCategories, getFaqs, getSettings, getPortfolios } from 
     input.style.height = 'auto';
     sendBtn.disabled = true;
 
-    askClaude(msg);
+    if (messageCount >= MAX_MESSAGES_PER_SESSION) {
+      addBubble('ขออภัยครับ แชทช่วงนี้คุยกันมาเยอะแล้ว รบกวนติดต่อทีมขายโดยตรงที่ 062-883-3880 หรือ cssigngroup@gmail.com เพื่อความรวดเร็วครับ', 'bot');
+      sendBtn.disabled = input.value.trim().length === 0;
+      return;
+    }
+    messageCount++;
+
+    askBot(msg);
   }
 
   /* ── open / close ── */
+  /* 2026 refactor — accessibility phase (รอบที่ 59): เพิ่ม Escape + Tab-trap + return-focus ให้
+     #chat-popup (ประกาศ role="dialog" aria-modal="true" มาตั้งแต่ต้น แต่ไม่เคยมี behavior จริงรองรับ)
+     — pattern เปิด/ปิดของไฟล์นี้ต่างจาก overlay อื่นในโปรเจกต์ (classList.add/remove('open') แทน
+     style.display, ปิดด้วย document click listener เช็ค !popup.contains(e.target) แทน backdrop
+     overlay ธรรมดา) จึงเช็ค isOpen แทน overlay.style.display === "flex" ที่ track-modal.js/
+     lead-quote-modal.js ใช้ — โครง Tab-trap ยังใช้ FOCUSABLE_SELECTOR เดียวกับที่ใช้ทั่วโปรเจกต์
+     (ไม่ต้องกรอง offsetParent/visibility เพิ่มเอง ตามเหตุผลเดิมที่บันทึกไว้ในแผนรอบ 57 ข้อ 8) */
+  var CW_FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), ' +
+    'input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  var lastFocused = null;
+
   function openChat() {
+    lastFocused = document.activeElement;
     isOpen = true;
     fab.classList.add('open');
     popup.classList.add('open');
@@ -250,6 +205,8 @@ import { getProducts, getCategories, getFaqs, getSettings, getPortfolios } from 
     isOpen = false;
     fab.classList.remove('open');
     popup.classList.remove('open');
+    if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+    lastFocused = null;
   }
 
   fab.addEventListener('click', function () {
@@ -261,6 +218,29 @@ import { getProducts, getCategories, getFaqs, getSettings, getPortfolios } from 
   document.addEventListener('click', function (e) {
     if (isOpen && !popup.contains(e.target) && e.target !== fab && !fab.contains(e.target)) {
       closeChat();
+    }
+  });
+
+  /* Escape ปิดแชท + Tab-trap วนโฟกัสอยู่ใน popup ตราบใดที่ isOpen — ผูกไว้ที่ document เดียวกับ
+     ทุก modal อื่นในโปรเจกต์ (module-scope, ไม่ต้องกัน bind ซ้ำเพราะ IIFE นี้รันครั้งเดียวต่อหน้า) */
+  document.addEventListener('keydown', function (e) {
+    if (!isOpen) return;
+
+    if (e.key === 'Escape') {
+      closeChat();
+      return;
+    }
+
+    if (e.key !== 'Tab') return;
+    var focusables = Array.prototype.slice.call(popup.querySelectorAll(CW_FOCUSABLE_SELECTOR));
+    if (!focusables.length) return;
+    var first = focusables[0];
+    var last = focusables[focusables.length - 1];
+    var active = document.activeElement;
+    if (e.shiftKey) {
+      if (active === first || !popup.contains(active)) { e.preventDefault(); last.focus(); }
+    } else {
+      if (active === last || !popup.contains(active)) { e.preventDefault(); first.focus(); }
     }
   });
 

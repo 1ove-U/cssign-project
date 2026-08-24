@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Work — CS.SIGN, Full-Service Safety Sign Manufacturer</title>
+<meta name="description" content="A showcase of safety and traffic signage projects CS.SIGN has delivered for leading organizations nationwide — covering manufacturing plants, government agencies, industrial estates, and custom orders.">
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://cssign.co.th/en/portfolio.html">
+<meta property="og:title"       content="CS.SIGN Portfolio — Signage Projects for Leading Organizations">
+<meta property="og:description" content="Signage delivered to PTT, SCG, EGAT, BMA, and 500+ organizations nationwide">
+<meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale"      content="en_US">
+<link rel="canonical" href="https://cssign.co.th/en/portfolio.html">
+
+<!-- hreflang -->
+<link rel="alternate" hreflang="th" href="https://cssign.co.th/portfolio.html">
+<link rel="alternate" hreflang="en" href="https://cssign.co.th/en/portfolio.html">
+<link rel="alternate" hreflang="x-default" href="https://cssign.co.th/portfolio.html">
+
+<link rel="icon" href="../assets/favicon.ico" sizes="any">
+<link rel="icon" href="../assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="../assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="manifest" href="../assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Perf: preconnect above already warms the connection; this actually
+     loads the webfont CSS, moved out of style.css's @import (which is
+     render-blocking and only discoverable after style.css itself loads,
+     costing an extra round trip before Thai/Latin text paints). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+
+<link rel="stylesheet" href="../css/style.css?v=20260711a">
+<link rel="stylesheet" href="../css/shared-widgets.css">
+<link rel="stylesheet" href="../css/exit-intent-cta.css">
+<link rel="stylesheet" href="../css/track-modal.css">
+<link rel="stylesheet" href="../css/cart-modal.css">
+<style>
+  /* Small "TH" badge next to links that lead to Thai-only pages —
+     keeps the language switch honest instead of surprising visitors. */
+  .lang-tag{
+    display:inline-block;
+    font-size:.62em;
+    font-weight:700;
+    letter-spacing:.02em;
+    padding:1px 5px;
+    margin-left:2px;
+    border-radius:4px;
+    background:rgba(var(--primary-rgb),0.1);
+    color:var(--primary);
+    vertical-align:middle;
+    line-height:1.6;
+  }
+  .lang-tag--dark{
+    background:rgba(255,255,255,0.12);
+    color:inherit;
+  }
+  /* ---- Portfolio page hero (reuses contact-hero pattern) ---- */
+  .pf-hero{ position:relative; overflow:hidden; padding: var(--page-hero-pad-top) 0 var(--page-hero-pad-bottom); background: var(--gray-50); }
+  /* ---- Second decorative layer (matches .article-hero/.contact-hero mesh
+     treatment in style.css): soft two-corner brand-colour wash behind the
+     existing chevron artwork, purely additive depth. ---- */
+  .pf-hero::before{
+    content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(520px 320px at 100% 100%, rgba(var(--accent-rgb),0.05), transparent 60%),
+      radial-gradient(480px 300px at 0% 0%, rgba(var(--primary-rgb),0.05), transparent 60%);
+  }
+  .pf-hero-bg-x{ position:absolute; top:-60px; right:-120px; width:560px; opacity:.6; pointer-events:none; }
+  .pf-hero-inner{ position:relative; z-index:1; text-align:center; max-width:760px; margin:0 auto; }
+  .pf-hero-inner h1{ font-family:var(--font-display); font-weight: 700; font-size:clamp(30px,4vw,46px); color:var(--text-heading); line-height:1.2; letter-spacing:-0.02em; margin:14px 0 18px; }
+  .pf-hero-inner p{ font-size:16.5px; line-height:1.75; color:var(--gray-500); }
+  .pf-hero .eyebrow{ justify-content:center; width:100%; }
+
+  /* ---- Gallery section head: centered, with a small gradient rule
+     under the heading and a short supporting line so the block reads
+     as an intentional, designed centerpiece rather than a left-aligned
+     leftover from the default .section-head. ---- */
+  #portfolio-all .section-head{ max-width:640px; margin-left:auto; margin-right:auto; margin-bottom:20px; text-align:center; }
+  #portfolio-all .section-head .eyebrow{ justify-content:center; width:100%; }
+  #portfolio-all .section-head h2{ margin-bottom:14px; }
+  .pf-head-rule{ width:56px; height:3px; margin:0 auto 18px; border-radius:var(--r-pill); background: linear-gradient(90deg, var(--primary), var(--accent)); }
+  .pf-head-sub{ max-width:520px; margin:0 auto; font-size:15px; line-height:1.7; color:var(--gray-500); }
+
+  /* ---- Filter tabs row ----
+     #pf-tabs previously sat on transparent/white with no track behind it,
+     so the inactive tabs (plain text, no background) and even the "active"
+     pill (white-on-white, faint border) barely read as a tab group. Give
+     the row a light pill-shaped track, a touch of depth, and a colored
+     dot per category (tied to the same accent colors as the cards below)
+     so the control itself previews what each filter will show. */
+  .pf-filter-row{ display:flex; justify-content:center; margin: 32px 0 22px; }
+  #pf-tabs.product-tabs{
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    border-radius: var(--r-pill);
+    padding: 6px;
+    box-shadow: inset 0 1px 2px rgba(15,23,42,0.03);
+  }
+  #pf-tabs .product-tab{ gap:8px; }
+  #pf-tabs .product-tab::before{
+    content:''; width:7px; height:7px; border-radius:50%; flex:none;
+    background: var(--gray-300); transition: background .22s var(--ease), box-shadow .22s var(--ease);
+  }
+  #pf-tabs .product-tab.active::before{ box-shadow: 0 0 0 3px rgba(var(--primary-rgb),0.16); }
+  #pf-tabs .product-tab[data-filter="all"]::before{ background: var(--primary); }
+  #pf-tabs .product-tab[data-filter="factory"]::before{ background: var(--primary); }
+  #pf-tabs .product-tab[data-filter="government"]::before{ background: var(--accent); }
+  #pf-tabs .product-tab[data-filter="industrial"]::before{ background: #2E86D1; }
+  #pf-tabs .product-tab[data-filter="custom"]::before{ background: var(--success); }
+  #pf-tabs .product-tab.active{ transform: translateY(-1px); }
+
+  /* ---- Results meta ----
+     Was a full-width space-between bar with two short bits of text
+     stranded at opposite edges (looked like an empty table header).
+     Now a single centered chip-style summary line directly under the tabs. */
+  .pf-meta{
+    display:flex; align-items:center; justify-content:center; gap:9px; margin: 0 auto 40px;
+    width:max-content; max-width:100%;
+    font-family:var(--font-mono); font-size:11.5px; color:var(--gray-400); letter-spacing:.04em;
+    background:#fff; border:1px solid var(--gray-100); border-radius:var(--r-pill); padding:8px 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .pf-meta strong{ color:var(--secondary); font-family:var(--font-display); }
+  .pf-meta-dot{ color: var(--gray-200); }
+
+  /* ---- Card fade/filter transition + show/hide ---- */
+  .port-card[data-cat]{ transition:opacity .3s var(--ease), transform .3s var(--ease); }
+  .port-card[data-cat].pf-hidden{ display:none; }
+
+  .pf-empty{ display:none; text-align:center; padding:60px 0; color:var(--gray-400); font-size:15px; }
+  .pf-empty.show{ display:block; }
+
+  /* ---- In-depth case studies (same pattern as about.html customer cases) ---- */
+  .case-section{ padding: 0 0 var(--section-pad); }
+  .case-section .section-head{ margin-bottom:36px; }
+  .case-card{ display:grid; grid-template-columns:1fr 1fr; gap:0; background:#fff; border:1px solid var(--gray-100); border-radius:var(--r-xl); overflow:hidden; box-shadow:var(--shadow-sm); margin-bottom:28px; }
+  .case-card:nth-child(even) .case-card-visual{ order:2; }
+  .case-card-visual{ position:relative; }
+  .case-card-visual .img-ph{ height:100%; border-radius:0; border:none; }
+  .case-card-body{ padding:40px; display:flex; flex-direction:column; }
+  .case-tag{ display:inline-flex; align-self:flex-start; font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--primary); background:rgba(var(--primary-rgb),0.08); padding:5px 12px; border-radius:var(--r-pill); margin-bottom:14px; }
+  .case-card-body h3{ font-size:23px; font-weight:800; color:var(--text-heading); margin-bottom:4px; line-height:1.35; }
+  .case-client{ font-size:13.5px; color:var(--gray-500); margin-bottom:18px; }
+  .case-block{ margin-bottom:14px; }
+  .case-block-label{ font-size:11.5px; font-weight:700; color:var(--gray-400); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+  .case-block p{ font-size:14.5px; color:var(--gray-600); margin:0; }
+  .case-metrics{ display:flex; gap:22px; margin-top:20px; padding-top:20px; border-top:1px solid var(--gray-100); flex-wrap:wrap; }
+  .case-metric-num{ font-size:21px; font-weight:800; color:var(--text-heading); font-family:var(--font-mono); }
+  .case-metric-label{ font-size:11.5px; color:var(--gray-500); margin-top:2px; }
+  @media (max-width:900px){
+    .case-card{ grid-template-columns:1fr; }
+    .case-card-visual{ aspect-ratio:16/9; }
+    .case-card:nth-child(even) .case-card-visual{ order:0; }
+  }
+  @media (max-width:560px){
+    .case-card-body{ padding:26px 22px; }
+  }
+</style>
+<link rel="stylesheet" href="../css/fancy-effects.css">
+</head>
+<body data-page="portfolio">
+<a href="#top" class="skip-link">Skip to main content</a>
+
+<!-- ============================================================
+     STICKY NAVIGATION
+     ============================================================ -->
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        +66 62-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="Chat on LINE" title="Chat on LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="Search the site">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="../portfolio.html">TH</a>
+        <a href="#" class="is-active">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+
+      <div class="nav-item-dropdown">
+        <button class="nav-link nav-dd-trigger" type="button">
+          Products
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown nav-megamenu">
+          <div class="nav-mega-grid">
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">Safety Signs</div>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>Safety &amp; Warning Signs</strong><span>International standard, clearly visible in all lighting</span></span>
+              </a>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>Emergency Evacuation Signs</strong><span>Clear escape routes and assembly points</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">Traffic Signs</div>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>High-Intensity Reflective Signs</strong><span>Manufactured to Dept. of Highways / TIS standard</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>Warning / Construction-Zone Signs</strong><span>Improved safety for active work sites</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>Directional / Wayfinding Signs</strong><span>Designed to match your actual site layout</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">Traffic Equipment</div>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>Traffic Cones / Barriers</strong><span>Durable, high-quality materials</span></span>
+              </a>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>Flexible Posts / Road Barriers</strong><span>Easy to install, adaptable to any site</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">By Industry</div>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Manufacturing Plants</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Government Agencies</strong></a>
+              <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>Industrial Estates</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Hospitals / Healthcare</strong></a>
+            </div>
+          </div>
+          <a href="products.html" class="nav-mega-foot">
+            View all products
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="portfolio.html" class="nav-link nav-link--active">Portfolio</a>
+      <a href="about.html" class="nav-link">About Us</a>
+      <a href="blog.html" class="nav-link">Articles</a>
+      <a href="contact.html" class="nav-link">Contact</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">Request a Quote</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="Track your order status" title="Track your order status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="Close menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">Home</a>
+
+    <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
+      Products
+      <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="mobile-dd-panel" id="mobile-dd-panel">
+      <a href="products.html?cat=safety">Safety Signs</a>
+      <a href="products.html?cat=traffic">Traffic Signs</a>
+      <a href="products.html?cat=equip">Traffic Equipment</a>
+      <a href="products.html">View all products</a>
+    </div>
+
+    <a href="portfolio.html">Portfolio</a>
+    <a href="about.html">About Us</a>
+    <a href="blog.html">Articles</a>
+    <a href="#" data-track-modal-open>Track your order status</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="../portfolio.html">TH · ไทย</a>
+    <a href="#" class="is-active">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>Add LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">Request a Quote</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">Call +66 62-883-3880</a>
+  </div>
+</div>
+
+<main id="top">
+
+<!-- ============================================================
+     PORTFOLIO HERO
+     ============================================================ -->
+<section class="pf-hero" data-reveal="fade">
+  <div class="pf-hero-bg-x" aria-hidden="true">
+    <svg viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 20L300 200L540 20" stroke="#E2E8F0" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M60 380L300 200L540 380" stroke="#E2E8F0" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="wrap pf-hero-inner">
+    <div class="eyebrow">PROJECT SHOWCASE</div>
+    <h1>Projects Delivered to<br>Leading Organizations Nationwide</h1>
+    <p>Real project examples handled by CS.SIGN — from manufacturing plants and government agencies to industrial estates and custom-designed orders. Choose a category to see work that matches your project.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     FILTERABLE PORTFOLIO GRID
+     ============================================================ -->
+<section class="section" id="portfolio-all">
+  <div class="wrap">
+
+    <div class="section-head" data-reveal>
+      <div class="eyebrow">FULL PROJECT GALLERY</div>
+      <h2 class="h-section" style="font-size:clamp(24px,2.8vw,32px);">All Projects<br>Browse by Category</h2>
+      <div class="pf-head-rule" aria-hidden="true"></div>
+      <p class="pf-head-sub">A curated selection of real work for clients and organizations nationwide. Filter by category<br>to see the examples closest to your project.</p>
+    </div>
+
+    <div class="pf-filter-row" data-reveal>
+      <div class="product-tabs" id="pf-tabs">
+        <button class="product-tab active" data-filter="all">All</button>
+        <button class="product-tab" data-filter="factory">Manufacturing Plants</button>
+        <button class="product-tab" data-filter="government">Government</button>
+        <button class="product-tab" data-filter="industrial">Industrial Estates</button>
+        <button class="product-tab" data-filter="custom">Custom Order</button>
+      </div>
+    </div>
+
+    <div class="pf-meta" data-reveal>
+      <span>Showing <strong id="pf-count">8</strong> projects total</span>
+      <span class="pf-meta-dot" aria-hidden="true">•</span>
+      <span>Last updated · 2026</span>
+    </div>
+
+    <!-- FILTERABLE PROJECT GRID -- mirrors portfolio.html #pf-grid. Filled by
+         js/portfolio-render.js from admin-entered project data, which is
+         Thai-only (no per-language field in the CMS yet), so project cards
+         here will display in Thai even though the page chrome is English. -->
+    <div class="portfolio-grid" id="pf-grid" data-reveal>
+
+    </div>
+
+    <div class="pf-empty" id="pf-empty">No projects in this category yet — please choose another category.</div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     CTA STRIP
+     ============================================================ -->
+<section class="site-cta-band site-cta-band--strip">
+  <div class="wrap">
+    <div class="site-cta-card" data-reveal>
+      <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+      <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
+      <div class="site-cta-bg-art" aria-hidden="true">
+        <svg viewBox="0 0 1200 340" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <path d="M980 40C1080 40 1160 110 1160 190C1160 270 1080 320 990 320" stroke="rgba(255,255,255,0.06)" stroke-width="46" stroke-linecap="round" fill="none"/>
+          <path d="M840 20L1180 320M1180 20L840 320" stroke="rgba(255,255,255,0.045)" stroke-width="40" stroke-linecap="round"/>
+          <circle cx="150" cy="60" r="140" fill="rgba(255,255,255,0.035)"/>
+        </svg>
+      </div>
+      <div class="site-cta-content">
+        <h2>Already Have a Project in Mind?</h2>
+        <p>The CS.SIGN team is ready to advise you and prepare a free quotation. We reply within 24 hours.</p>
+        <a href="contact.html" class="btn btn-white btn-lg">Request a Quote</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>CS.SIGN And Products Co., Ltd. — manufacturer of traffic and safety signs, with 20+ years of experience.</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">Products</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">Safety Signs</a>
+          <a href="products.html?cat=traffic">Traffic Signs</a>
+          <a href="products.html?cat=safety">Industrial Plant Signage</a>
+          <a href="products.html?cat=equip">Traffic Equipment</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">Company</div>
+        <div class="footer-links">
+          <a href="about.html">About Us</a>
+          <a href="index.html#services">How It Works</a>
+          <a href="portfolio.html">Our Work</a>
+          <a href="quality-policy.html">Quality Policy</a>
+          <a href="blog.html">Articles</a>
+          <a href="about.html#faq">FAQ</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-h">Contact</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Address</div>
+          <div class="footer-contact-val">17 Soi Bang Kradi 1, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Phone / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">+66 62-883-3880, +66 63-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Fax</div>
+          <span class="footer-contact-val">+66 2-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Email</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN And Products Co., Ltd.</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">Privacy Policy</a> · <a href="terms.html" style="color:inherit;">Terms of Service</a> &middot; <a href="accessibility.html" style="color:inherit;">Accessibility Statement</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/tabs-overflow.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/main-effects.js"></script>
+<script src="../js/cookie-consent.js"></script>
+<script src="../js/analytics.js"></script>
+<script src="../js/site-search-index.js"></script>
+<script src="../js/site-search.js"></script>
+<script type="module" src="../js/site-settings.js"></script>
+<script type="module" src="../js/nav-menu.js"></script>
+<script type="module" src="../js/cart-global.js"></script>
+<script type="module" src="../js/portfolio-lightbox.js"></script>
+<script type="module" src="../js/portfolio-render.js"></script>
+<script type="module" src="../js/home-dynamic.js"></script>
+<script type="module" src="../js/home-dynamic-showcase.js"></script>
+<style>
+
+</style>
+<script src="../js/portfolio-tab-filter.js"></script>
+
+<!-- Every project card opens a popup with full details + all photos
+     when clicked. See js/portfolio-lightbox.js (loaded at the bottom of
+     the page) for the implementation. -->
+
+<!-- ============================================================
+     QUOTATION POPUP MODAL
+     ============================================================ -->
+<script src="../js/qmodal-template.js"></script>
+
+<!-- ============================================================
+     QUOTATION POPUP MODAL — logic combined from js/lead-quote-modal.js
+     (single source of truth shared with index.html/products.html/about.html/
+     product-detail.html — this page previously had its own separate inline
+     copy; see js/lead-quote-modal.js for the reasoning behind the merge and
+     the lead source label)
+     ============================================================ -->
+
+<!-- FAB trigger button -->
+<script src="../js/track-modal-template.js"></script>
+<script type="module" src="../js/track-modal.js"></script>
+<script src="../js/cart-modal-template.js"></script>
+<script src="../js/cart-modal.js"></script>
+<script src="../js/quote-form-template.js"></script>
+<script type="module" src="../js/quote-form.js"></script>
+<script type="module" src="../js/lead-quote-modal.js"></script>
+<script src="../js/chat-widget-template.js"></script>
+
+<script src="../js/qmodal.js"></script>
+<script type="module" src="../js/chat-widget.js"></script>
+<script src="../js/exit-intent-cta.js"></script>
+<script src="../js/fancy-effects.js" defer></script>
+</body>
+</html>

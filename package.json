@@ -1,0 +1,22 @@
+{
+  "name": "cssign-site",
+  "private": true,
+  "description": "CS.SIGN — เว็บไซต์ + แอดมิน (ไม่มี build step จริง — ไฟล์นี้มีไว้แค่ประกาศ script test เท่านั้น)",
+  "type": "module",
+  "scripts": {
+    "test": "node --import ./test/helpers/register-loader.mjs --test test/**/*.test.mjs",
+    "test:e2e": "playwright test",
+    "check-dead-css": "node scripts/check-dead-css.mjs",
+    "check-duplicate-css": "node scripts/check-duplicate-css.mjs",
+    "check-imports": "node --import ./test/helpers/register-loader.mjs scripts/check-imports.mjs",
+    "check-heading-hierarchy": "node scripts/check-heading-hierarchy.mjs",
+    "check-broken-anchor-links": "node scripts/check-broken-anchor-links.mjs"
+  },
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "eslint": "^10.7.0"
+  }
+}

@@ -13,6 +13,9 @@
 <meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
 <meta property="og:locale"      content="th_TH">
 <link rel="canonical" href="https://cssign.co.th/portfolio.html">
+<link rel="alternate" hreflang="th" href="https://cssign.co.th/portfolio.html">
+<link rel="alternate" hreflang="en" href="https://cssign.co.th/en/portfolio.html">
+<link rel="alternate" hreflang="x-default" href="https://cssign.co.th/portfolio.html">
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
 <link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
@@ -30,7 +33,9 @@
 
 <link rel="stylesheet" href="css/style.css?v=20260711a">
 <link rel="stylesheet" href="css/shared-widgets.css">
+<link rel="stylesheet" href="css/exit-intent-cta.css">
 <link rel="stylesheet" href="css/track-modal.css">
+<link rel="stylesheet" href="css/cart-modal.css">
 <style>
   /* ---- Portfolio page hero (reuses contact-hero pattern) ---- */
   .pf-hero{ position:relative; overflow:hidden; padding: var(--page-hero-pad-top) 0 var(--page-hero-pad-bottom); background: var(--gray-50); }
@@ -136,7 +141,7 @@
 </style>
 <link rel="stylesheet" href="css/fancy-effects.css">
 </head>
-<body>
+<body data-page="portfolio">
 <a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
 
 <!-- ============================================================
@@ -162,7 +167,7 @@
       </button>
       <div class="nav-lang-switch" aria-label="Language switch">
         <a href="#" class="is-active">TH</a>
-        <a href="en/index.html">EN</a>
+        <a href="en/portfolio.html">EN</a>
       </div>
     </div>
   </div>
@@ -171,7 +176,7 @@
 <header class="site-header" id="site-header">
   <div class="nav-inner">
     <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
       <span class="brand-text">
         <span class="brand-name">CS.SIGN</span>
         <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
@@ -183,7 +188,7 @@
 
       <div class="nav-item-dropdown">
         <button class="nav-link nav-dd-trigger" type="button">
-          หมวดหมู่
+          สินค้า
           <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="nav-dropdown nav-megamenu">
@@ -191,7 +196,7 @@
             <div class="nav-mega-col">
               <div class="nav-mega-title">ป้ายความปลอดภัย</div>
               <a href="products.html?cat=safety" class="nav-mega-item">
-                <span><strong>ป้ายเตือน / ป้ายบังคับ ISO 7010</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
+                <span><strong>ป้ายเตือน / ป้ายบังคับ</strong><span>มาตรฐานสากล มองเห็นชัดในทุกสภาพแสง</span></span>
               </a>
               <a href="products.html?cat=safety" class="nav-mega-item">
                 <span><strong>ป้ายอพยพฉุกเฉิน</strong><span>บอกทางหนีไฟและจุดรวมพลชัดเจน</span></span>
@@ -255,7 +260,7 @@
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-menu-top">
     <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="CS.SIGN Logo" class="brand-mark brand-mark--img">
+      <img src="assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
       <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
     </a>
     <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
@@ -266,7 +271,7 @@
     <a href="index.html">หน้าแรก</a>
 
     <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
-      หมวดหมู่
+      สินค้า
       <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="mobile-dd-panel" id="mobile-dd-panel">
@@ -284,7 +289,7 @@
   </div>
   <div class="mobile-lang-switch">
     <a href="#" class="is-active">TH · ไทย</a>
-    <a href="en/index.html">EN · English</a>
+    <a href="en/portfolio.html">EN · English</a>
   </div>
   <div class="mobile-email">
     <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
@@ -416,7 +421,7 @@
         <div class="footer-h">บริษัท</div>
         <div class="footer-links">
           <a href="about.html">เกี่ยวกับเรา</a>
-          <a href="index.html#process">ขั้นตอนการทำงาน</a>
+          <a href="index.html#services">ขั้นตอนการทำงาน</a>
           <a href="portfolio.html">ผลงานของเรา</a>
           <a href="quality-policy.html">นโยบายคุณภาพ</a>
           <a href="blog.html">บทความ</a>
@@ -456,43 +461,22 @@
 
 <script src="js/tabs-overflow.js"></script>
 <script src="js/main.js"></script>
+<script src="js/main-effects.js"></script>
 <script src="js/cookie-consent.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/site-search-index.js"></script>
 <script src="js/site-search.js"></script>
 <script type="module" src="js/site-settings.js"></script>
 <script type="module" src="js/nav-menu.js"></script>
-<script src="js/portfolio-lightbox.js"></script>
+<script type="module" src="js/cart-global.js"></script>
+<script type="module" src="js/portfolio-lightbox.js"></script>
 <script type="module" src="js/portfolio-render.js"></script>
 <script type="module" src="js/home-dynamic.js"></script>
+<script type="module" src="js/home-dynamic-showcase.js"></script>
 <style>
 
 </style>
-<script>
-(function () {
-  var tabs = document.querySelectorAll('#pf-tabs .product-tab');
-  var cards = document.querySelectorAll('#pf-grid .port-card');
-  var countEl = document.getElementById('pf-count');
-  var emptyEl = document.getElementById('pf-empty');
-
-  function applyFilter(filter) {
-    var visible = 0;
-    cards.forEach(function (card) {
-      var match = filter === 'all' || card.getAttribute('data-cat') === filter;
-      card.classList.toggle('pf-hidden', !match);
-      if (match) visible++;
-    });
-    countEl.textContent = visible;
-    emptyEl.classList.toggle('show', visible === 0);
-  }
-
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      tabs.forEach(function (t) { t.classList.remove('active'); });
-      tab.classList.add('active');
-      applyFilter(tab.getAttribute('data-filter'));
-    });
-  });
-})();
-</script>
+<script src="js/portfolio-tab-filter.js"></script>
 
 <!-- การ์ดผลงานทุกใบ คลิกแล้วเปิด popup รายละเอียด + รูปภาพทั้งหมด
      ดูการทำงานที่ js/portfolio-lightbox.js (โหลดรวมไว้ท้ายหน้า) -->
@@ -502,103 +486,26 @@
      ============================================================ -->
 <script src="js/qmodal-template.js"></script>
 
-<script type="module">
-import { saveLead } from './js/leads.js';
-import { sendLeadEmails } from './js/email-notify.js';
-import { initAntiSpam, isSpamSubmission } from './js/anti-spam.js';
-import { mountTurnstile, getTurnstileToken, resetTurnstile } from './js/turnstile.js';
-import { showToast } from './js/form-toast.js';
-import { wireLiveValidation, validateFormFields } from './js/form-validate.js';
-
-(function () {
-  var overlay  = document.getElementById('qmodal-overlay');
-  var closeBtn = document.getElementById('qmodal-close');
-  var form     = document.getElementById('qmodal-form');
-  var successEl = document.getElementById('qmodal-success');
-  if (form) initAntiSpam(form);
-  if (form) wireLiveValidation(form);
-  var tsEl = document.getElementById('qm-turnstile');
-
-  window.openModal = function(startTab) {
-    overlay.style.display = 'flex';
-    if (tsEl) mountTurnstile(tsEl);
-    document.body.style.overflow = 'hidden';
-    if (typeof qmodalSwitchTab === 'function') qmodalSwitchTab(startTab || 'form');
-  };
-  function closeModal() {
-    overlay.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  document.querySelectorAll('a[href="contact.html"].btn-primary, a[href="contact.html"].btn[class*="btn-primary"], a[href="contact.html"].btn-white, a[href="contact.html"].btn[class*="btn-white"], button[data-open-quote]').forEach(function(el) {
-    el.addEventListener('click', function(e) { e.preventDefault(); window.openModal('form'); });
-  });
-
-  closeBtn.addEventListener('click', closeModal);
-  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
-  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
-
-  if (form) {
-    form.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      var name    = document.getElementById('qm-name').value.trim();
-      var email   = document.getElementById('qm-email').value.trim();
-      var tel     = document.getElementById('qm-tel').value.trim();
-      var service = document.getElementById('qm-service').value;
-      var message = document.getElementById('qm-msg').value.trim();
-      var agree   = document.getElementById('qm-agree').checked;
-      if (!validateFormFields(form)) { return; }
-      if (!agree) { showToast('กรุณายอมรับนโยบายความเป็นส่วนตัวก่อนส่งฟอร์ม', 'warn'); return; }
-      if (!getTurnstileToken(tsEl)) {
-        showToast('กรุณายืนยันตัวตน (แคปช่า) ก่อนส่งฟอร์ม', 'warn');
-        return;
-      }
-      if (isSpamSubmission(form)) {
-        /* เข้าข่ายบอท (honeypot ถูกกรอก หรือ submit เร็วผิดปกติ) — เงียบ ไม่บันทึกจริง
-           แต่โชว์ success ให้เหมือนสำเร็จ เพื่อไม่ให้บอทรู้ว่าโดนกันแล้วปรับตัวหนี */
-        form.style.display = 'none';
-        successEl.style.display = 'flex';
-        setTimeout(closeModal, 3000);
-        return;
-      }
-      var submitBtn = form.querySelector('.qm-submit-btn');
-      if (submitBtn.classList.contains('is-loading')) return; // prevent double submit
-      submitBtn.disabled = true;
-      submitBtn.classList.add('is-loading');
-      /* บั๊กที่แก้: เดิม catch error ของ saveLead() เฉยๆ แล้วโชว์ "ส่งสำเร็จ" ต่อทุกครั้ง
-         ทำให้ถ้า Firestore บันทึกไม่สำเร็จ ลูกค้าเห็นข้อความสำเร็จปลอมๆ ทั้งที่ lead
-         หายไปเงียบๆ ไม่มีบันทึกที่ไหนเลย แก้แล้วโดยเช็คผลก่อนโชว์ success */
-      var leadSaved = true;
-      try {
-        await saveLead({ name, email, tel, service, message }, 'quotation_modal_portfolio', getTurnstileToken(tsEl));
-      } catch (err) {
-        leadSaved = false;
-        console.error('Lead save error:', err);
-      }
-      if (!leadSaved) {
-        showToast('ขออภัย ระบบไม่สามารถบันทึกข้อมูลได้ในขณะนี้ กรุณาลองส่งอีกครั้ง หรือโทรติดต่อทีมงานที่ 062-883-3880', 'error');
-        resetTurnstile(tsEl);
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('is-loading');
-        return;
-      }
-      try { await sendLeadEmails({ name, email, phone: tel, service, message }, 'quotation_modal_portfolio'); } catch(err) { console.error(err); }
-      resetTurnstile(tsEl);
-      form.style.display = 'none';
-      successEl.style.display = 'flex';
-      setTimeout(closeModal, 3000);
-    });
-  }
-})();
-</script>
+<!-- ============================================================
+     QUOTATION POPUP MODAL — logic รวมมาจาก js/lead-quote-modal.js
+     (single source of truth เดียวกับ index.html/products.html/about.html/
+     product-detail.html — เดิมหน้านี้มี copy inline ของตัวเองแยกต่างหาก,
+     ดูเหตุผลการรวมและ lead source label ใน js/lead-quote-modal.js)
+     ============================================================ -->
 
 <!-- FAB trigger button -->
 <script src="js/track-modal-template.js"></script>
 <script type="module" src="js/track-modal.js"></script>
+<script src="js/cart-modal-template.js"></script>
+<script src="js/cart-modal.js"></script>
+<script src="js/quote-form-template.js"></script>
+<script type="module" src="js/quote-form.js"></script>
+<script type="module" src="js/lead-quote-modal.js"></script>
 <script src="js/chat-widget-template.js"></script>
 
 <script src="js/qmodal.js"></script>
 <script type="module" src="js/chat-widget.js"></script>
+<script src="js/exit-intent-cta.js"></script>
 <script src="js/fancy-effects.js" defer></script>
 </body>
 </html>

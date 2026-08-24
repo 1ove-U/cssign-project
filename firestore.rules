@@ -13,7 +13,20 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── helper ──────────────────────────────────────────────
-    function isAdmin() {
+    // ชื่อเดิมของฟังก์ชันนี้คือ isAdmin() ซึ่งทำให้เข้าใจผิดได้ง่าย เพราะจริงๆ
+    // มันเช็คแค่ "login อยู่ไหม" (request.auth != null) เท่านั้น ไม่ได้เช็ค role
+    // ใดๆ เลย — เปลี่ยนชื่อเป็น isAuthenticated() ให้ตรงกับสิ่งที่มันเช็คจริง
+    // พฤติกรรมเดิมยังคงไว้เหมือนเดิมทุกจุด (ระบบนี้ยังไม่มี public signup ทุก
+    // account ที่ login ได้คือทีมงานที่แอดมินสร้างให้เองทั้งหมด จึงปลอดภัยที่จะ
+    // ถือว่า "login แล้ว" เพียงพอสำหรับ read/create/update ส่วนใหญ่)
+    //
+    // ⚠️ คำเตือนสำคัญ: ถ้าจะเปิด public signup/login ให้ลูกค้าในอนาคต (เช่น
+    // Customer Portal ใน Phase 2 ของแผนอัปเดต) ต้องกลับมาทบทวน "ทุกจุด" ที่เรียก
+    // isAuthenticated() ในไฟล์นี้ใหม่ทั้งหมด เพราะตอนนั้น "login แล้ว" จะไม่ได้
+    // แปลว่า "เป็นทีมงาน" อีกต่อไป — ต้องเปลี่ยนไปเช็ค isAdminRole()/staffRole()
+    // หรือเพิ่มเงื่อนไขแยกฝั่งลูกค้าออกจากฝั่งทีมงานให้ชัดเจนก่อน ไม่งั้นลูกค้าทั่วไป
+    // จะมีสิทธิ์แก้ไข products/orders/leads ฯลฯ เท่ากับทีมงานทันที
+    function isAuthenticated() {
       return request.auth != null;
     }
     // บทบาท "admin" (แก้ได้ทุกอย่าง + ลบได้) vs "staff" (แก้ไขได้แต่ลบไม่ได้)
@@ -28,7 +41,18 @@ service cloud.firestore {
     function isAdminRole() {
       // exists()/get() แยกฟังก์ชันกัน — get(...).exists() ไม่มีจริงใน Firestore Rules
       // (เขียนแบบนั้นแล้ว rule evaluate error = ถูกปฏิเสธเงียบๆ กลายเป็น permission denied)
-      return isAdmin() && (!staffRoleExists() || staffRole() == 'admin');
+      //
+      // P2.9-security: เพิ่ม !isLineCustomerToken() — บั๊กเดิม: เงื่อนไข
+      // "!staffRoleExists() ให้ถือเป็น admin ไปก่อน" (กันแอดมินคนแรกล็อกตัวเองออกตอนยังไม่มี
+      // doc ใน staff/ เลย) ไม่ได้แยกลูกค้า LINE ออกจากทีมงาน — ลูกค้า LINE login ผ่าน
+      // Firebase Auth instance เดียวกัน (ดู js/db.js) และไม่มี doc ใน staff/{uid} เช่นกัน
+      // (ลูกค้าไม่ใช่ทีมงาน ไม่เคยถูกสร้าง doc นี้ให้) ผลคือ staffRoleExists() == false
+      // สำหรับลูกค้า LINE ทุกคนเสมอ ทำให้ isAdminRole() คืน true ผิดๆ ให้ลูกค้าทุกคน —
+      // กระทบทุก `allow delete: if isAdminRole()` (products/groups/categories/portfolios/
+      // faqs/blogs/orders) + `allow write: if isAdminRole()` ของ
+      // staff/{uid} + `allow read: if isAdminRole()` ของ auditLog — ลูกค้า LINE ที่ login
+      // แล้วมีสิทธิ์เท่าแอดมินในจุดเหล่านี้ทั้งหมดโดยไม่ตั้งใจ
+      return isAuthenticated() && !isLineCustomerToken() && (!staffRoleExists() || staffRole() == 'admin');
     }
     function incomingData() {
       return request.resource.data;
@@ -37,17 +61,35 @@ service cloud.firestore {
     function isTimestampField(v) {
       return v == null || v is timestamp;
     }
+    // P2.8c — แยก "LINE customer token" ออกจาก staff token: custom token ที่ Worker เซ็นให้
+    // ผ่าน /link-line (P1.5) และ /line-login (P2.8c ใหม่) มี claim `lineUserId` เป็น string
+    // เสมอ (ดู cloudflare-worker/src/index.js → handleLinkLine()) ส่วน staff login ปกติผ่าน
+    // Firebase Auth ตรงๆ ไม่มี custom claim นี้ติดมาเลย — ใช้ความต่างนี้จำแนกสองฝั่ง
+    // ⚠️ ห้ามใช้ isAuthenticated() เฉยๆ กับ orders อีกต่อไปหลังจากนี้ (ดูคำเตือนเดิมด้านบน
+    // ที่บอกไว้ล่วงหน้าแล้วว่าจุดนี้ต้องกลับมาแก้เมื่อมี customer identity แยกจาก staff)
+    function isLineCustomerToken() {
+      // ต้องเช็คด้วย 'in' ก่อนเสมอ — พนักงาน/แอดมิน login ปกติไม่มี claim นี้ติดมาเลย
+      // ถ้า dot-access request.auth.token.lineUserId ตรง ๆ กับ token ที่ไม่มี key นี้
+      // จะทำให้ rule evaluate error (ไม่ใช่แค่ false) และถูกปฏิเสธทั้งหมด
+      // (เจอ error "Property lineUserId is undefined on object" ใน Rules Playground)
+      return request.auth != null
+             && ('lineUserId' in request.auth.token)
+             && request.auth.token.lineUserId is string;
+    }
 
     // ── leads: ฟอร์มหน้าเว็บ "create" ได้แบบ public แต่ต้องมีรูปร่างตามที่กำหนด ──
-    // อ่าน/แก้ไข/ลบ ได้เฉพาะ admin login เท่านั้น
+    // อ่านได้: admin/staff เห็นทุกรายการเหมือนเดิม + ลูกค้า LINE เห็นเฉพาะของตัวเอง (P2.9-D1)
+    // แก้ไข/ลบ ได้เฉพาะ admin/staff login เท่านั้น (เหมือนเดิม ไม่เปลี่ยน)
     match /leads/{leadId} {
       // หมายเหตุ: หน้าเว็บต่าง ๆ ใช้ชื่อ field โทรศัพท์ไม่ตรงกัน (tel ใน qmodal,
       // phone ใน inline_contact/contact_page_form, ไม่มีเลยใน catalog_download ที่ใช้ company แทน)
       // เลยอนุญาตทุกชื่อไว้ใน whitelist แต่บังคับ type/ขนาดของแต่ละ field ที่อนุญาต
+      // P2.9-D1: เพิ่ม 'lineUserId' เข้า whitelist — แนบมาจาก saveLead() (js/leads.js) เฉพาะ
+      // ตอนผู้ส่งฟอร์ม login ด้วย LINE อยู่แล้วเท่านั้น (ไม่บังคับ ไม่อยู่ใน hasAll())
       allow create: if incomingData().keys().hasAll(['name','source','status','createdAt'])
                     && incomingData().keys().hasOnly([
                          'name','email','tel','phone','company','service','message',
-                         'source','status','createdAt','pageUrl','referrer'
+                         'source','status','createdAt','pageUrl','referrer','lineUserId'
                        ])
                     && incomingData().name is string && incomingData().name.size() > 0 && incomingData().name.size() < 200
                     && incomingData().source is string
@@ -60,27 +102,202 @@ service cloud.firestore {
                     && (!('service' in incomingData()) || incomingData()['service'] is string)
                     && (!('message' in incomingData()) || (incomingData().message is string && incomingData().message.size() < 5000))
                     && (!('pageUrl' in incomingData())  || incomingData().pageUrl is string)
-                    && (!('referrer' in incomingData()) || incomingData().referrer is string);
+                    && (!('referrer' in incomingData()) || incomingData().referrer is string)
+                    && (!('lineUserId' in incomingData()) || incomingData().lineUserId is string);
 
-      allow read: if isAdmin();
+      // P2.9-D1 — ใช้ pattern เดียวกับ orders/{id} ด้านล่างเป๊ะ (ดูคำเตือน isAuthenticated()
+      // ด้านบนสุดของไฟล์): แยก staff (ไม่มี claim lineUserId เห็นทุกรายการเหมือนเดิมทุกจุด)
+      // ออกจากลูกค้า LINE (isLineCustomerToken() — เห็นได้เฉพาะ lead ที่ lineUserId ตรงกับของ
+      // ตัวเองเท่านั้น) — ก่อนหน้านี้ isAuthenticated() เฉยๆ จะทำให้ลูกค้าที่ login LINE อยู่แล้ว
+      // (เช่นจากหน้า my-orders/my-account) อ่าน leads "ของคนอื่นทั้งหมด" ได้ทันทีถ้าเรียก
+      // Firestore ตรงๆ (ไม่ผ่าน UI) — ปิดช่องโหว่นี้ไปพร้อมกับเปิดสิทธิ์อ่านของตัวเองใหม่
+      allow read: if (isAuthenticated() && !isLineCustomerToken())
+                  || (isLineCustomerToken()
+                      && resource.data.lineUserId == request.auth.token.lineUserId);
       allow delete: if isAdminRole();
 
       // admin แก้ได้แค่ status + notes + assignee ห้ามแก้เนื้อหา lead ที่ลูกค้าส่งมา
       // status: new -> read -> replied -> won/lost (ปิดการขายได้ หรือไม่ได้)
       // notes: บันทึกของทีมขาย (โทรคุยไปแล้ว, นัดโทรกลับ, ราคาที่เสนอ ฯลฯ) — ไม่บังคับว่าต้องส่งมาด้วยทุกครั้ง
       // assignee: ชื่อพนักงานผู้รับผิดชอบลีดนี้ (จาก settings.teamMembers) — ไม่บังคับ, ส่ง "" เพื่อเอาออกได้
-      allow update: if isAdmin()
+      // P2.9-D1: เพิ่ม !isLineCustomerToken() — ปิดช่องเดียวกับที่แก้ตอน read ด้านบน (staff
+      // เท่านั้นที่แก้ status/notes/assignee ได้ ลูกค้า LINE อ่านได้อย่างเดียวไม่ว่าจะเป็น lead
+      // ของตัวเองหรือไม่ก็ตาม)
+      allow update: if isAuthenticated() && !isLineCustomerToken()
                     && incomingData().diff(resource.data).affectedKeys().hasOnly(['status', 'notes', 'assignee'])
                     && (!('status' in incomingData()) || incomingData().status in ['new', 'read', 'replied', 'won', 'lost'])
                     && (!('notes' in incomingData())  || (incomingData().notes is string && incomingData().notes.size() < 5000))
                     && (!('assignee' in incomingData()) || (incomingData().assignee is string && incomingData().assignee.size() < 200));
     }
 
+    // ── quote_requests: คำขอใบเสนอราคาจากตะกร้าสินค้า (P3.0 Phase 2) — คอลเลกชันใหม่ ──
+    // แยกจาก leads ด้านบนโดยตั้งใจ (schema ต่างกันมาก มี items[] เป็นโครงสร้าง) — pattern
+    // read/update เดียวกับ leads ทุกประการ (staff เห็น/แก้ทุกรายการ, ลูกค้า LINE เห็นเฉพาะของ
+    // ตัวเอง อ่านอย่างเดียว) ต่างแค่ whitelist field ตอน create ให้ตรงกับ data model จริง
+    // (ดู js/db-quote-requests.js saveQuoteRequest())
+    match /quote_requests/{requestId} {
+      // items ต้องมีอย่างน้อย 1 ชิ้นเสมอ (ยืนยันแล้ว — ฟอร์มนี้บังคับต้องมีสินค้าในตะกร้าก่อน
+      // เปิดได้ ดู p3.0-quotation-cart-plan.md "จุดที่ยังต้องตัดสินใจเพิ่ม" ข้อ 2) — ไม่ validate
+      // โครงสร้างภายในแต่ละ item ลึกถึงระดับ field (ตาม pattern เดิมของโปรเจกต์ที่ตรวจแค่
+      // `is list` เฉยๆ กับ array field อื่น เช่น images/tags/variants ใน products ด้านล่าง —
+      // ความถูกต้องของรูปร่าง item รับผิดชอบฝั่ง client โดย sanitizeItem() ใน
+      // js/db-quote-requests.js แทน)
+      allow create: if incomingData().keys().hasAll(['billingName','phone','items','source','status','createdAt'])
+                    && incomingData().keys().hasOnly([
+                         'billingName','taxId','billingAddress','contactPerson','phone','email',
+                         'shippingAddress','wantedDate','paymentTermsRequested','notes','items',
+                         'source','status','createdAt','pageUrl','referrer','lineUserId'
+                       ])
+                    && incomingData().billingName is string && incomingData().billingName.size() > 0 && incomingData().billingName.size() < 200
+                    && incomingData().phone is string && incomingData().phone.size() > 0 && incomingData().phone.size() < 50
+                    && incomingData().items is list && incomingData().items.size() > 0
+                    && incomingData().source is string
+                    && incomingData().status == 'new'
+                    && isTimestampField(incomingData().createdAt)
+                    && (!('taxId' in incomingData())              || (incomingData().taxId is string && incomingData().taxId.size() < 20))
+                    && (!('billingAddress' in incomingData())     || incomingData().billingAddress is string)
+                    && (!('contactPerson' in incomingData())      || incomingData().contactPerson is string)
+                    && (!('email' in incomingData())              || incomingData().email is string)
+                    && (!('shippingAddress' in incomingData())    || incomingData().shippingAddress is string)
+                    && (!('wantedDate' in incomingData())         || incomingData().wantedDate is string)
+                    && (!('paymentTermsRequested' in incomingData()) || incomingData().paymentTermsRequested is string)
+                    && (!('notes' in incomingData())              || (incomingData().notes is string && incomingData().notes.size() < 5000))
+                    && (!('pageUrl' in incomingData())            || incomingData().pageUrl is string)
+                    && (!('referrer' in incomingData())           || incomingData().referrer is string)
+                    && (!('lineUserId' in incomingData())         || incomingData().lineUserId is string);
+
+      // read/update pattern เดียวกับ leads/{leadId} ด้านบนเป๊ะ (ดูคำเตือน isAuthenticated()
+      // เรื่อง lineUserId ที่หัวไฟล์)
+      allow read: if (isAuthenticated() && !isLineCustomerToken())
+                  || (isLineCustomerToken()
+                      && resource.data.lineUserId == request.auth.token.lineUserId);
+      allow delete: if isAdminRole();
+
+      // admin แก้ได้แค่ status + notes + quotationId/quotePublicToken (2 field หลังนี้เพิ่มใน
+      // P3.0 Phase 5 รอบ 7 — เขียนโดย linkQuotationToRequest() ใน js/db-quotations.js เท่านั้น
+      // ตอนแอดมินออกใบเสนอราคาจากคำขอนี้จริง เพื่อให้ลูกค้าเห็นลิงก์ผ่าน listenMyQuoteRequests()
+      // ที่ตัวเองอ่านได้อยู่แล้ว โดยไม่ต้องเปิดสิทธิ์ query collection "quotations" ให้ลูกค้าเพิ่ม
+      // — ดูเหตุผลเต็มในคอมเมนต์หัวไฟล์ js/db-quotations.js) ห้ามแก้เนื้อหาคำขอที่ลูกค้าส่งมา
+      // (เหมือน leads)
+      allow update: if isAuthenticated() && !isLineCustomerToken()
+                    && incomingData().diff(resource.data).affectedKeys().hasOnly(['status', 'notes', 'quotationId', 'quotePublicToken'])
+                    && (!('status' in incomingData()) || incomingData().status in ['new', 'quoted', 'closed'])
+                    && (!('notes' in incomingData())  || (incomingData().notes is string && incomingData().notes.size() < 5000))
+                    && (!('quotationId' in incomingData())       || (incomingData().quotationId is string && incomingData().quotationId.size() < 200))
+                    && (!('quotePublicToken' in incomingData())  || (incomingData().quotePublicToken is string && incomingData().quotePublicToken.size() < 200));
+    }
+
+    // ── quotations: ใบเสนอราคาจริงที่แอดมินออก (P3.0 Phase 3) — คอลเลกชันใหม่ ──
+    // ต่างจาก quote_requests ด้านบนตรงที่เอกสารนี้ "แอดมินเป็นคนสร้าง/แก้เองทั้งหมด" ไม่ใช่
+    // ลูกค้าส่งเข้ามาแบบ public — จึงไม่มี allow create แบบ public เหมือน leads/quote_requests
+    // เลย (สร้าง/แก้/ลบ ได้เฉพาะ staff login เท่านั้นทุก action ตาม pattern เดียวกับ orders/{id})
+    // ลูกค้ายังเข้าถึง collection นี้ตรงๆ ไม่ได้เลย (publicToken ที่เพิ่มเข้ามาใน Phase 4 เป็นแค่
+    // field อ้างอิงในเอกสารนี้ — ลูกค้าอ่านผ่านสำเนา quotation_public/{publicToken} ด้านล่างแทน
+    // ไม่ได้อ่าน collection "quotations" นี้ตรงๆ เลย เหมือน orders/{id} vs order_tracking/{id})
+    match /quotations/{id} {
+      allow read: if isAuthenticated() && !isLineCustomerToken();
+      allow create: if isAuthenticated() && !isLineCustomerToken()
+                    && incomingData().keys().hasAll(['quoteNo','items','status','createdAt'])
+                    && incomingData().keys().hasOnly([
+                         'quoteNo','publicToken','requestId','billingName','taxId','billingAddress','contactPerson',
+                         'phone','email','shippingAddress','items','subtotal','vatMode','vatAmount',
+                         'grandTotal','paymentTerms','validUntil','notes','status',
+                         'createdAt','updatedAt','createdBy'
+                       ])
+                    && incomingData().quoteNo is string && incomingData().quoteNo.size() > 0
+                    && incomingData().items is list
+                    && incomingData().status in ['draft','sent','accepted','rejected','expired','changes_requested']
+                    && isTimestampField(incomingData().createdAt)
+                    && (!('publicToken' in incomingData())    || incomingData().publicToken is string)
+                    && (!('requestId' in incomingData())      || incomingData().requestId is string || incomingData().requestId == null)
+                    && (!('subtotal' in incomingData())       || incomingData().subtotal is number)
+                    && (!('vatMode' in incomingData())        || incomingData().vatMode in ['included','excluded','none'])
+                    && (!('vatAmount' in incomingData())      || incomingData().vatAmount is number)
+                    && (!('grandTotal' in incomingData())     || incomingData().grandTotal is number);
+      allow update: if isAuthenticated() && !isLineCustomerToken()
+                    && incomingData().keys().hasOnly([
+                         'quoteNo','publicToken','requestId','billingName','taxId','billingAddress','contactPerson',
+                         'phone','email','shippingAddress','items','subtotal','vatMode','vatAmount',
+                         'grandTotal','paymentTerms','validUntil','notes','status',
+                         'createdAt','updatedAt','createdBy'
+                       ])
+                    && (!('status' in incomingData()) || incomingData().status in ['draft','sent','accepted','rejected','expired','changes_requested'])
+                    && (!('items' in incomingData())   || incomingData().items is list)
+                    && (!('subtotal' in incomingData())   || incomingData().subtotal is number)
+                    && (!('vatAmount' in incomingData())  || incomingData().vatAmount is number)
+                    && (!('grandTotal' in incomingData()) || incomingData().grandTotal is number);
+
+      // ── quotations: ลูกค้ากด "ยอมรับ"/"ขอแก้ไข" เองจากหน้า public (P3.0 Phase 4 รอบ 4) ──
+      // ไม่ต้อง login เขียนได้แค่ customerResponse + status เท่านั้น (diff() กันแก้ field อื่นทั้งหมด)
+      // เขียนได้ครั้งเดียว (resource.data ต้องยังไม่มี customerResponse มาก่อน — กันกดซ้ำ) — ดูเหตุผล
+      // เต็มที่คอมเมนต์หัว submitQuotationResponse() ใน js/db-quotations.js
+      allow update: if !('customerResponse' in resource.data)
+                    && incomingData().diff(resource.data).affectedKeys().hasOnly(['customerResponse', 'status'])
+                    && incomingData().customerResponse is map
+                    && incomingData().customerResponse.keys().hasOnly(['action', 'comment', 'respondedAt'])
+                    && incomingData().customerResponse.action in ['accepted', 'changes_requested']
+                    && incomingData().status == incomingData().customerResponse.action
+                    && (!('comment' in incomingData().customerResponse) || (incomingData().customerResponse.comment is string && incomingData().customerResponse.comment.size() < 2000))
+                    && isTimestampField(incomingData().customerResponse.respondedAt);
+
+      allow delete: if isAdminRole();
+    }
+
+    // ── quotation_public: สำเนา "เฉพาะข้อมูลที่ปลอดภัยให้คนนอกเห็น" ของ quotations (P3.0
+    // Phase 4 รอบ 1) ── ใช้โดยหน้า quotation-view.html (ลูกค้าดู/พิมพ์ใบเสนอราคาเอง ไม่ต้อง
+    // login) — pattern เดียวกับ order_tracking/{trackingId} ด้านล่างเป๊ะ: doc id = publicToken
+    // (UUID v4 สุ่มตอนสร้าง เดาไม่ได้ในทางปฏิบัติ) จึง "get" ทีละ doc ตรงๆ แบบ public ได้ แต่
+    // "list" ทั้ง collection ปิดไว้ กันไล่ดูใบเสนอราคาลูกค้าคนอื่น — เขียนได้เฉพาะ staff login
+    // เท่านั้น (ผ่าน js/db-quotations.js upsertQuotationPublic()/removeQuotationPublic() เท่านั้น
+    // ไม่มีทางที่ client ฝั่งลูกค้าจะเขียน/แก้เอกสารนี้ได้เลย)
+    match /quotation_public/{token} {
+      allow get: if true;
+      allow list: if false;
+
+      allow create, update: if isAuthenticated() && !isLineCustomerToken()
+                    && incomingData().keys().hasOnly([
+                         'quoteNo','quotationId','billingName','taxId','billingAddress','contactPerson','phone','email',
+                         'shippingAddress','items','subtotal','vatMode','vatAmount','grandTotal',
+                         'paymentTerms','validUntil','notes','status','customerResponse','createdAt','updatedAt'
+                       ])
+                    && incomingData().items is list
+                    && incomingData().status in ['draft','sent','accepted','rejected','expired','changes_requested']
+                    && (!('subtotal' in incomingData())   || incomingData().subtotal is number)
+                    && (!('vatMode' in incomingData())    || incomingData().vatMode in ['included','excluded','none'])
+                    && (!('vatAmount' in incomingData())  || incomingData().vatAmount is number)
+                    && (!('grandTotal' in incomingData()) || incomingData().grandTotal is number);
+
+      // ── quotation_public: ลูกค้ากด "ยอมรับ"/"ขอแก้ไข" เอง sync สำเนา public (P3.0 Phase 4
+      // รอบ 4) — เขียนได้แค่ customerResponse/status/updatedAt เท่านั้น (diff() กันแก้ field อื่น)
+      // setDoc() ที่เรียกใน submitQuotationResponse() ทับทั้ง doc แต่ diff() เทียบเฉพาะ field ที่
+      // ค่าเปลี่ยนจริง จึงยังผ่านเงื่อนไขนี้ได้แม้ payload จะมี field เดิมติดไปด้วย
+      allow update: if !('customerResponse' in resource.data)
+                    && incomingData().diff(resource.data).affectedKeys().hasOnly(['customerResponse', 'status', 'updatedAt'])
+                    && incomingData().customerResponse is map
+                    && incomingData().customerResponse.keys().hasOnly(['action', 'comment', 'respondedAt'])
+                    && incomingData().customerResponse.action in ['accepted', 'changes_requested']
+                    && incomingData().status == incomingData().customerResponse.action
+                    && (!('comment' in incomingData().customerResponse) || (incomingData().customerResponse.comment is string && incomingData().customerResponse.comment.size() < 2000))
+                    && isTimestampField(incomingData().customerResponse.respondedAt);
+
+      allow delete: if isAdminRole();
+    }
+
+    // ── counters: doc เดียวต่อคอลเลกชัน เก็บเลขที่เอกสารล่าสุด (P3.0 Phase 3 เริ่มด้วย
+    // "quotations") — เขียนได้เฉพาะผ่าน runTransaction() ฝั่งแอดมินเท่านั้น (js/db-quotations.js
+    // generateQuoteNo()) ลูกค้าไม่ต้องเข้าถึงเลย
+    match /counters/{id} {
+      allow read: if isAuthenticated() && !isLineCustomerToken();
+      allow write: if isAuthenticated() && !isLineCustomerToken()
+                   && incomingData().keys().hasOnly(['year','seq'])
+                   && incomingData().year is number && incomingData().seq is number;
+    }
+
     // ── products: read สาธารณะ, write เฉพาะ admin + จำกัด field/type ──
     match /products/{id} {
       allow read: if true;
 
-      allow create: if isAdmin()
+      allow create: if isAuthenticated()
                     && incomingData().keys().hasAll(['name','cat_id','price','unit','status'])
                     && incomingData().keys().hasOnly([
                          'code','cat_id','name','price','unit','description',
@@ -103,7 +320,7 @@ service cloud.firestore {
                     && (!('metaDescription' in incomingData()) || (incomingData().metaDescription is string && incomingData().metaDescription.size() <= 160));
 
       // แก้ทั้งฟอร์ม (จากหน้าแก้ไขสินค้า) — ยังต้องอยู่ใน whitelist + type เดิม
-      allow update: if isAdmin()
+      allow update: if isAuthenticated()
                     && incomingData().keys().hasOnly([
                          'code','cat_id','name','price','unit','description',
                          'material','size','tags','status','featured','images','createdAt',
@@ -125,7 +342,7 @@ service cloud.firestore {
     // ── groups (หมวดหมู่ใหญ่): read สาธารณะ, write เฉพาะ admin + จำกัด field ──
     match /groups/{id} {
       allow read: if true;
-      allow create, update: if isAdmin()
+      allow create, update: if isAuthenticated()
                     && incomingData().keys().hasOnly(['name','icon','order','createdAt'])
                     && incomingData().name is string && incomingData().name.size() > 0;
       allow delete: if isAdminRole();
@@ -134,7 +351,7 @@ service cloud.firestore {
     // ── categories: read สาธารณะ, write เฉพาะ admin + จำกัด field ──
     match /categories/{id} {
       allow read: if true;
-      allow create, update: if isAdmin()
+      allow create, update: if isAuthenticated()
                     && incomingData().keys().hasOnly(['name','icon','description','group','group_id','createdAt'])
                     && incomingData().name is string && incomingData().name.size() > 0;
       allow delete: if isAdminRole();
@@ -144,7 +361,7 @@ service cloud.firestore {
     match /portfolios/{id} {
       allow read: if true;
 
-      allow create: if isAdmin()
+      allow create: if isAuthenticated()
                     && incomingData().keys().hasAll(['title'])
                     && incomingData().keys().hasOnly([
                          'title','category','client','description','tags',
@@ -155,7 +372,7 @@ service cloud.firestore {
                     && (!('order' in incomingData())  || incomingData().order is number);
 
       // แก้ไขทั้งรายการผลงาน (ฟอร์มแก้ไข)
-      allow update: if isAdmin()
+      allow update: if isAuthenticated()
                     && incomingData().keys().hasOnly([
                          'title','category','client','description','tags',
                          'images','pinned','order','createdAt'
@@ -167,27 +384,10 @@ service cloud.firestore {
       allow delete: if isAdminRole();
     }
 
-    // ── testimonials / partners / faqs: read สาธารณะ, write เฉพาะ admin + จำกัด field ──
-    match /testimonials/{id} {
-      allow read: if true;
-      allow create, update: if isAdmin()
-                    && incomingData().keys().hasOnly(['company','name','role','quote','stars','logo','createdAt'])
-                    && incomingData().quote is string
-                    && (!('stars' in incomingData()) || (incomingData().stars is number && incomingData().stars >= 1 && incomingData().stars <= 5));
-      allow delete: if isAdminRole();
-    }
-
-    match /partners/{id} {
-      allow read: if true;
-      allow create, update: if isAdmin()
-                    && incomingData().keys().hasOnly(['name','logo','createdAt'])
-                    && incomingData().name is string && incomingData().name.size() > 0;
-      allow delete: if isAdminRole();
-    }
-
+    // ── faqs: read สาธารณะ, write เฉพาะ admin + จำกัด field ──
     match /faqs/{id} {
       allow read: if true;
-      allow create, update: if isAdmin()
+      allow create, update: if isAuthenticated()
                     && incomingData().keys().hasOnly(['question','answer','createdAt'])
                     && incomingData().question is string && incomingData().answer is string;
       allow delete: if isAdminRole();
@@ -197,7 +397,7 @@ service cloud.firestore {
     match /blogs/{id} {
       allow read: if true;
 
-      allow create: if isAdmin()
+      allow create: if isAuthenticated()
                     && incomingData().keys().hasAll(['title','slug','status'])
                     && incomingData().keys().hasOnly([
                          'title','slug','excerpt','content','image','category',
@@ -211,7 +411,7 @@ service cloud.firestore {
                     && (!('metaTitle' in incomingData())       || (incomingData().metaTitle is string && incomingData().metaTitle.size() <= 70))
                     && (!('metaDescription' in incomingData()) || (incomingData().metaDescription is string && incomingData().metaDescription.size() <= 160));
 
-      allow update: if isAdmin()
+      allow update: if isAuthenticated()
                     && incomingData().keys().hasOnly([
                          'title','slug','excerpt','content','image','category',
                          'author','status','featured','createdAt','updatedAt',
@@ -229,7 +429,7 @@ service cloud.firestore {
     // ── settings: เอกสารตั้งค่าระบบ (เช่น URL แคตตาล็อก PDF, ข้อมูลติดต่อทั้งเว็บ) — admin เท่านั้น ──
     match /settings/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuthenticated();
     }
 
     // ── orders (คำสั่งผลิต): admin login เท่านั้นทั้งอ่านและเขียน ──
@@ -238,27 +438,71 @@ service cloud.firestore {
     // ตอนนี้ widget ใน hero เป็น read-only และจะเห็นข้อมูลจริงเฉพาะกรณีมี session
     // ของแอดมินที่ login ค้างไว้จาก admin.html/console.html เท่านั้น
     match /orders/{id} {
-      allow read: if isAdmin();
+      // P2.8c-1 — ปิดช่องโหว่: isAuthenticated() เดิมเช็คแค่ "login อยู่ไหม" ไม่แยกว่าเป็น
+      // staff หรือลูกค้าที่เชื่อม LINE ผ่าน /link-line (P1.5) มาแล้ว ทำให้ลูกค้าคนไหนก็ตามที่
+      // เคยเชื่อมบัญชีอ่านออเดอร์ "ของคนอื่นทั้งหมด" ได้ทันทีถ้าเรียก Firestore ตรงๆ (ไม่ผ่าน UI)
+      // — แยกสองฝั่งชัดเจน: staff (ไม่มี claim lineUserId) เห็นทุกออเดอร์เหมือนเดิมทุกจุด
+      // ส่วน LINE customer token เห็นได้เฉพาะออเดอร์ที่ lineUserId ตรงกับของตัวเองเท่านั้น
+      allow read: if (isAuthenticated() && !isLineCustomerToken())
+                  || (isLineCustomerToken()
+                      && resource.data.lineUserId == request.auth.token.lineUserId);
 
-      allow create: if isAdmin()
+      // field whitelist ถูกขยายเพิ่ม (2026 phase 1: traceability/การเงิน/โลจิสติกส์/การผลิตเชิงลึก) —
+      // ตัดฟิลด์ 'compliant' (มอก./ISO) ออกจาก scope นี้แล้ว แทนที่ด้วย 'qcChecklist' (ดู js/db.js)
+      allow create: if isAuthenticated()
                     && incomingData().keys().hasAll(['code','customer','item','qty','status'])
                     && incomingData().keys().hasOnly([
-                         'code','customer','phone','item','category','product_id','unit_price','qty','status','progress',
-                         'compliant','dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId'
+                         'code','customer','phone','email','lineUserId','item','category','product_id','unit_price','qty','status','progress',
+                         'dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId',
+                         'attachments','designFiles',
+                         'deposit','paymentStatus','discount','vatIncluded','invoiceAddress',
+                         'shippingAddress','recipient','shippingMethod','shippingCost','shippingTrackingId',
+                         'assignee','assigneeName','specs','qcChecklist','reviewRequestedAt'
                        ])
                     && incomingData().qty is number && incomingData().qty > 0
                     && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
                     && (!('unit_price' in incomingData()) || incomingData().unit_price is number)
-                    && (!('progress' in incomingData()) || (incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100));
+                    && (!('progress' in incomingData()) || (incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100))
+                    && (!('paymentStatus' in incomingData()) || incomingData().paymentStatus in ['unpaid','deposit_paid','paid_full'])
+                    && (!('shippingMethod' in incomingData()) || incomingData().shippingMethod in ['pickup','self_delivery','courier'])
+                    && (!('deposit' in incomingData()) || incomingData().deposit is number)
+                    && (!('discount' in incomingData()) || incomingData().discount is number)
+                    && (!('shippingCost' in incomingData()) || incomingData().shippingCost is number);
 
-      allow update: if isAdmin()
-                    && incomingData().keys().hasOnly([
-                         'code','customer','phone','item','category','product_id','unit_price','qty','status','progress',
-                         'compliant','dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId'
-                       ])
-                    && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
-                    && (!('unit_price' in incomingData()) || incomingData().unit_price is number)
-                    && (!('progress' in incomingData()) || (incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100));
+      allow update: if (
+                      isAuthenticated()
+                      && incomingData().keys().hasOnly([
+                           'code','customer','phone','email','lineUserId','item','category','product_id','unit_price','qty','status','progress',
+                           'dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId',
+                           'attachments','designFiles',
+                           'deposit','paymentStatus','discount','vatIncluded','invoiceAddress',
+                           'shippingAddress','recipient','shippingMethod','shippingCost','shippingTrackingId',
+                           'assignee','assigneeName','specs','qcChecklist','reviewRequestedAt'
+                         ])
+                      && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
+                      && (!('unit_price' in incomingData()) || incomingData().unit_price is number)
+                      && (!('progress' in incomingData()) || (incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100))
+                      && (!('paymentStatus' in incomingData()) || incomingData().paymentStatus in ['unpaid','deposit_paid','paid_full'])
+                      && (!('shippingMethod' in incomingData()) || incomingData().shippingMethod in ['pickup','self_delivery','courier'])
+                      && (!('deposit' in incomingData()) || incomingData().deposit is number)
+                      && (!('discount' in incomingData()) || incomingData().discount is number)
+                      && (!('shippingCost' in incomingData()) || incomingData().shippingCost is number)
+                    )
+                    // P1.5 (LIFF auto-link) — ลูกค้าที่ verify ตัวตนผ่าน /link-line (Worker เซ็น
+                    // custom token ให้ หลังยืนยัน code+phone ตรงกับ order_tracking จริงแล้วเท่านั้น)
+                    // ไม่ใช่ staff login ปกติ (isAuthenticated() ด้านบนใช้ไม่ได้ เพราะ custom token
+                    // นี้ไม่มี role ผูกกับ staff/{uid}) — จำกัดสิทธิ์ให้แคบที่สุดเท่าที่จะทำได้:
+                    // แก้ได้แค่ field lineUserId เท่านั้น field เดียว ของ order ที่ trackingId ใน
+                    // custom token ตรงกับ trackingId ของ order นั้นจริงๆ เท่านั้น (กันเอา token ของ
+                    // order ตัวเองไปแก้ order อื่น) ห้ามแตะ status/progress/ราคา ฯลฯ แม้แต่ field เดียว
+                    || (
+                      request.auth != null
+                      && ('trackingId' in request.auth.token)
+                      && request.auth.token.trackingId is string
+                      && request.auth.token.trackingId == resource.data.trackingId
+                      && incomingData().diff(resource.data).affectedKeys().hasOnly(['lineUserId'])
+                      && incomingData().lineUserId is string
+                    );
 
       allow delete: if isAdminRole();
     }
@@ -267,7 +511,7 @@ service cloud.firestore {
     // เพิ่มพนักงานใหม่: สร้าง Auth user ที่ Firebase Console ก่อน (ฟรี ไม่ต้องผูกบัตร)
     // แล้วค่อยมาสร้าง doc นี้จากแท็บ "บัญชีผู้ใช้ทีมงาน" ในหน้าตั้งค่า
     match /staff/{uid} {
-      allow read: if isAdmin();
+      allow read: if isAuthenticated();
       allow write: if isAdminRole();
     }
 
@@ -275,7 +519,7 @@ service cloud.firestore {
     // (เป็น log ที่แก้ย้อนหลังไม่ได้ ถึงจะเชื่อถือได้) อ่านได้เฉพาะ role admin เท่านั้น
     match /auditLog/{id} {
       allow read: if isAdminRole();
-      allow create: if isAdmin()
+      allow create: if isAuthenticated()
                     && incomingData().uid == request.auth.uid
                     && incomingData().keys().hasAll(['uid','action','targetType','createdAt'])
                     && incomingData().keys().hasOnly(['uid','email','action','targetType','targetId','meta','createdAt'])
@@ -295,15 +539,37 @@ service cloud.firestore {
       allow get: if true;
       allow list: if false;
 
-      allow create, update: if isAdmin()
+      // เพิ่ม shippingMethod/shippingTrackingId (เลขพัสดุขนส่ง) เข้าไปในสำเนา public — ไม่ใช่ข้อมูล
+      // อ่อนไหว (ไม่มีที่อยู่/ชื่อผู้รับ) และช่วยให้ลูกค้าเช็คสถานะพัสดุต่อกับขนส่งเองได้ทันที
+      // ตัดฟิลด์ 'compliant' ออกแล้ว (ดูหมายเหตุเดียวกันที่ orders ด้านบน)
+      allow create, update: if isAuthenticated()
                     && incomingData().keys().hasOnly([
-                         'code','item','category','qty','status','progress','compliant','dueDate','updatedAt'
+                         'code','item','category','qty','status','progress','dueDate','updatedAt',
+                         'shippingMethod','shippingTrackingId','designFiles'
                        ])
                     && incomingData().qty is number && incomingData().qty > 0
                     && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
                     && incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100;
 
       allow delete: if isAdminRole();
+    }
+
+    // ── design_approvals (P0.2 — หน้าอนุมัติแบบ): ลูกค้ากด "อนุมัติ"/"ขอแก้ไข" เอง แบบ public ──
+    // ไม่ต้อง login (เหมือน leads ด้านบน) — เป็น append-only log (เหมือน auditLog): เขียนได้
+    // แบบ public แต่แก้ไข/ลบไม่ได้เลย, อ่านได้เฉพาะ admin login เท่านั้น (ดูเหตุผลเต็มที่คอมเมนต์
+    // หัวฟังก์ชัน submitDesignApproval()/listDesignApprovals() ใน js/db-orders.js — สรุปสั้นๆ:
+    // ไม่เปิดให้ public เขียน "orders"/"order_tracking" ตรงๆ เพราะคุมแค่ field ได้ไม่พอ
+    // ต้องพึ่งแอดมินเป็นคนกดเปลี่ยนสถานะเองหลังเห็น log นี้)
+    match /design_approvals/{id} {
+      allow create: if incomingData().keys().hasAll(['trackingId','action','createdAt'])
+                    && incomingData().keys().hasOnly(['trackingId','action','comment','createdAt'])
+                    && incomingData().trackingId is string && incomingData().trackingId.size() > 0 && incomingData().trackingId.size() < 100
+                    && incomingData().action in ['approved','changes_requested']
+                    && isTimestampField(incomingData().createdAt)
+                    && (!('comment' in incomingData()) || (incomingData().comment is string && incomingData().comment.size() < 2000));
+
+      allow read: if isAuthenticated();
+      allow update, delete: if false;
     }
   }
 }

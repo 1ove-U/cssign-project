@@ -1,13 +1,29 @@
 /* ===========================================================
    CS.SIGN — Enterprise Redesign — products.js
    Connects the new design back to the existing Firebase backend
-   (same db.js / Firestore collections used by the original site's
+   (same db-taxonomy.js/db-products.js / Firestore collections used by the original site's
    admin panel). If Firestore has no products yet, or the request
    fails (offline, no network, etc.), the static demo cards that
    are already in index.html stay exactly as they are — visitors
    never see a blank/broken section.
+
+   2026 refactor phase 9: แยกส่วน "สร้าง HTML การ์ดสินค้า" (escapeHtml/formatPrice/imgUrl/
+   artHTML/cardHTML/skeletonCardHTML — pure function ล้วนๆ ไม่แตะ DOM/closure state ของไฟล์นี้)
+   ออกไปเป็น js/products-cards.js แบบ diff เป๊ะ ไม่มีเปลี่ยน logic — import escapeHtml/cardHTML/
+   skeletonCardHTML กลับมาใช้แทนฟังก์ชัน local เดิม
+
+   2026 refactor phase 22: แยกส่วน "การกรองด้วยหมวดหมู่" (currentGroupFilter, applyCardFilter,
+   filterCategoryTabsByGroup, bindGroupDropdown, bindTabFilter, applyDeepLinkFilter) ออกไปเป็น
+   js/products-filters.js (ใหม่) แบบ diff เป๊ะ ไม่มีเปลี่ยน logic — ไฟล์นี้เหลือ DOM refs
+   (grid/tabsWrap/groupTabsWrap) + orchestration การโหลดข้อมูลจาก Firestore (skeleton/
+   crossfade/timeout/Promise.all) — import bindTabFilter/applyDeepLinkFilter/setGroupFilter
+   กลับมาใช้แทนฟังก์ชัน local เดิม (setGroupFilter คือ setter ตัวใหม่ แทนการ assign
+   currentGroupFilter = 'all' ตรงๆ ใน render() เดิม เพราะตัวแปรย้ายไปอยู่ใน module ใหม่แล้ว)
    =========================================================== */
-import { getGroups, getCategories, getProducts } from './db.js';
+import { getGroups, getCategories } from "./db-taxonomy.js";
+import { getProducts } from "./db-products.js";
+import { escapeHtml, cardHTML, skeletonCardHTML } from "./products-cards.js";
+import { bindTabFilter, applyDeepLinkFilter, setGroupFilter } from "./products-filters.js";
 
 (function () {
   "use strict";
@@ -16,184 +32,6 @@ import { getGroups, getCategories, getProducts } from './db.js';
   var tabsWrap = document.getElementById('product-tabs-dynamic');
   var grid = document.getElementById('product-grid');
   if (!tabsWrap || !grid) return;
-
-  /* หมวดหมู่ใหญ่ที่กำลังเลือกอยู่ ('all' = ทุกหมวดหมู่ใหญ่) — คุมว่าแถบหมวดหมู่ย่อย
-     แถวที่สองจะกรองให้เหลือแค่หมวดหมู่ย่อยของหมวดใหญ่นี้เท่านั้น */
-  var currentGroupFilter = 'all';
-
-  /* fallback line-icons cycled for products that have no photo yet */
-  var fallbackIcons = [
-    '<path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>',
-    '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
-    '<path d="M3 21h18M5 21V7l8-4 8 4v14M9 21v-6h6v6"/>',
-    '<path d="M12 2 3 14h7l-1 8 10-12h-7l1-8z"/>'
-  ];
-
-  function escapeHtml(str) {
-    return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-  }
-
-  function formatPrice(price, unit) {
-    var num = Number(price);
-    if (!price || isNaN(num) || num <= 0) return 'สอบถามราคา';
-    return 'เริ่มต้น ฿' + num.toLocaleString('th-TH') + (unit ? ' / ' + unit : '');
-  }
-
-  function imgUrl(img) { return (img && typeof img === 'object') ? (img.url || '') : (img || ''); }
-
-  function artHTML(product, idx) {
-    var img = (product.images && product.images[0]) ? imgUrl(product.images[0]) : '';
-    if (img) {
-      return '<img src="' + img + '" alt="' + escapeHtml(product.name) + '" loading="lazy" decoding="async" ' +
-        'style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:12px;box-sizing:border-box;">';
-    }
-    var path = fallbackIcons[idx % fallbackIcons.length];
-    return '<div class="pa-grid"></div>' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="#0B5A96" stroke-width="1.6" style="width:64px;height:64px;">' + path + '</svg>';
-  }
-
-  function cardHTML(product, catName, idx) {
-    var code = product.code || '';
-    var priceText = formatPrice(product.price, product.unit);
-
-    /* build data-product JSON for the detail popup */
-    var dpObj = {
-      name: product.name || 'สินค้า',
-      cat: catName || 'สินค้า',
-      code: code,
-      slug: product.slug || '',
-      price: priceText,
-      desc: product.description || '',
-      metaTitle: product.metaTitle || '',
-      metaDescription: product.metaDescription || '',
-      material: product.material || '-',
-      size: product.size || '-',
-      badge: code,
-      tags: product.tags || [],
-      views: ['หน้า','หลัง','ด้านข้าง'],
-      images: product.images || [],
-      cat_id: product.cat_id || '',
-      optionAxes: product.optionAxes || [],
-      variants: product.variants || []
-    };
-    var dpJson = JSON.stringify(dpObj).replace(/'/g, "&#39;");
-    /* real href when a slug exists so the product has an actual crawlable/shareable
-       URL (product-detail.html) even though the primary click still opens the
-       in-page quick-preview modal — see products.html's click delegation, which
-       only preventDefault()s a plain left-click and lets ctrl/cmd/middle-click
-       (and crawlers) follow this href normally. */
-    var detailHref = product.slug ? 'product-detail.html?slug=' + encodeURIComponent(product.slug) : '#';
-
-    return (
-      '<div class="product-card" data-reveal="scale" data-cat="' + escapeHtml(product.cat_id || 'all') + '" data-group="' + escapeHtml(product.group_id || 'all') + '" data-product=\'' + dpJson + '\' >' +
-        '<div class="product-art">' + artHTML(product, idx) + '</div>' +
-        (code ? '<div class="product-badge">' + escapeHtml(code) + '</div>' : '') +
-        '<div class="product-body">' +
-          '<h3>' + escapeHtml(product.name || 'สินค้า') + '</h3>' +
-        '</div>' +
-        '<div class="product-footer">' +
-          '<a class="product-cta-btn detail-btn" href="' + escapeHtml(detailHref) + '">' +
-            'ดูรายละเอียด ' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>' +
-          '</a>' +
-        '</div>' +
-      '</div>'
-    );
-  }
-
-  /* กรองการ์ดตามหมวดหมู่ใหญ่ที่เลือก (currentGroupFilter) และหมวดหมู่ย่อยที่เลือกในแถวที่สอง
-     ('all' ทั้งคู่ = แสดงทุกใบ) เรียกทุกครั้งที่มีการคลิก tab แถวไหนก็ตาม */
-  function applyCardFilter(catFilter) {
-    var cards = grid.querySelectorAll('.product-card');
-    cards.forEach(function (card) {
-      var groupMatch = (currentGroupFilter === 'all') || (card.getAttribute('data-group') === currentGroupFilter);
-      var catMatch = (catFilter === 'all') || (card.getAttribute('data-cat') === catFilter);
-      card.style.display = (groupMatch && catMatch) ? '' : 'none';
-    });
-  }
-
-  /* แถบหมวดหมู่ย่อยแสดงเฉพาะรายการที่อยู่ใต้หมวดหมู่ใหญ่ที่กำลังเลือก และ "ซ่อนทั้งแถว"
-     ไปเลยตอนยังไม่ได้เลือกหมวดหมู่ใหญ่ใดๆ (currentGroupFilter === 'all') — ผู้ใช้ต้องคลิก
-     หมวดหมู่ใหญ่ก่อน แถวหมวดหมู่ย่อยถึงค่อยโผล่มาให้เลือกต่อ ไม่ใช่โชว์ทั้ง 2 แถวพร้อมกัน
-     ตั้งแต่แรก — สลับ tab ที่ active กลับไปที่ "ทั้งหมด" ของแถวย่อยทุกครั้งที่หมวดหมู่ใหญ่
-     เปลี่ยน เพื่อไม่ให้ค้างหมวดหมู่ย่อยของหมวดใหญ่ก่อนหน้า */
-  function filterCategoryTabsByGroup() {
-    var catTabs = tabsWrap.querySelectorAll('.product-tab');
-    catTabs.forEach(function (tab) {
-      var tabGroup = tab.getAttribute('data-group-id');
-      var visible = (tab.getAttribute('data-filter') === 'all') || (tabGroup === currentGroupFilter);
-      tab.style.display = visible ? '' : 'none';
-    });
-    catTabs.forEach(function (t) { t.classList.remove('active'); });
-    var allCatTab = tabsWrap.querySelector('.product-tab[data-filter="all"]');
-    if (allCatTab) allCatTab.classList.add('active');
-    tabsWrap.classList.toggle('is-collapsed', currentGroupFilter === 'all');
-    if (window.CSIGN && window.CSIGN.initTabsOverflow) window.CSIGN.initTabsOverflow(tabsWrap);
-  }
-
-  /* ดรอปดาวน์หมวดหมู่ใหญ่ (แทนที่แถบปุ่มพิลแถวบนแบบเดิม) — เปิด/ปิดเมนู, อัปเดต
-     ข้อความหมวดที่เลือกอยู่บนปุ่ม, แล้วส่งต่อไปยัง pipeline การกรองเดิมทุกจุด
-     (filterCategoryTabsByGroup + applyCardFilter) เหมือนตอนยังเป็นปุ่มพิลอยู่ ไม่มี
-     อะไรเปลี่ยนในฝั่งตรรกะการกรอง เปลี่ยนแค่ UI ที่ใช้เลือก */
-  function bindGroupDropdown() {
-    if (!groupTabsWrap) return;
-    var btn = groupTabsWrap.querySelector('.pr-group-select-btn');
-    var menu = groupTabsWrap.querySelector('.pr-group-select-menu');
-    var valueEl = groupTabsWrap.querySelector('.pr-group-select-value');
-    var options = groupTabsWrap.querySelectorAll('.pr-group-select-option');
-    if (!btn || !menu) return;
-
-    function closeDropdown() {
-      groupTabsWrap.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
-    }
-    function openDropdown() {
-      groupTabsWrap.classList.add('open');
-      btn.setAttribute('aria-expanded', 'true');
-    }
-
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      if (groupTabsWrap.classList.contains('open')) closeDropdown(); else openDropdown();
-    });
-    document.addEventListener('click', function (e) {
-      if (!groupTabsWrap.contains(e.target)) closeDropdown();
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeDropdown();
-    });
-
-    options.forEach(function (opt) {
-      opt.addEventListener('click', function () {
-        options.forEach(function (o) {
-          o.classList.remove('active');
-          o.setAttribute('aria-selected', 'false');
-        });
-        opt.classList.add('active');
-        opt.setAttribute('aria-selected', 'true');
-        if (valueEl) valueEl.textContent = opt.textContent;
-        currentGroupFilter = opt.getAttribute('data-filter');
-        filterCategoryTabsByGroup();
-        applyCardFilter('all');
-        closeDropdown();
-        btn.focus();
-      });
-    });
-  }
-
-  function bindTabFilter() {
-    var tabs = tabsWrap.querySelectorAll('.product-tab');
-    tabs.forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        tabs.forEach(function (t) { t.classList.remove('active'); });
-        tab.classList.add('active');
-        applyCardFilter(tab.getAttribute('data-filter'));
-      });
-    });
-    bindGroupDropdown();
-  }
 
   /* -----------------------------------------------------------
      Skeleton loading state
@@ -206,21 +44,6 @@ import { getGroups, getCategories, getProducts } from './db.js';
      ----------------------------------------------------------- */
   var SKELETON_DELAY = 260;   // ms before we admit the load is "slow"
   var FADE_MS = 220;          // must match the CSS transition duration
-
-  function skeletonCardHTML() {
-    return (
-      '<div class="product-card product-skel-card" aria-hidden="true">' +
-        '<div class="product-art product-skel-art"></div>' +
-        '<div class="product-body">' +
-          '<div class="product-skel-line w80"></div>' +
-          '<div class="product-skel-line w45"></div>' +
-        '</div>' +
-        '<div class="product-footer">' +
-          '<div class="product-skel-pill"></div>' +
-        '</div>' +
-      '</div>'
-    );
-  }
 
   function showSkeleton() {
     if (grid.classList.contains('is-swapping')) return;
@@ -344,7 +167,7 @@ import { getGroups, getCategories, getProducts } from './db.js';
 
     var gridHTML = products.map(function (p, i) { return cardHTML(p, catMap[p.cat_id] && catMap[p.cat_id].name, i); }).join('');
 
-    currentGroupFilter = 'all';
+    setGroupFilter('all');
     if (groupTabsWrap) groupTabsWrap.innerHTML = hasGroupRow ? groupDropdownHTML : '';
     tabsWrap.innerHTML = tabsHTML;
     tabsWrap.classList.toggle('is-collapsed', hasGroupRow);
@@ -359,37 +182,6 @@ import { getGroups, getCategories, getProducts } from './db.js';
         window.CSSIGN_observeReveal(grid);
       }
     });
-  }
-
-  /* -----------------------------------------------------------
-     Deep-link category filter (?cat=xxx from header/menu links).
-     The header links do a full page reload to products.html?cat=...
-     and an inline script in products.html clicks the matching tab
-     ~200ms after load. But once real Firestore data arrives, render()
-     rebuilds the tab buttons from scratch (always defaulting back to
-     "all"), silently wiping out that selection. Re-apply it here for
-     any category value, right after the real tabs are in the DOM.
-     ----------------------------------------------------------- */
-  function applyDeepLinkFilter() {
-    var params = new URLSearchParams(window.location.search);
-    var group = params.get('group');
-    var cat = params.get('cat');
-
-    // ลิงก์จากเมนู header (nav-menu.js) ส่งมาแค่ ?cat=... ไม่มี ?group= —
-    // หาหมวดใหญ่ของหมวดย่อยนั้นเอง แล้วจำลองคลิกหมวดใหญ่ก่อน แถวหมวดย่อยถึงจะโผล่ขึ้นมา
-    if (!group && cat && cat !== 'all') {
-      var catTabPeek = tabsWrap.querySelector('.product-tab[data-filter="' + cat + '"]');
-      var peekedGroup = catTabPeek ? catTabPeek.getAttribute('data-group-id') : '';
-      if (peekedGroup) group = peekedGroup;
-    }
-
-    if (group && group !== 'all' && groupTabsWrap) {
-      var gOpt = groupTabsWrap.querySelector('.pr-group-select-option[data-filter="' + group + '"]');
-      if (gOpt) gOpt.click();
-    }
-    if (!cat || cat === 'all') return;
-    var tab = tabsWrap.querySelector('.product-tab[data-filter="' + cat + '"]');
-    if (tab) tab.click();
   }
 
   var originalGridHTML = grid.innerHTML;

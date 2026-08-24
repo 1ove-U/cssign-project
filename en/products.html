@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safety Sign Products &amp; Equipment — CS.SIGN Safety Sign Manufacturer</title>
+<meta name="description" content="Browse safety signs, reflective traffic signs, industrial plant signage, and traffic control equipment from CS.SIGN — TIS-standard, with free artwork design and custom sizing.">
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://cssign.co.th/en/products.html">
+<meta property="og:title"       content="CS.SIGN Products — TIS-Standard Safety &amp; Traffic Signs">
+<meta property="og:description" content="Safety signs, reflective traffic signs, and traffic equipment — full pricing and product details.">
+<meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale"      content="en_US">
+<link rel="canonical" href="https://cssign.co.th/en/products.html">
+<link rel="alternate" hreflang="th" href="https://cssign.co.th/products.html">
+<link rel="alternate" hreflang="en" href="https://cssign.co.th/en/products.html">
+<link rel="alternate" hreflang="x-default" href="https://cssign.co.th/products.html">
+<link rel="icon" href="../assets/favicon.ico" sizes="any">
+<link rel="icon" href="../assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="../assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="manifest" href="../assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Perf: preconnect above already warms the connection; this actually
+     loads the webfont CSS, moved out of style.css's @import (which is
+     render-blocking and only discoverable after style.css itself loads,
+     costing an extra round trip before Thai/Latin text paints). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com">
+<link rel="stylesheet" href="../css/style.css?v=20260711a">
+<link rel="stylesheet" href="../css/shared-widgets.css">
+<link rel="stylesheet" href="../css/track-modal.css">
+<link rel="stylesheet" href="../css/cart-modal.css">
+<link rel="stylesheet" href="../css/exit-intent-cta.css">
+<style>
+  /* ---- Product page hero ---- */
+  .pr-hero{ position:relative; overflow:hidden; padding: var(--page-hero-pad-top) 0 var(--page-hero-pad-bottom); background: var(--gray-50); }
+  /* ---- Second decorative layer (matches .article-hero/.contact-hero mesh
+     treatment in style.css): a soft two-corner brand-colour wash sitting
+     behind the existing line-art SVG, purely additive depth. ---- */
+  .pr-hero::before{
+    content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(520px 320px at 0% 100%, rgba(var(--primary-rgb),0.05), transparent 60%),
+      radial-gradient(460px 300px at 100% 0%, rgba(var(--accent-rgb),0.05), transparent 60%);
+  }
+  .pr-hero-bg{ position:absolute; top:-70px; right:-110px; width:520px; opacity:.85; pointer-events:none; }
+  .pr-hero-inner{ position:relative; z-index:1; max-width:680px; }
+  .pr-hero-inner h1{ font-family:var(--font-display); font-weight: 700; font-size:clamp(30px,4vw,46px); color:var(--text-heading); line-height:1.2; letter-spacing:-0.02em; margin:14px 0 18px; }
+  .pr-hero-inner p{ font-size:16.5px; line-height:1.75; color: var(--gray-500); max-width:580px; }
+
+  /* ---- Filter tabs ---- */
+  /* ดรอปดาวน์หมวดใหญ่ + ชิปหมวดย่อย อยู่แถวเดียวกันถ้าที่พอ (wrap ขึ้นบรรทัดใหม่เมื่อแคบ)
+     ชิดซ้ายด้วยกันทั้งคู่แทนการจัดกึ่งกลาง เพื่อให้ดูเป็นตัวกรองชุดเดียวกัน ไม่ใช่สอง
+     แถวที่ยาวไม่เท่ากันแล้วดูไม่สัมพันธ์กัน */
+  .pr-filter-row{ display:flex; flex-wrap:wrap; align-items:center; gap:12px 14px; margin: 0 0 18px; }
+  .pr-meta{ display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; padding-top:14px; border-top:1px solid var(--gray-100); font-family:var(--font-mono); font-size:12.5px; color:var(--gray-400); letter-spacing:.04em; }
+  .pr-meta strong{ color:var(--secondary); font-family:var(--font-display); }
+  .product-card[data-cat]{ transition:opacity .3s var(--ease), transform .3s var(--ease); }
+  .pr-empty{ display:none; text-align:center; padding:60px 0; color:var(--gray-400); font-size:15px; }
+  .pr-empty.show{ display:block; }
+
+
+  /* ============================================================
+     PRODUCT DETAIL POPUP
+     ============================================================ */
+  .pd-overlay {
+    position: fixed; inset: 0; z-index: 9998;
+    background: rgba(15,23,42,0.72);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: overlay-in .2s ease;
+  }
+  .pd-overlay.open { display: flex; }
+  @keyframes overlay-in { from { opacity:0 } to { opacity:1 } }
+
+  .pd-modal {
+    width: 100%;
+    max-width: 960px;
+    max-height: 92vh;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    box-shadow: 0 32px 96px rgba(15,23,42,0.35);
+    animation: modal-in .28s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes modal-in { from { opacity:0; transform:translateY(28px) scale(.97) } to { opacity:1; transform:translateY(0) scale(1) } }
+
+  /* Left: image gallery */
+  .pd-gallery {
+    flex: 0 0 420px;
+    background: var(--gray-50);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .pd-main-img {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    cursor: zoom-in;
+  }
+  .pd-main-img img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    padding: 24px;
+    box-sizing: border-box;
+    transition:transform .3s var(--ease);
+    transform-origin: center center;
+    display: block;
+  }
+  .pd-main-img.zoomed { cursor: zoom-out; }
+  .pd-main-img.zoomed img { transform: scale(2); }
+  .pd-zoom-hint {
+    position: absolute; bottom: 10px; right: 10px;
+    background: rgba(15,23,42,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 9px;
+    border-radius: 20px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pd-thumbs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--gray-200);
+    background: #fff;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .pd-thumb {
+    flex-shrink: 0;
+    width: 64px; height: 64px;
+    border-radius: 8px;
+    border: 2px solid var(--gray-200);
+    overflow: hidden;
+    cursor: pointer;
+    transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+    background: var(--gray-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .pd-thumb.active { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(var(--primary-rgb),0.2); }
+  .pd-thumb:hover { border-color: var(--primary); }
+  .pd-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
+  .pd-thumb-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    font-size: 9px; font-weight: 700;
+    text-align: center;
+    background: rgba(15,23,42,0.55);
+    color: #fff;
+    padding: 2px 0;
+    letter-spacing: .04em;
+  }
+
+  /* Right: info */
+  .pd-info {
+    flex: 1;
+    overflow-y: auto;
+    padding: 36px 36px 28px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .pd-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--gray-100);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-500);
+    transition:background .18s var(--ease), color .18s var(--ease);
+  }
+  .pd-close:hover { background: rgba(var(--danger-rgb),0.1); color: var(--danger); }
+  .pd-cat-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .pd-name {
+    font-family: var(--font-display);
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 700;
+    color: var(--secondary);
+    line-height: 1.3;
+    margin: 0 0 6px;
+    padding-right: 40px;
+  }
+  .pd-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 16px;
+  }
+  .pd-price-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .pd-price {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 700;
+    color: var(--primary);
+  }
+  .pd-price-note {
+    font-size: 12px;
+    color: var(--gray-400);
+  }
+  .pd-currency-select {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--secondary);
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  .pd-divider {
+    height: 1px;
+    background: var(--gray-100);
+    margin: 22px 0;
+  }
+
+  /* Variant chips + qty + live price summary (mirrors product-detail.html) */
+  .pd-variant-block { display: none; margin-top: 4px; }
+  .pd-variant-block.show { display: block; }
+  .pd-variant-alert {
+    background: #FFF8EC; border: 1px solid rgba(198,134,42,.35); border-left: 4px solid var(--accent);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; line-height: 1.7; color: #6B4A12;
+  }
+  .pd-variant-alert .tax-note { display: block; margin-top: 3px; color: var(--danger); font-weight: 700; }
+  .pd-opt-block { margin-bottom: 14px; }
+  .pd-opt-label { font-size: 12.5px; font-weight: 700; color: var(--secondary); margin-bottom: 8px; }
+  .pd-chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .pd-chip {
+    font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 14px;
+    border-radius: var(--r-pill); border: 1.5px solid var(--gray-200); background: #fff;
+    color: var(--gray-600); cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+  }
+  .pd-chip:hover { border-color: rgba(var(--primary-rgb),.5); color: var(--primary); }
+  .pd-chip.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+  .pd-qty-block { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  .pd-qty-block .pd-opt-label { margin-bottom: 0; }
+  .pd-qty-stepper { display: flex; align-items: center; border: 1.5px solid var(--gray-200); border-radius: var(--r-pill); overflow: hidden; }
+  .pd-qty-btn { width: 30px; height: 30px; border: none; background: var(--gray-50); color: var(--secondary); font-size: 15px; font-weight: 700; cursor: pointer; line-height: 1; }
+  .pd-qty-btn:hover { background: var(--gray-100); }
+  .pd-qty-stepper input {
+    width: 48px; height: 30px; border: none; border-left: 1.5px solid var(--gray-200); border-right: 1.5px solid var(--gray-200);
+    text-align: center; font-size: 13px; font-weight: 700; color: var(--secondary); -moz-appearance: textfield;
+  }
+  .pd-qty-stepper input::-webkit-outer-spin-button, .pd-qty-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .pd-variant-total { background: var(--gray-50); border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; }
+  .pd-vt-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; color: var(--gray-500); }
+  .pd-vt-row + .pd-vt-row { margin-top: 5px; }
+  .pd-vt-row.pd-vt-total { padding-top: 8px; margin-top: 8px; border-top: 1px dashed var(--gray-200); font-size: 14px; font-weight: 800; color: var(--secondary); }
+  .pd-vt-empty { font-size: 12.5px; color: var(--gray-500); }
+  .pd-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 8px;
+  }
+  .pd-desc {
+    font-size: 14px; line-height: 1.75;
+    color: var(--gray-500);
+    margin-bottom: 12px;
+  }
+  .pd-specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .pd-spec-item {
+    background: var(--gray-50);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .pd-spec-key {
+    font-size: 11px; font-weight: 600;
+    color: var(--gray-400);
+    margin-bottom: 3px;
+  }
+  .pd-spec-val {
+    font-size: 13.5px; font-weight: 600;
+    color: var(--secondary);
+  }
+  .pd-tags {
+    display: flex; gap: 7px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .pd-tag {
+    font-size: 12px; font-weight: 600;
+    padding: 4px 12px;
+    border-radius: var(--r-pill);
+    border: 1.5px solid var(--gray-200);
+    color: var(--gray-500);
+    background: #fff;
+  }
+
+  /* Link to the standalone product-detail.html page (real URL, so it can be
+     shared/bookmarked/indexed on its own — unlike this in-page modal) */
+  .pd-full-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 700; color: var(--primary);
+    margin-bottom: 14px; text-decoration: none;
+  }
+  .pd-full-link svg { width: 13px; height: 13px; }
+  .pd-full-link:hover { text-decoration: underline; }
+
+  /* Notice banner inside modal */
+  .pd-notice {
+    background: rgba(var(--warning-rgb),0.08);
+    border: 1.5px solid rgba(var(--warning-rgb),0.4);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--accent-dark);
+    margin-bottom: 18px;
+  }
+  .pd-notice strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--accent-dark);
+  }
+
+  .pd-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 6px;
+  }
+  .pd-quote-btn {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px;
+    font-size: 14px; font-weight: 700;
+    color: #fff; background: var(--primary);
+    padding: 12px 20px;
+    border-radius: var(--r-pill);
+    border: none; cursor: pointer;
+    text-decoration: none;
+    transition:background .2s var(--ease);
+  }
+  .pd-quote-btn:hover { background: var(--primary-dark); }
+  .pd-inquiry-btn {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px;
+    font-size: 14px; font-weight: 700;
+    color: var(--primary); background: transparent;
+    padding: 12px 20px;
+    border-radius: var(--r-pill);
+    border: 2px solid var(--primary);
+    cursor: pointer;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .pd-inquiry-btn:hover { background: var(--primary); color: #fff; }
+
+  @media (max-width: 780px) {
+    .pd-modal { flex-direction: column; max-height: 95vh; border-radius: 16px; }
+    .pd-gallery { flex: 0 0 auto; }
+    .pd-main-img { min-height: 220px; }
+    .pd-info { padding: 22px 20px 20px; }
+    .pd-specs { grid-template-columns: 1fr; }
+    .pd-actions { flex-direction: column; }
+  }
+  @media (max-width: 480px) {
+    .pd-main-img { min-height: 180px; }
+    .pd-thumb { width: 52px; height: 52px; }
+  }
+</style>
+<link rel="stylesheet" href="../css/fancy-effects.css">
+</head>
+<body>
+<a href="#top" class="skip-link">Skip to main content</a>
+
+<!-- ============================================================
+     STICKY NAVIGATION
+     ============================================================ -->
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        +66 62-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="Chat on LINE" title="Chat on LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="Search the site">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="../products.html">TH</a>
+        <a href="#top" class="is-active">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+
+      <div class="nav-item-dropdown">
+        <button class="nav-link nav-dd-trigger nav-link--active" type="button">
+          Products
+          <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown nav-megamenu">
+          <div class="nav-mega-grid">
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">Safety Signs</div>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>Safety &amp; Warning Signs</strong><span>International standard, clearly visible in all lighting</span></span>
+              </a>
+              <a href="products.html?cat=safety" class="nav-mega-item">
+                <span><strong>Emergency Evacuation Signs</strong><span>Clear escape routes and assembly points</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">Traffic Signs</div>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>High-Intensity Reflective Signs</strong><span>Manufactured to Dept. of Highways / TIS standard</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>Warning / Construction-Zone Signs</strong><span>Improved safety for active work sites</span></span>
+              </a>
+              <a href="products.html?cat=traffic" class="nav-mega-item">
+                <span><strong>Directional / Wayfinding Signs</strong><span>Designed to match your actual site layout</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">Traffic Equipment</div>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>Traffic Cones / Barriers</strong><span>Durable, high-quality materials</span></span>
+              </a>
+              <a href="products.html?cat=equip" class="nav-mega-item">
+                <span><strong>Flexible Posts / Road Barriers</strong><span>Easy to install, adaptable to any site</span></span>
+              </a>
+            </div>
+            <div class="nav-mega-col">
+              <div class="nav-mega-title">By Industry</div>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Manufacturing Plants</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Government Agencies</strong></a>
+              <a href="products.html?cat=traffic" class="nav-mega-item nav-mega-item--simple"><strong>Industrial Estates</strong></a>
+              <a href="products.html?cat=safety" class="nav-mega-item nav-mega-item--simple"><strong>Hospitals / Healthcare</strong></a>
+            </div>
+          </div>
+          <a href="products.html" class="nav-mega-foot">
+            View all products
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <a href="portfolio.html" class="nav-link">Portfolio</a>
+      <a href="about.html" class="nav-link">About Us</a>
+      <a href="blog.html" class="nav-link">Articles</a>
+      <a href="contact.html" class="nav-link">Contact</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">Request a Quote</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="Check production status" title="Check production status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="Close menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">Home</a>
+
+    <button class="mobile-dd-trigger" id="mobile-dd-trigger" type="button">
+      Products
+      <svg class="nav-dd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="mobile-dd-panel" id="mobile-dd-panel">
+      <a href="products.html?cat=safety">Safety Signs</a>
+      <a href="products.html?cat=traffic">Traffic Signs</a>
+      <a href="products.html?cat=equip">Traffic Equipment</a>
+      <a href="products.html">View all products</a>
+    </div>
+
+    <a href="portfolio.html">Portfolio</a>
+    <a href="about.html">About Us</a>
+    <a href="blog.html">Articles</a>
+    <a href="#" data-track-modal-open>Check production status</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="../products.html">TH · ไทย</a>
+    <a href="#top" class="is-active">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>Add LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">Request a Quote</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">Call +66 62-883-3880</a>
+  </div>
+</div>
+
+<main id="top">
+
+<!-- ============================================================
+     PRODUCTS HERO
+     ============================================================ -->
+<section class="pr-hero" data-reveal="fade">
+  <div class="pr-hero-bg" aria-hidden="true">
+    <svg viewBox="0 0 560 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M150 36 L256 222 L44 222 Z" stroke="#E2E8F0" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="430" cy="148" r="92" stroke="#E2E8F0" stroke-width="13"/>
+      <rect x="318" y="270" width="150" height="150" rx="16" stroke="#E2E8F0" stroke-width="13" transform="rotate(45 393 345)"/>
+    </svg>
+  </div>
+  <div class="wrap pr-hero-inner">
+    <div class="eyebrow">PRODUCT CATALOG</div>
+    <h1>Safety Sign Products<br>&amp; Equipment, Every Category</h1>
+    <p>Browse safety signs, traffic signs, plant signage, and traffic control equipment, manufactured to TIS standard. Every item comes with free artwork design and custom sizing — pick a category below to find what fits your project.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     FILTERABLE PRODUCT GRID
+     ============================================================ -->
+<section class="section" id="catalog">
+  <div class="wrap">
+
+    <div class="pr-filter-row" data-reveal>
+      <!-- หมวดหมู่ใหญ่: ดรอปดาวน์ตัวเดียว แสดงหมวดที่เลือกอยู่เป็นข้อความ (populate โดย
+           js/products.js จากข้อมูล groups ใน Firestore — ว่างเปล่า/ไม่แสดงถ้ามีหมวดใหญ่
+           เดียวหรือยังไม่มีข้อมูล เพื่อไม่ให้เห็นดรอปดาวน์เปล่าตอนหน้าโหลด) -->
+      <div class="pr-group-select" id="product-group-tabs-dynamic"></div>
+      <!-- หมวดหมู่ย่อย: ยังเป็นชิปพิลเหมือนเดิม ปุ่ม "ทั้งหมด" นี้คือ fallback แบบ static
+           (ไม่มีดรอปดาวน์หมวดใหญ่คู่กันในโหมดนี้ จึงไม่ชนคำกัน) — js/products.js จะ
+           แทนที่เนื้อหาทั้งหมดในนี้เมื่อโหลดข้อมูลจริงจาก Firestore สำเร็จ -->
+      <div class="product-tabs" id="product-tabs-dynamic">
+        <button class="product-tab active" data-filter="all">All</button>
+        <button class="product-tab" data-filter="safety">Safety Signs</button>
+        <button class="product-tab" data-filter="traffic">Traffic Signs</button>
+        <button class="product-tab" data-filter="equip">Equipment</button>
+      </div>
+    </div>
+
+    <div class="pr-meta" data-reveal>
+      <span>Showing <strong id="pr-count">5</strong> products</span>
+      <span>Last updated · 2026</span>
+    </div>
+
+    <div class="product-grid" id="product-grid" data-reveal>
+
+      <!-- Card 1 -->
+      <div class="product-card" data-cat="safety"
+        data-product='{
+          "name":"Safety Signs",
+          "cat":"Safety Signage",
+          "code":"CSS-SAFE-001",
+          "price":"Request a quote",
+          "desc":"Prohibition, warning, and mandatory signs made from durable, fade-resistant materials, manufactured to TIS standard. Available in multiple sizes and materials, with free artwork design.",
+          "material":"Grade-A aluminium / PVC / reflective sticker",
+          "size":"From 15×15 cm to 120×120 cm",
+          "badge":"TIS",
+          "tags":["TIS","Safety","Custom"],
+          "views":["Front","Back","Side"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><path d="M32 4 6 16v14c0 14 11 23 26 30 15-7 26-16 26-30V16L32 4z"/><path d="M22 32l7 7 14-14" stroke="#EA580C"/></svg>
+        </div>
+        <div class="product-badge">TIS</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            View Details
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="product-card" data-cat="traffic"
+        data-product='{
+          "name":"Reflective Traffic Signs",
+          "cat":"Traffic Signage",
+          "code":"CSS-TRAF-002",
+          "price":"Request a quote",
+          "desc":"Engineering-grade and High-Intensity reflective materials to ASTM standard, weather-resistant for 10+ years. Suited for public roads, highways, and construction sites.",
+          "material":"Aluminium sheet + ASTM reflective film",
+          "size":"60×60 cm / 75×75 cm / 90×90 cm",
+          "badge":"DOH Standard",
+          "tags":["DOH","Traffic","Reflective","ASTM"],
+          "views":["Front","Back","Side"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><circle cx="32" cy="32" r="26"/><path d="M16 32h32M32 16v32" stroke="#16A34A"/></svg>
+        </div>
+        <div class="product-badge">DOH Standard</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            View Details
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="product-card" data-cat="safety"
+        data-product='{
+          "name":"Industrial Plant Signage",
+          "cat":"Plant Signage",
+          "code":"CSS-PLANT-003",
+          "price":"Request a quote",
+          "desc":"Area and hazard identification signage for factories and industrial sites, with free artwork design and production to your own standard.",
+          "material":"Aluminium / PVC / foam board / stainless steel",
+          "size":"Custom, any size",
+          "badge":"Custom Order",
+          "tags":["Industrial","Custom","Free Artwork","GHS"],
+          "views":["Front","Back","Side"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><rect x="10" y="10" width="44" height="44" rx="4"/><path d="M20 38l8-12 6 8 10-14" stroke="#EA580C"/></svg>
+        </div>
+        <div class="product-badge">Custom Order</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            View Details
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="product-card" data-cat="equip"
+        data-product='{
+          "name":"Traffic Cones & Barriers",
+          "cat":"Traffic Equipment",
+          "code":"CSS-EQUIP-004",
+          "price":"From ฿350 / pc",
+          "desc":"A full traffic-control equipment set — durable PVC traffic cones and plastic barriers, with on-site road marking service. Ready stock for fast delivery.",
+          "material":"Premium-grade PVC / HDPE",
+          "size":"Cones: 50, 70, 90 cm height / Barriers: 100 cm length",
+          "badge":"In Stock",
+          "tags":["In Stock","PVC","Traffic","Construction"],
+          "views":["Front","Back","Side"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><path d="M32 8l16 48H16L32 8z"/><path d="M24 40h16" stroke="#7C3AED"/></svg>
+        </div>
+        <div class="product-badge">In Stock</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            View Details
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="product-card" data-cat="safety"
+        data-product='{
+          "name":"Fire Exit & Emergency Signs",
+          "cat":"Safety Signage",
+          "code":"CSS-FIRE-005",
+          "price":"Request a quote",
+          "desc":"Photoluminescent signs, clearly visible in the dark and during emergencies, designed to international safety symbol standards. Suited for buildings, factories, hotels, and public venues.",
+          "material":"Aluminium + photoluminescent film / glow-in-the-dark PVC",
+          "size":"15×30 cm / 20×40 cm / custom",
+          "badge":"Glow-in-the-Dark",
+          "tags":["Glow-in-the-Dark","Emergency","Fire Safety"],
+          "views":["Front","Back","Side"]
+        }'
+      >
+        <div class="product-art">
+          <div class="pa-grid"></div>
+          <svg viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5"><path d="M32 6c-12 0-22 9-22 21 0 16 22 31 22 31s22-15 22-31c0-12-10-21-22-21z"/><circle cx="32" cy="27" r="6" stroke="#EA580C"/></svg>
+        </div>
+        <div class="product-badge">Glow-in-the-Dark</div>
+        <div class="product-footer">
+          <button class="product-cta-btn detail-btn">
+            View Details
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /product-grid -->
+
+    <div class="pr-empty" id="pr-empty">No products in this category yet — please choose another category</div>
+
+  </div>
+</section>
+
+<!-- CTA STRIP -->
+<section class="site-cta-band site-cta-band--strip">
+  <div class="wrap">
+    <div class="site-cta-card" data-reveal>
+      <span class="reg-mark reg-mark--tl" aria-hidden="true"><i></i></span>
+      <span class="reg-mark reg-mark--br" aria-hidden="true"><i></i></span>
+      <div class="site-cta-bg-art" aria-hidden="true">
+        <svg viewBox="0 0 1200 340" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <path d="M980 40C1080 40 1160 110 1160 190C1160 270 1080 320 990 320" stroke="rgba(255,255,255,0.06)" stroke-width="46" stroke-linecap="round" fill="none"/>
+          <path d="M840 20L1180 320M1180 20L840 320" stroke="rgba(255,255,255,0.045)" stroke-width="40" stroke-linecap="round"/>
+          <circle cx="150" cy="60" r="140" fill="rgba(255,255,255,0.035)"/>
+        </svg>
+      </div>
+      <div class="site-cta-content">
+        <h2>Need a <span class="cta-accent">Custom</span> Sign for Your Site?</h2>
+        <p>The CS.SIGN team offers free consultation, artwork design, and a quote within 24 hours.</p>
+        <a href="contact.html" class="btn btn-white btn-lg">Request a Quote</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+
+<!-- FOOTER -->
+
+
+
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>CS.SIGN And Products Co., Ltd. — manufacturer of traffic and safety signs, with 20+ years of experience.</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-h">Products</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">Safety Signs</a>
+          <a href="products.html?cat=traffic">Traffic Signs</a>
+          <a href="products.html?cat=safety">Industrial Plant Signage</a>
+          <a href="products.html?cat=equip">Traffic Equipment</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-h">Company</div>
+        <div class="footer-links">
+          <a href="about.html">About Us</a>
+          <a href="index.html#services">How It Works</a>
+          <a href="portfolio.html">Our Work</a>
+          <a href="quality-policy.html">Quality Policy</a>
+          <a href="blog.html">Articles</a>
+          <a href="about.html#faq">FAQ</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-h">Contact</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Address</div>
+          <div class="footer-contact-val">17 Soi Bang Kradi 1, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Phone / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">+66 62-883-3880, +66 63-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Fax</div>
+          <span class="footer-contact-val">+66 2-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Email</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN And Products Co., Ltd.</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">Privacy Policy</a> · <a href="terms.html" style="color:inherit;">Terms of Service</a> &middot; <a href="accessibility.html" style="color:inherit;">Accessibility Statement</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/tabs-overflow.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/main-effects.js"></script>
+<script src="../js/cookie-consent.js"></script>
+<script src="../js/analytics.js"></script>
+<script src="../js/site-search-index.js"></script>
+<script src="../js/site-search.js"></script>
+<script type="module" src="../js/site-settings.js"></script>
+<script type="module" src="../js/nav-menu.js"></script>
+<script type="module" src="../js/products.js"></script>
+<script type="module" src="../js/currency-global.js"></script>
+<script type="module" src="../js/cart-global.js"></script>
+<script src="../js/product-schema-core.js"></script>
+<script src="../js/product-schema.js"></script>
+
+
+<!-- ============================================================
+     PRODUCT DETAIL POPUP
+     ============================================================ -->
+<div class="pd-overlay" id="pd-overlay" role="dialog" aria-modal="true" aria-label="Product details">
+  <div class="pd-modal">
+    <!-- Gallery -->
+    <div class="pd-gallery">
+      <div class="pd-main-img" id="pd-main-img">
+        <div class="pa-grid" style="position:absolute;inset:0;opacity:.3;background-image:linear-gradient(rgba(15,23,42,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,0.04) 1px,transparent 1px);background-size:24px 24px;pointer-events:none;"></div>
+        <svg id="pd-main-svg" viewBox="0 0 64 64" fill="none" stroke="#0B5A96" stroke-width="2.5" style="width:80px;height:80px;position:relative;z-index:1;"></svg>
+        <img id="pd-main-img-tag" src="" alt="" style="display:none;">
+        <div class="pd-zoom-hint" id="pd-zoom-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+          Click to zoom
+        </div>
+      </div>
+      <div class="pd-thumbs" id="pd-thumbs"></div>
+    </div>
+    <!-- Info -->
+    <div class="pd-info">
+      <button class="pd-close" id="pd-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="pd-cat-label" id="pd-cat"></div>
+      <h2 class="pd-name" id="pd-name"></h2>
+      <div class="pd-code" id="pd-code"></div>
+      <div class="pd-price-row">
+        <span class="pd-price" id="pd-price"></span>
+        <span class="pd-price-note">/ unit</span>
+        <select class="pd-currency-select" id="pd-currency-select" aria-label="Currency">
+          <option value="THB">THB ฿</option>
+          <option value="USD">USD $</option>
+          <option value="EUR">EUR €</option>
+          <option value="CNY">CNY ¥</option>
+        </select>
+      </div>
+      <div class="pd-variant-block" id="pd-variant-block"></div>
+      <div class="pd-divider"></div>
+      <div class="pd-section-label" id="pd-details-label">Product Details</div>
+      <p class="pd-desc" id="pd-desc"></p>
+      <div class="pd-specs" id="pd-specs"></div>
+      <div class="pd-section-label" id="pd-tags-label">Tags</div>
+      <div class="pd-tags" id="pd-tags"></div>
+
+      <a class="pd-full-link" id="pd-full-link" href="#" style="display:none;">
+        Open full page (link for this product)
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+
+      <!-- Notice -->
+      <div class="pd-notice">
+        <strong>Note for customers</strong>
+        Traffic equipment and large-format signs have delivery terms that vary by order, so they can't be purchased directly through this website yet. Please contact our sales team for a quote and delivery details.<br>
+        LINE ID: <strong>@cssigngroup</strong> or call <strong>+66 62-883-3880</strong>
+      </div>
+
+      <div class="pd-actions">
+        <button class="pd-inquiry-btn" id="pd-inquiry-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Ask a Question
+        </button>
+        <button class="pd-quote-btn" id="pd-quote-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Request a Quote
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="../js/products-detail-popup-en.js"></script>
+
+<!-- ============================================================
+     QUOTATION POPUP MODAL — redesigned, full-width estimator
+     ============================================================ -->
+<script src="../js/qmodal-template.js"></script>
+
+<!-- FAB trigger button -->
+<script src="../js/track-modal-template.js"></script>
+<script type="module" src="../js/track-modal.js"></script>
+<script src="../js/cart-modal-template.js"></script>
+<script src="../js/cart-modal.js"></script>
+<script src="../js/quote-form-template.js"></script>
+<script type="module" src="../js/quote-form.js"></script>
+<script src="../js/chat-widget-template.js"></script>
+
+<script src="../js/qmodal.js"></script>
+<script type="module" src="../js/chat-widget.js"></script>
+<script type="module" src="../js/lead-quote-modal.js"></script>
+<script src="../js/exit-intent-cta.js"></script>
+<script src="../js/fancy-effects.js" defer></script>
+</body>
+</html>
