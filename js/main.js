@@ -490,33 +490,84 @@
     // (ดู p2.9-account-hub-plan.md) ชื่อฟังก์ชัน/ตัวแปรคงชื่อเดิมไว้ ไม่เปลี่ยนเพื่อลด diff
     var path = window.location.pathname;
     var isEn = /\/en\//.test(path);
-    if (/\/my-account\.html$/.test(path)) return; // อยู่หน้านี้อยู่แล้ว ไม่ต้องลิงก์ไปหาตัวเอง
+    var onAccountPage = /\/my-account\.html$/.test(path);
 
     var href = 'my-account.html'; // relative ใช้ได้ทั้งสองภาษาเพราะ en/*.html ลิงก์กันเองแบบ relative อยู่แล้ว (เช่น index.html, products.html)
     var label = isEn ? 'My Account' : 'บัญชีของฉัน';
+    var loggedInSuffix = isEn ? ' (Signed in with LINE)' : ' (เข้าสู่ระบบด้วย LINE อยู่)';
 
-    // เดสก์ท็อป: ปุ่มไอคอนใน .nav-actions ข้างปุ่ม "เช็คสถานะคำสั่งผลิต" เดิม
-    var navActions = document.querySelector('.nav-actions');
-    var navTrackTrigger = navActions && navActions.querySelector('.nav-track-trigger');
-    if (navActions && navTrackTrigger && !navActions.querySelector('.nav-my-orders-trigger')) {
-      var iconLink = document.createElement('a');
-      iconLink.href = href;
-      iconLink.className = 'nav-icon-btn nav-my-orders-trigger';
-      iconLink.setAttribute('aria-label', label);
-      iconLink.setAttribute('title', label);
-      iconLink.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-      navActions.insertBefore(iconLink, navTrackTrigger);
+    // ── ตัวบ่งชี้ "เข้าสู่ระบบด้วย LINE อยู่" ข้ามหน้า (2026-08 follow-up) — my-account.html/
+    // my-orders.html เป็นสองหน้าเดียวที่เช็ค Firebase/LIFF session จริงๆ (เรียก liff.init()/
+    // onAuthChange()) หน้าอื่นๆ ทั้งหมด (รวมทั้งไฟล์นี้) ไม่โหลด Firebase SDK เลยเพื่อไม่ให้เสีย
+    // performance ทุกหน้าเปล่าๆ แค่เพื่อโชว์จุดเขียวเล็กๆ อันนี้ — จึงใช้ localStorage cache
+    // แบบเดียวกับ 'cssignCurrency' (js/currency-global.js) แทน: js/my-account-page.js/
+    // js/my-orders-page.js เขียน flag นี้ทุกครั้งที่ login/logout สำเร็จจริง (ไม่ใช่ optimistic)
+    // แล้วไฟล์นี้แค่อ่านมาโชว์จุดเขียวตอนโหลดหน้า — ไม่ใช่ authoritative 100% (session อาจหมดอายุ
+    // ระหว่างที่ไม่ได้เข้า my-account/my-orders ไปสักพัก) แต่ตรงพอสำหรับ "เดาว่าน่าจะยัง login
+    // อยู่ไหม" ระดับ UI hint ซึ่งเป็นโจทย์ที่ขอมา (ไม่ใช่ access control ที่ต้อง 100% แม่นยำ) —
+    // ฟังก์ชัน exposed เป็น window.CSSignSetAccountLoggedIn() ให้ my-account-page.js/
+    // my-orders-page.js เรียกอัปเดตจุดเขียวได้ทันทีตอน login/logout สำเร็จในหน้าเดียวกันด้วย
+    // (ไม่ต้องรอ reload หน้าถึงจะเห็น)
+    var LINE_SESSION_STORAGE_KEY = 'cssignLineSessionActive';
+    function readLineSessionActive() {
+      try { return window.localStorage && window.localStorage.getItem(LINE_SESSION_STORAGE_KEY) === '1'; }
+      catch (e) { return false; }
     }
 
-    // มือถือ: ลิงก์ข้อความต่อท้ายลิงก์ "เช็คสถานะคำสั่งผลิต" เดิมใน .mobile-links
-    var mobileLinks = document.querySelector('.mobile-links');
-    var mobileTrackLink = mobileLinks && mobileLinks.querySelector('[data-track-modal-open]');
-    if (mobileLinks && mobileTrackLink && !mobileLinks.querySelector('.mobile-my-orders-link')) {
-      var textLink = document.createElement('a');
-      textLink.href = href;
-      textLink.className = 'mobile-my-orders-link';
-      textLink.textContent = isEn ? 'My Account' : 'บัญชีของฉัน';
-      mobileTrackLink.insertAdjacentElement('afterend', textLink);
+    var iconLink = null;
+    var mobileTextLink = null;
+
+    function applyIndicator(isActive) {
+      if (iconLink) {
+        iconLink.classList.toggle('nav-icon-btn--logged-in', !!isActive);
+        var iconTitle = isActive ? (label + loggedInSuffix) : label;
+        iconLink.setAttribute('aria-label', iconTitle);
+        iconLink.setAttribute('title', iconTitle);
+      }
+      if (mobileTextLink) {
+        mobileTextLink.classList.toggle('mobile-my-orders-link--logged-in', !!isActive);
+        mobileTextLink.textContent = label + (isActive ? loggedInSuffix : '');
+      }
+    }
+
+    window.CSSignSetAccountLoggedIn = function (isActive) {
+      try {
+        if (isActive) window.localStorage && window.localStorage.setItem(LINE_SESSION_STORAGE_KEY, '1');
+        else window.localStorage && window.localStorage.removeItem(LINE_SESSION_STORAGE_KEY);
+      } catch (e) { /* private mode / localStorage ไม่พร้อมใช้งาน — แค่ข้าม cache ไป ไม่ throw */ }
+      applyIndicator(isActive);
+    };
+
+    if (!onAccountPage) {
+      // เดสก์ท็อป: ปุ่มไอคอนใน .nav-actions ข้างปุ่ม "เช็คสถานะคำสั่งผลิต" เดิม
+      var navActions = document.querySelector('.nav-actions');
+      var navTrackTrigger = navActions && navActions.querySelector('.nav-track-trigger');
+      if (navActions && navTrackTrigger && !navActions.querySelector('.nav-my-orders-trigger')) {
+        iconLink = document.createElement('a');
+        iconLink.href = href;
+        iconLink.className = 'nav-icon-btn nav-my-orders-trigger';
+        iconLink.setAttribute('aria-label', label);
+        iconLink.setAttribute('title', label);
+        iconLink.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-login-dot" aria-hidden="true"></span>';
+        navActions.insertBefore(iconLink, navTrackTrigger);
+      } else {
+        iconLink = navActions && navActions.querySelector('.nav-my-orders-trigger');
+      }
+
+      // มือถือ: ลิงก์ข้อความต่อท้ายลิงก์ "เช็คสถานะคำสั่งผลิต" เดิมใน .mobile-links
+      var mobileLinks = document.querySelector('.mobile-links');
+      var mobileTrackLink = mobileLinks && mobileLinks.querySelector('[data-track-modal-open]');
+      if (mobileLinks && mobileTrackLink && !mobileLinks.querySelector('.mobile-my-orders-link')) {
+        mobileTextLink = document.createElement('a');
+        mobileTextLink.href = href;
+        mobileTextLink.className = 'mobile-my-orders-link';
+        mobileTextLink.textContent = label;
+        mobileTrackLink.insertAdjacentElement('afterend', mobileTextLink);
+      } else {
+        mobileTextLink = mobileLinks && mobileLinks.querySelector('.mobile-my-orders-link');
+      }
+
+      applyIndicator(readLineSessionActive());
     }
   })();
 

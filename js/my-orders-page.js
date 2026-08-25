@@ -139,11 +139,18 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
     showError("โหลดรายการออเดอร์ไม่สำเร็จ กรุณาลองรีเฟรชหน้าใหม่ หรือโทร 062-883-3880");
   }
 
+  // ตัวบ่งชี้ "เข้าสู่ระบบด้วย LINE อยู่" ข้ามหน้า (2026-08 follow-up) — pattern เดียวกับ
+  // js/my-account-page.js ทุกประการ ดูคอมเมนต์เต็มที่นั่น
+  function setLoginIndicator(isActive) {
+    if (typeof window.CSSignSetAccountLoggedIn === "function") window.CSSignSetAccountLoggedIn(isActive);
+  }
+
   function afterLogin(lineUserId) {
     sessionActive = true;
     showOnly(ordersLoadingEl);
     showLinkMore(); // login สำเร็จแล้ว โชว์ปุ่ม "เชื่อมออเดอร์เพิ่ม" ไว้เลย ไม่ต้องรอออเดอร์โหลดเสร็จ
     showLogout();   // เช่นเดียวกัน โชว์ปุ่ม "ออกจากระบบ" ทันทีที่ login สำเร็จ (P2.9-A)
+    setLoginIndicator(true);
     if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
     unsubscribeOrders = listenMyOrders(lineUserId, renderOrders, onOrdersError);
   }
@@ -178,6 +185,7 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
         hideLogout();
         showOnly(loginEl);
         logoutBtn.disabled = false;
+        setLoginIndicator(false);
       });
   }
 
@@ -228,6 +236,7 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
     hideLogout();
     showOnly(loginEl);
     showError("เซสชันหมดอายุหรือออกจากระบบจากอุปกรณ์/แท็บอื่น กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+    setLoginIndicator(false);
   }
 
   onAuthChange(function (user) {

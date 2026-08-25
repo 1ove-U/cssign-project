@@ -569,6 +569,20 @@ section,
    ไม่มี icon ให้ปักมุม) — ว่างเปล่าเมื่อ count เป็น 0 (ตั้งค่าจาก JS) จึงไม่ต้องมี CSS ซ่อน/โชว์ */
 .mobile-cart-badge{ font-weight:700; color: var(--danger); }
 
+/* ---- จุดเขียว "เข้าสู่ระบบด้วย LINE อยู่" บนไอคอน "บัญชีของฉัน" ใน nav (2026-08 follow-up) —
+   มุมล่างขวาแบบ "online status dot" (ต่างมุมกับ .nav-cart-badge มุมบนขวาที่เป็นตัวเลขจำนวน กัน
+   ตีความสับสนว่าเป็นจำนวนอะไรบางอย่าง) ซ่อนไว้ด้วย display:none ตั้งต้นเสมอ โชว์เฉพาะตอน JS
+   (js/main.js) เช็ค localStorage แล้วว่ามี session LINE ค้างอยู่ — ดู CSSignSetAccountLoggedIn() ---- */
+.nav-login-dot{
+  display:none; position:absolute; bottom:-1px; right:-1px;
+  width:11px; height:11px; border-radius:50%;
+  background:#06C755; border:2px solid #fff;
+}
+.nav-icon-btn--logged-in .nav-login-dot{ display:block; }
+/* มือถือ: ไม่มี icon ให้ปักจุด ใช้จุดเขียว + ตัวหนังสือบอกสถานะต่อท้ายชื่อลิงก์แทน (ตั้ง textContent
+   จาก JS อยู่แล้ว — ส่วนนี้แค่แต่งสี/น้ำหนักตัวอักษรให้ตัวข้อความ "(เข้าสู่ระบบด้วย LINE อยู่)" เด่นขึ้น) */
+.mobile-my-orders-link--logged-in{ color:#06C755; font-weight:700; }
+
 .mobile-line{ display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 0 4px; font-size:13.5px; font-weight:700; color:#06C755; }
 .mobile-line svg{ width:16px; height:16px; color:#06C755; flex-shrink:0; }
 
@@ -583,6 +597,15 @@ section,
 .cif-req,
 .mobile-links a:hover{ color: var(--primary); }
 .nav-lang-switch a.is-active{ background: var(--primary); color:#fff; }
+/* .article-content a{ color:var(--primary) } ด้านบนมี specificity สูงกว่า .btn-primary{ color:#fff }
+   เฉยๆ (class+tag > class เดี่ยว) ทำให้ปุ่ม/ลิงก์ .btn ที่อยู่ใน .article-content (เช่น
+   "ดูใบเสนอราคา" ใน my-account.html #ma-leads-list) โดนบังคับเป็นสีน้ำเงินทับสีขาวเดิม กลายเป็น
+   ตัวอักษรสีน้ำเงินบนพื้นหลังไล่สีน้ำเงินของปุ่ม อ่านไม่ออก — เพิ่ม override เจาะจงตรงนี้ให้กลับมา
+   เป็นสีตาม .btn-* เดิมเสมอไม่ว่าจะอยู่ใน .article-content หรือไม่ */
+.article-content a.btn-primary,
+.article-content a.btn-ghost-white{ color:#fff; }
+.article-content a.btn-secondary{ color: var(--secondary); }
+.article-content a.btn-white{ color: var(--primary); }
 .mobile-lang-switch{ display:flex; gap:8px; padding:14px 0 4px; }
 .mobile-lang-switch a{ flex:1; text-align:center; padding:10px; border:1.5px solid var(--gray-200); border-radius:10px; font-weight:700; font-size:13px; color: var(--secondary); text-decoration:none; }
 .mobile-lang-switch a.is-active,

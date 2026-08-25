@@ -142,11 +142,21 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
     }
   }
 
+  // ตัวบ่งชี้ "เข้าสู่ระบบด้วย LINE อยู่" ข้ามหน้า (2026-08 follow-up) — เขียน/ลบ cache ผ่าน
+  // window.CSSignSetAccountLoggedIn() (js/main.js, เดิมทีสร้างไว้เพื่อวางจุดเขียวบนไอคอน
+  // "บัญชีของฉัน" ในหน้าอื่นๆ ที่ไม่ได้เช็ค Firebase session จริง) เรียกแบบ if (typeof ... ===
+  // "function") กันพัง เผื่อ main.js โหลดไม่เสร็จ/ถูกปิดกั้นบางกรณี (pattern เดียวกับที่ไฟล์นี้ใช้
+  // เช็ค window.openQuoteRequestForm ที่อื่นในโปรเจกต์)
+  function setLoginIndicator(isActive) {
+    if (typeof window.CSSignSetAccountLoggedIn === "function") window.CSSignSetAccountLoggedIn(isActive);
+  }
+
   function afterLogin(profile, lineUserId) {
     sessionActive = true;
     renderProfile(profile);
     currentLineUserId = lineUserId || null;
     showOnly(profileEl);
+    setLoginIndicator(true);
   }
 
   // ===========================
@@ -290,6 +300,7 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
         avatarEl.style.display = "none";
         showOnly(loginEl);
         logoutBtn.disabled = false;
+        setLoginIndicator(false);
       });
   }
   if (logoutBtn) {
@@ -328,6 +339,7 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
     avatarEl.style.display = "none";
     showOnly(loginEl);
     showError("เซสชันหมดอายุหรือออกจากระบบจากอุปกรณ์/แท็บอื่น กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+    setLoginIndicator(false);
   }
 
   onAuthChange(function (user) {
