@@ -110,6 +110,33 @@ onAuthChange(async (user) => {
     stopOrdersTab();
     return;
   }
+
+  // BUGFIX (2026-08): หน้าเว็บฝั่งลูกค้า (my-orders/my-account/track-modal) กับหน้าแอดมิน
+  // ใช้ Firebase Auth instance เดียวกัน (js/db.js) — ถ้าลูกค้า login ด้วย LINE ไว้ในเบราว์เซอร์
+  // เครื่องเดียวกันมาก่อน (custom token ที่ Worker เซ็นให้ผ่าน /line-login หรือ /link-line มี
+  // claim `lineUserId` ติดมาด้วยเสมอ ดู cloudflare-worker/src/index.js) แล้วเปิด admin.html
+  // ต่อ Firebase Auth จะยัง "จำ" session ของลูกค้าคนนั้นไว้ (persistent by default) —
+  // onAuthStateChanged ด้านล่างจะยิง user ตัวนี้ทันทีโดยไม่เคยผ่านฟอร์ม login แอดมินเลย เดิมโค้ด
+  // เช็คแค่ "มี user ไหม" (`if (!user)`) เท่านั้น ไม่ได้แยกว่าเป็นบัญชีลูกค้าหรือทีมงาน ผลคือ
+  // เข้าสู่แดชบอร์ดแอดมินไปด้วยสิทธิ์ของลูกค้า LINE ทันทีโดยไม่ต้อง login แอดมินจริง — และเพราะ
+  // firestore.rules (isAdminRole()/isLineCustomerToken()) กันสิทธิ์อ่าน/เขียนของบัญชีลูกค้าไว้แคบมาก
+  // (อ่านได้แค่ของตัวเอง) ทุก listener แบบกว้างของแอดมิน (เช่น listenAllQuoteRequests()
+  // ในแท็บใบเสนอราคา) จะ permission-denied เงียบๆ กลายเป็นข้อมูลไม่ขึ้นในแดชบอร์ดเลย —
+  // แก้โดยเช็ค custom claim `lineUserId` ก่อนเสมอ ถ้าเจอ แปลว่า user นี้คือบัญชีลูกค้า ไม่ใช่
+  // ทีมงาน ต้อง signOut แล้วกลับไปโชว์ฟอร์ม login แอดมินตามปกติแทน
+  let tokenResult = null;
+  try {
+    tokenResult = await user.getIdTokenResult();
+  } catch (err) {
+    console.warn("[admin-page] อ่าน ID token claims ไม่สำเร็จ (ถือว่าไม่ใช่บัญชีลูกค้า LINE ไปก่อน)", err);
+  }
+  if (tokenResult && tokenResult.claims && typeof tokenResult.claims.lineUserId === "string") {
+    await logoutAdmin();
+    loginError.textContent = "บัญชีนี้เป็นบัญชีลูกค้า (เข้าสู่ระบบผ่าน LINE) ไม่ใช่บัญชีทีมงาน กรุณาเข้าสู่ระบบด้วยอีเมล/รหัสผ่านของแอดมิน";
+    loginError.style.display = "block";
+    return;
+  }
+
   gate.style.display = "none";
   app.style.display = "block";
   userEmailEl.textContent = user.email || "";
