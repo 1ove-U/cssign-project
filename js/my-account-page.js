@@ -297,14 +297,21 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   }
 
   // ===========================
-  // เซสชันหลุดจากที่อื่น (2026-08 follow-up) — pattern เดียวกับ js/my-orders-page.js: ถ้า session
-  // ของบัญชี LINE ที่ login ค้างอยู่ในหน้านี้ถูก signOut(auth) จากแท็บอื่นในเบราว์เซอร์เดียวกัน
-  // (เช่น เปิด admin.html ค้างไว้อีกแท็บ แล้ว admin-page.js ตรวจเจอ custom claim lineUserId แล้ว
-  // signOut ให้อัตโนมัติ) หน้านี้จะไม่รู้ตัวเลย — โปรไฟล์/panel ใบเสนอราคายังค้างโชว์อยู่ทั้งที่
-  // session หลุดไปแล้วจริง แก้โดย subscribe onAuthChange() แยกไว้เฝ้าดูตลอดเวลาที่
-  // sessionActive=true (หลัง afterLogin() เรียกไปแล้ว) พากลับไปหน้า "เข้าสู่ระบบด้วย LINE" อย่าง
-  // นุ่มนวลถ้า session หลุด
+  // เซสชันหลุดจากที่อื่น + auth ยังไม่ resolve ตอนหน้าโหลด (2026-08 follow-up รอบ 2) — pattern
+  // เดียวกับ js/my-orders-page.js (ดูคอมเมนต์ยาวที่นั่นสำหรับรายละเอียดเต็ม) สรุปสั้น 2 ปัญหาที่เจอ
+  // จริงหลังปล่อยรอบแรก:
+  // (1) auth.currentUser race ตอนหน้าโหลด — เดิม runLiffFlow(false) เรียกทันทีท้ายไฟล์ ทั้งที่
+  // Firebase ยัง resolve persisted session ไม่เสร็จ (async เสมอ แม้แค่รีเฟรชหน้าธรรมดา) —
+  // hasExistingLineSession()/loginWithLine() แข่งกับ session เดิมที่กำลัง restore พอดี ทำให้ auth
+  // state เปลี่ยนกลางทางไม่แน่นอน กระทบ Firestore listener ของ listenMyQuoteRequests() ได้เหมือนกัน
+  // — แก้โดยรอ event แรกจาก onAuthChange() ก่อนค่อยเริ่ม runLiffFlow(false)
+  // (2) false positive จากรอบก่อนหน้า — เบราว์เซอร์เดียวกันเปิดหลายแท็บพร้อมกัน ทำให้
+  // onAuthStateChanged ยิง event แปลกๆ ชั่วครู่ได้ (เช่น null สั้นๆ) ทั้งที่ session จริงยังปกติดี —
+  // แก้โดยหน่วงเช็คซ้ำ 1.5 วิ (sessionLostTimer) ก่อนค่อยเชื่อว่า session หลุดจริง
   // ===========================
+  var authReady = false;
+  var sessionLostTimer = null;
+
   function handleSessionLost() {
     sessionActive = false;
     currentLineUserId = null;
@@ -324,10 +331,26 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   }
 
   onAuthChange(function (user) {
-    if (!sessionActive) return; // ยังไม่เคย login สำเร็จในหน้านี้ (runLiffFlow() คุม flow เริ่มต้นเองอยู่แล้ว) หรือ logout ไปแล้ว
+    if (!authReady) {
+      // event แรกจาก Firebase = auth state ที่ resolve เสร็จแล้วจริง — เริ่ม flow login จริงตอนนี้
+      // แทนที่จะเรียกทันทีท้ายไฟล์แบบเดิม
+      authReady = true;
+      showOnly(loadingEl);
+      runLiffFlow(false);
+      return;
+    }
+    if (!sessionActive) return; // ยังไม่เคย login สำเร็จในหน้านี้ หรือ logout ไปแล้ว
     var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
-    if (stillLineSession) return;
-    handleSessionLost();
+    if (stillLineSession) {
+      if (sessionLostTimer) { clearTimeout(sessionLostTimer); sessionLostTimer = null; }
+      return;
+    }
+    if (sessionLostTimer) return;
+    sessionLostTimer = setTimeout(function () {
+      sessionLostTimer = null;
+      if (!sessionActive) return;
+      handleSessionLost();
+    }, 1500);
   });
 
   function loginErrorMessage(code) {
@@ -385,6 +408,7 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
     });
   }
 
+  // เดิมเรียก runLiffFlow(false) ตรงนี้ทันที — ย้ายไปเรียกตอน onAuthChange() ยิง event แรกแทน (ดู
+  // คอมเมนต์ที่จุด subscribe ด้านบน) กัน auth.currentUser race ตอนหน้าโหลด/รีเฟรช
   showOnly(loadingEl);
-  runLiffFlow(false);
 })();
