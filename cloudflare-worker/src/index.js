@@ -113,6 +113,16 @@ function json(obj, status, headers) {
   });
 }
 
+// ── channelIdFromLiffId — LIFF ID เต็มรูปแบบคือ "{channelId}-{suffix}" (เช่น
+// "2011108044-Nmgfktx5") แต่ค่า audience (aud) ที่ LINE ใส่ไว้จริงใน ID token คือแค่ส่วน
+// Channel ID ตัวเลขล้วนก่อนขีดเท่านั้น (ดูเอกสาร "Get profile information from ID tokens" —
+// ตัวอย่าง payload: aud: "1234567890") ไม่ใช่ LIFF ID เต็มทั้งสตริง — เดิมโค้ดเอา LIFF_ID
+// เต็มไปเทียบ audience ตรงๆ ทำให้ verify ไม่ผ่านเสมอ (401 invalid_line_token) แก้โดยตัดเอา
+// เฉพาะส่วนก่อนขีดแรกมาใช้เทียบแทน ──
+function channelIdFromLiffId(liffId) {
+  return String(liffId || "").split("-")[0];
+}
+
 // ── verifyLineIdToken — verify LIFF ID token กับ LINE JWKS จริง คืน lineUserId ที่ verify
 // แล้ว (payload.sub) — ใช้ร่วมกันระหว่าง /link-line และ /line-login (ทั้งคู่ verify แบบ
 // เดียวกันเป๊ะ ต่างกันแค่ว่าทำอะไรต่อหลัง verify ผ่าน) throw ถ้า verify ไม่ผ่านหรือไม่มี sub
@@ -120,7 +130,7 @@ function json(obj, status, headers) {
 async function verifyLineIdToken(idToken, liffId) {
   const { payload } = await jwtVerify(idToken, LINE_JWKS, {
     issuer: "https://access.line.me",
-    audience: liffId,
+    audience: channelIdFromLiffId(liffId),
   });
   const lineUserId = payload.sub;
   if (!lineUserId || typeof lineUserId !== "string") {
