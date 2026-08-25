@@ -763,6 +763,7 @@ body.cp-scroll-locked{ overflow:hidden; }
 .cp-order-detail.cp-modal{
   /* ขยายให้กว้างเกือบเต็มจอ เพื่อวางหลายคอลัมน์ให้ครบทุกหมวดพร้อมกันโดยไม่บีบจนอ่านยาก */
   max-width:min(1400px, 96vw);
+  overflow-x:hidden; /* กันไม่ให้เนื้อหาข้างในดันความกว้างของป๊อปอัพจนล้นออกนอกจอ (ดู min-width:0 ด้านล่าง) */
 }
 .cp-order-detail .cp-od-tabs{ display:none; } /* ไม่ต้องสลับแท็บอีกต่อไป — ทุกหมวดแสดงพร้อมกัน */
 .cp-order-detail .cp-od-panel{
@@ -777,6 +778,16 @@ body.cp-scroll-locked{ overflow:hidden; }
     "info    shipping history";
   gap:16px;
   align-items:start;
+  min-width:0; /* บั๊กที่เจอ: grid track ค่าเริ่มต้น min-width:auto จะยึดตาม max-content ของลูก
+                  (เช่น <select> ตัวเลือกยาวๆ) ทำให้คอลัมน์กว้างเกิน 1fr จนทั้งป๊อปอัพล้นขวา/ซ้าย
+                  ต้องเลื่อนดู — ใส่ min-width:0 ทั้งเส้นทาง (grid, panel, row, input) เพื่อให้ทุก
+                  อย่างหดตามพื้นที่จริงแทน */
+}
+.cp-o-grid .cp-od-panel{ min-width:0; }
+.cp-o-grid .cp-modal-row{ min-width:0; }
+.cp-o-grid .cp-modal-row > *{ min-width:0; }
+.cp-o-grid select.cl-input{
+  min-width:0; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;
 }
 .cp-o-panel-info{ grid-area:info; }
 .cp-o-panel-finance{ grid-area:finance; }
@@ -860,7 +871,7 @@ body.cp-scroll-locked{ overflow:hidden; }
 
 /* ── ฟอร์มสร้าง/แก้ไขใบเสนอราคา (P3.0 Phase 3 รอบย่อย 4) — กว้างกว่าโมดัลทั่วไปเพราะมีตาราง
    รายการสินค้าหลายคอลัมน์ ── */
-.ad-q-form-modal.cp-modal{ max-width:1160px; }
+.ad-q-form-modal.cp-modal{ max-width:1160px; overflow-x:hidden; }
 
 /* ── ป๊อปอัพ "สร้าง/แก้ไขใบเสนอราคา" redesign — เห็นทุกหมวดพร้อมกันโดยไม่ต้องสลับแท็บ/เลื่อนอ่าน
    (ตามคำขอ) ใช้เฉพาะโมดัลนี้ (.ad-q-form-modal) ไม่กระทบ .cp-od-tabs/.cp-od-panel ของฟอร์มอื่น ── */
@@ -874,16 +885,26 @@ body.cp-scroll-locked{ overflow:hidden; }
     "items    items";
   gap:16px;
   align-items:start;
+  min-width:0; /* กัน grid track ยึดตาม max-content ของลูก (เช่น select ตัวเลือกยาว/ตาราง
+                  min-width:880px) จนทั้งป๊อปอัพล้นออกนอกจอ ต้องเลื่อนดู — ดูหมายเหตุเดียวกันที่
+                  .cp-o-grid (ป๊อปอัพคำสั่งผลิต) ด้านบน */
 }
+.ad-q-grid .cp-od-panel{ min-width:0; }
+.ad-q-grid .cp-modal-row{ min-width:0; }
+.ad-q-grid .cp-modal-row > *{ min-width:0; }
+.ad-q-grid select.cl-input{ min-width:0; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; }
 .ad-q-panel-customer{ grid-area:customer; }
 .ad-q-panel-summary{ grid-area:summary; }
-.ad-q-panel-items{ grid-area:items; }
+.ad-q-panel-items{ grid-area:items; min-width:0; }
 .ad-q-grid .cp-od-panel{
   background:var(--gray-25, #fafafa); border:1px solid var(--gray-100); border-radius:var(--r-lg);
   padding:14px 16px; gap:10px;
 }
-/* รายการสินค้าอาจยาวได้ไม่จำกัด — ให้เลื่อนเฉพาะตัวตารางนี้แทนทั้งป๊อปอัพ เพื่อให้หมวดอื่นเห็นครบเสมอ */
-.ad-q-panel-items .ad-q-items-wrap{ max-height:38vh; overflow-y:auto; }
+/* รายการสินค้าอาจยาวได้ไม่จำกัด — ให้เลื่อนเฉพาะตัวตารางนี้แทนทั้งป๊อปอัพ เพื่อให้หมวดอื่นเห็นครบเสมอ
+   (.cp-table มี min-width:880px เป็นค่ากลาง เลยต้องยกเลิกในบริบทนี้ด้วย ไม่งั้นตารางจะดันความกว้าง
+   ของป๊อปอัพทั้งก้อนล้นจอในหน้าจอแคบกว่า ~900px ที่ .ad-q-grid ยุบเหลือคอลัมน์เดียว) */
+.ad-q-panel-items .ad-q-items-wrap{ max-height:38vh; overflow-y:auto; overflow-x:auto; }
+.ad-q-panel-items .cp-table{ min-width:0; width:100%; }
 @media (max-width:900px){
   .ad-q-form-modal.cp-modal{ max-width:100%; padding:18px; }
   .ad-q-grid{ grid-template-columns:1fr; grid-template-areas:"customer" "summary" "items"; }
