@@ -126,7 +126,7 @@ describe("js/cart-modal.js — renderCart() ตะกร้าว่าง/ม�
     assert.equal(secondRow.querySelector(".cm-item-price-hint"), null);
   });
 
-  test("รายการที่ไม่มี image: ไม่สร้าง <img> ใช้ div.cm-item-img เปล่าแทน (ไม่ throw)", async () => {
+  test("รายการที่ไม่มี image: ไม่สร้าง <img> แต่ .cm-item-img ยังอยู่พร้อมไอคอน placeholder (.cm-item-img-ph) ไม่ throw", async () => {
     const dom = makeDom("https://example.test/", { getCartItems: () => SAMPLE_ITEMS });
     runCartModalJs(dom);
     dom.window.openCartModal();
@@ -135,19 +135,22 @@ describe("js/cart-modal.js — renderCart() ตะกร้าว่าง/ม�
     const secondRow = document.querySelectorAll(".cm-item")[1];
     assert.equal(secondRow.querySelector("img"), null);
     assert.ok(secondRow.querySelector(".cm-item-img"));
+    assert.ok(secondRow.querySelector(".cm-item-img-ph"), "ต้องมีไอคอน placeholder อยู่เสมอ แม้ไม่มีรูป");
   });
 
-  test("รายการที่มี image: ใช้ <img class=\"cm-item-img real-photo\"> (piggyback js/img-error-fallback.js เดิม ไม่เขียน fallback ใหม่)", async () => {
+  test("รายการที่มี image: <img class=\"real-photo\"> ซ้อนอยู่ใน .cm-item-img (กล่องคงที่ ไม่หายไปทั้งกล่องถ้ารูปโหลดพัง — piggyback js/img-error-fallback.js เดิม)", async () => {
     const dom = makeDom("https://example.test/", { getCartItems: () => SAMPLE_ITEMS });
     runCartModalJs(dom);
     dom.window.openCartModal();
     await nextTick();
     const { document } = dom.window;
     const firstRow = document.querySelectorAll(".cm-item")[0];
-    const img = firstRow.querySelector("img.cm-item-img");
+    const wrap = firstRow.querySelector(".cm-item-img");
+    assert.ok(wrap, "ต้องมีกล่อง .cm-item-img คงที่เสมอ ไม่ว่ารูปจะโหลดสำเร็จหรือไม่");
+    const img = wrap.querySelector("img.real-photo");
     assert.ok(img);
-    assert.ok(img.classList.contains("real-photo"));
     assert.equal(img.getAttribute("src"), SAMPLE_ITEMS[0].image);
+    assert.ok(wrap.querySelector(".cm-item-img-ph"), "ไอคอน placeholder ต้องซ้อนอยู่หลังรูปเสมอ เผื่อรูปโหลดพังแล้ว img ถูกลบออก");
   });
 
   test("ชื่อ/ค่าที่มี HTML พิเศษถูก escape ป้องกัน XSS (ตรวจผ่าน querySelector ไม่ใช่ raw innerHTML)", async () => {
