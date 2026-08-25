@@ -15,7 +15,7 @@ import { loginWithLine, listenMyOrders, linkLineAccount, ORDER_STATUS } from "./
 // เพิ่ม auth (P2.9-B) — เช็ค auth.currentUser ตรงๆ ก่อนเข้า flow liff.login() ทุกครั้ง ถ้ามี
 // session ลูกค้า LINE เดิมค้างอยู่แล้ว (uid ขึ้นต้น "line_") ข้ามไป afterLogin() ได้เลย ไม่ต้อง
 // บังคับ login ซ้ำ (ดูรายละเอียดที่หัวข้อ "P2.9-B" ใน p2.9-account-hub-plan.md)
-import { logoutAdmin, auth } from "./db.js";
+import { logoutAdmin, auth, onAuthChange } from "./db.js";
 
 (function () {
   var loadingEl        = document.getElementById("mo-loading");
@@ -74,6 +74,12 @@ import { logoutAdmin, auth } from "./db.js";
   var liffInstance = null;
 
   var unsubscribeOrders = null;
+
+  // เช็คว่าตอนนี้หน้ากำลังอยู่ใน state "login แล้ว" อยู่หรือเปล่า (afterLogin() เรียกแล้ว แต่ยังไม่
+  // logout) — ใช้กันการ subscribe onAuthChange() ด้านล่างไม่ให้ทำงานซ้อนกับ runLiffFlow() ตอนหน้า
+  // โหลดครั้งแรก (ตอนนั้น sessionActive ยังเป็น false อยู่ event onAuthStateChanged แรกที่ยิงมาพร้อม
+  // subscribe จะถูกข้ามไปเฉยๆ ปล่อยให้ runLiffFlow() คุม flow login เองตามปกติ)
+  var sessionActive = false;
 
   function showOnly(el) {
     [loadingEl, loginEl, ordersLoadingEl, emptyEl, listEl].forEach(function (e) {
@@ -134,6 +140,7 @@ import { logoutAdmin, auth } from "./db.js";
   }
 
   function afterLogin(lineUserId) {
+    sessionActive = true;
     showOnly(ordersLoadingEl);
     showLinkMore(); // login สำเร็จแล้ว โชว์ปุ่ม "เชื่อมออเดอร์เพิ่ม" ไว้เลย ไม่ต้องรอออเดอร์โหลดเสร็จ
     showLogout();   // เช่นเดียวกัน โชว์ปุ่ม "ออกจากระบบ" ทันทีที่ login สำเร็จ (P2.9-A)
@@ -152,6 +159,7 @@ import { logoutAdmin, auth } from "./db.js";
   function handleLogout() {
     if (!logoutBtn || logoutBtn.disabled) return;
     logoutBtn.disabled = true;
+    sessionActive = false; // ตั้งก่อนเรียก logoutAdmin() กันไม่ให้ onAuthChange() ด้านล่างมาซ้อนทำงาน handleSessionLost() อีกรอบ
     if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
     Promise.resolve(logoutAdmin())
       .catch(function (err) {
@@ -176,6 +184,43 @@ import { logoutAdmin, auth } from "./db.js";
   if (logoutBtn) {
     logoutBtn.addEventListener("click", handleLogout);
   }
+
+  // ===========================
+  // เซสชันหลุดจากที่อื่น (2026-08 follow-up) — เดิมถ้า session ของบัญชี LINE ที่ login ค้างอยู่ในหน้า
+  // นี้ถูก signOut(auth) จากแท็บอื่นในเบราว์เซอร์เดียวกัน (เช่น เผลอเปิด admin.html ค้างไว้คนละแท็บ
+  // แล้ว admin-page.js ตรวจเจอ custom claim lineUserId แล้ว signOut ให้อัตโนมัติตาม BUGFIX
+  // 2026-08 ใน js/admin-page.js — signOut(auth) กระทบทุกแท็บของเว็บเดียวกันเพราะใช้ auth instance
+  // เดียวกัน) หน้านี้จะไม่รู้ตัวเลยว่า session หลุดไปแล้ว ปล่อยให้ listener เดิม (listenMyOrders())
+  // ยังพยายามทำงานต่อด้วย auth.currentUser ที่เป็น null ไปแล้ว เกิด error ที่ทำนายไม่ได้กลางทาง —
+  // แก้โดย subscribe onAuthChange() แยกไว้เฝ้าดูตลอดเวลาที่ sessionActive=true (คือหลัง afterLogin()
+  // เรียกไปแล้ว) ถ้าเจอ user เปลี่ยนไปเป็น null หรือกลายเป็นบัญชีที่ไม่ใช่ลูกค้า LINE (ไม่มี "line_"
+  // prefix ที่ uid — เผื่อเคสสลับไปเป็น session แอดมินในแท็บนี้เอง) ระหว่างทาง ให้พากลับไปหน้า
+  // "เข้าสู่ระบบด้วย LINE" อย่างนุ่มนวลแทนที่จะปล่อยให้ค้าง error ไว้ — ไม่ต้อง guard เพิ่มเรื่อง
+  // token refresh เพราะ onAuthStateChanged (ต่างจาก onIdTokenChanged) ยิงเฉพาะตอน user
+  // เปลี่ยน (sign-in/out) จริงๆ เท่านั้น ไม่ยิงซ้ำตอน refresh token เฉยๆ
+  function handleSessionLost() {
+    sessionActive = false;
+    if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
+    try {
+      if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
+        liffInstance.logout();
+      }
+    } catch (err) {
+      console.error("liff logout error (session lost):", err);
+    }
+    listEl.innerHTML = "";
+    hideLinkMore();
+    hideLogout();
+    showOnly(loginEl);
+    showError("เซสชันหมดอายุหรือออกจากระบบจากอุปกรณ์/แท็บอื่น กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+  }
+
+  onAuthChange(function (user) {
+    if (!sessionActive) return; // ยังไม่เคย login สำเร็จในหน้านี้ (runLiffFlow() คุม flow เริ่มต้นเองอยู่แล้ว) หรือ logout ไปแล้ว
+    var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
+    if (stillLineSession) return; // session ลูกค้า LINE เดิมยังอยู่ปกติ ไม่ต้องทำอะไร
+    handleSessionLost();
+  });
 
   function loginErrorMessage(code) {
     if (code === "invalid_line_token") return "ยืนยันตัวตนผ่าน LINE ไม่สำเร็จ กรุณาลองเข้าสู่ระบบใหม่อีกครั้ง";
