@@ -471,6 +471,14 @@ service cloud.firestore {
 
       allow update: if (
                       isAuthenticated()
+                      // BUGFIX (2026-08): จุดนี้ขาด !isLineCustomerToken() ตัวเดียว ต่างจาก
+                      // leads/{leadId} และ quote_requests/{requestId} ด้านบนที่แก้ไปแล้ว —
+                      // ผลคือลูกค้าที่ login ผ่าน LINE (isAuthenticated() == true เพราะ custom
+                      // token ก็นับเป็น login) แก้ order "ใบไหนก็ได้" ในระบบได้ทุก field ที่อยู่
+                      // ใน whitelist ด้านล่างนี้ รวมถึง status — ไม่ใช่แค่ order ของตัวเอง (ต่าง
+                      // จากช่องทางที่ตั้งใจเปิดให้ลูกค้าจริงๆ ด้านล่าง ซึ่งจำกัดแค่ field
+                      // lineUserId เดียวของ order ที่ trackingId ตรงกันเท่านั้น)
+                      && !isLineCustomerToken()
                       && incomingData().keys().hasOnly([
                            'code','customer','phone','email','lineUserId','item','category','product_id','unit_price','qty','status','progress',
                            'dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId',
