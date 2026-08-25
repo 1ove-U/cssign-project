@@ -1615,12 +1615,22 @@
         <input class="cl-input" id="cp-o-email" aria-label="อีเมลลูกค้า (ไม่บังคับ — ใส่แล้วระบบจะส่งอีเมลแจ้งเตือนอัตโนมัติทุกครั้งที่สถานะคำสั่งผลิตเปลี่ยน)" type="email" placeholder="อีเมลลูกค้า (ไม่บังคับ — รับอีเมลแจ้งเตือนเมื่อสถานะเปลี่ยน)">
       </div>
       <div class="cp-modal-row">
-        <input class="cl-input" id="cp-o-line-user-id" aria-label="LINE user ID ลูกค้า (ไม่บังคับ — ใส่แล้วระบบจะส่งข้อความ LINE แจ้งเตือนอัตโนมัติทุกครั้งที่สถานะคำสั่งผลิตเปลี่ยน)" type="text" placeholder="LINE user ID ลูกค้า (ไม่บังคับ — รับ LINE แจ้งเตือนเมื่อสถานะเปลี่ยน)">
+        <input class="cl-input" id="cp-o-line-user-id" list="cp-o-line-user-datalist" aria-label="LINE user ID ลูกค้า (เลือกจากรายชื่อผู้เคยขอใบเสนอราคา หรือพิมพ์เอง — ไม่บังคับ — ใส่แล้วระบบจะส่งข้อความ LINE แจ้งเตือนอัตโนมัติทุกครั้งที่สถานะคำสั่งผลิตเปลี่ยน)" type="text" placeholder="LINE user ID ลูกค้า — พิมพ์ชื่อเพื่อเลือกจากผู้ขอใบเสนอราคา (ไม่บังคับ)" autocomplete="off">
+        <datalist id="cp-o-line-user-datalist"></datalist>
       </div>
       <div class="cp-modal-row">
-        <select class="cl-input" id="cp-o-product" aria-label="สินค้าจากแคตตาล็อก">
-          <option value="">— เลือกสินค้าจากแคตตาล็อก (ไม่บังคับ แต่จำเป็นถ้าต้องการนับยอดขาย) —</option>
-        </select>
+        <!-- select จริงซ่อนไว้ — เป็นแหล่งความจริงเดียวของ "สินค้าที่เลือก" (selectedOptions) ที่
+             js/orders-tab-modal.js อ่าน/เขียนอยู่เดิม (selectedProducts()/applyProductSelection()/
+             submit payload/openOrderModal restore) — ไม่ต้องแก้ logic เหล่านั้นเลย แค่เพิ่ม UI
+             checkbox ด้านล่างมาคลิกแทน "select multiple" เดิมที่ต้องกด Ctrl/Cmd ค้างไว้ ซึ่งไม่ค่อย
+             เป็นมิตรกับพนักงานที่ไม่ถนัด IT — checkbox ทำหน้าที่แค่ toggle .selected ของ option คู่กัน
+             แล้วยิง "change" event ต่อให้ select เดิมเหมือนผู้ใช้คลิกเอง (ดู renderProductChecklist()/
+             syncProductChecklistFromSelect() ใน js/orders-tab-modal.js) -->
+        <select id="cp-o-product" multiple style="display:none;" aria-hidden="true" tabindex="-1"></select>
+        <div class="cp-product-checklist" id="cp-o-product-checklist" role="group" aria-label="สินค้าจากแคตตาล็อก (เลือกได้หลายรายการ — แตะเพื่อเลือก/ยกเลิกทีละรายการ)">
+          <div class="cp-product-checklist-empty">กำลังโหลดรายการสินค้า…</div>
+        </div>
+        <div class="ad-img-label" style="margin-top:2px;font-weight:400;">แตะเพื่อเลือกสินค้าได้หลายรายการ (ไม่บังคับ แต่จำเป็นถ้าต้องการนับยอดขาย)</div>
       </div>
       <div class="cp-modal-row">
         <input class="cl-input" id="cp-o-item" aria-label="ชื่อรายการ / ป้าย" placeholder="ชื่อรายการ / ป้าย" required>
