@@ -178,19 +178,39 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
   }
 
   // ===========================
-  // Session lost elsewhere (2026-08 follow-up) — if the LINE customer session logged in on this
-  // page gets signed out from a different tab in the same browser (e.g. an admin.html tab left
-  // open, which signs out any session carrying a lineUserId claim automatically — see the
-  // BUGFIX 2026-08 note in js/admin-page.js; signOut(auth) affects every tab of the same site
-  // since they share one auth instance), this page previously had no idea the session was gone —
-  // the existing listenMyOrders() subscription kept running against a now-null
-  // auth.currentUser and threw an unpredictable error partway through. Fixed by subscribing to
-  // onAuthChange() separately, watched only while sessionActive=true (i.e. after afterLogin() has
-  // run). If the user changes to null, or to a non-LINE-customer account (uid without the
-  // "line_" prefix — covers switching this same tab to an admin session), reset gently back to
-  // the "Log in with LINE" screen instead of leaving a stuck error on screen. No extra guarding
-  // needed for token refreshes — onAuthStateChanged (unlike onIdTokenChanged) only fires on an
-  // actual user change (sign-in/out), not on a routine token refresh.
+  // Session lost elsewhere + auth not resolved yet on load (2026-08 follow-up, round 2) — two
+  // real bugs found after shipping round 1:
+  //
+  // (1) auth.currentUser race on page load — runLiffFlow(false) used to be called immediately as
+  // soon as the script ran (end of file). At that point auth.currentUser is not guaranteed to be
+  // resolved yet — Firebase always restores a persisted session from IndexedDB asynchronously,
+  // even on a plain page refresh (not just a redirect back from LINE). That made
+  // hasExistingLineSession() return false even though a session actually existed, sending the
+  // flow into calling loginWithLine() again (minting a brand-new custom token) right as the
+  // original session was restoring in the background — the auth state then flipped unpredictably
+  // mid-flight (switching user twice in quick succession). The Firestore listener that
+  // listenMyOrders() had just subscribed ended up with an auth context that didn't match the one
+  // in effect by the time the request reached the backend, surfacing as "Missing or insufficient
+  // permissions" (seen in the console from just refreshing the page). Fixed by waiting for the
+  // first event from onAuthChange() (Firebase guarantees the first callback reflects the fully
+  // resolved state — auth.currentUser is guaranteed to match the user passed to that first
+  // callback) and starting runLiffFlow(false) there instead of calling it immediately at the
+  // bottom of the file like before.
+  //
+  // (2) False positive from round 1 — for the same reason as (1), when several tabs of this same
+  // site are open at once (Firebase syncs auth state across tabs via storage events),
+  // onAuthStateChanged can occasionally fire a spurious transient event (e.g. a brief null) while
+  // another tab is initializing/syncing, even though the real session is still perfectly fine. If
+  // handleSessionLost() reacted to the very first such event, it would kick the user out with an
+  // error message far too eagerly, even when nothing was actually wrong (as seen on
+  // my-account.html). Fixed by debouncing with a 1.5s grace timer (sessionLostTimer) before
+  // treating it as a real session loss — if the auth state settles back into a normal LINE
+  // customer session within that window (or a normal logout already ran via handleLogout()), the
+  // pending handleSessionLost() call is cancelled.
+  // ===========================
+  var authReady = false;
+  var sessionLostTimer = null;
+
   function handleSessionLost() {
     sessionActive = false;
     if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
@@ -209,10 +229,26 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
   }
 
   onAuthChange(function (user) {
-    if (!sessionActive) return; // never logged in on this page yet (runLiffFlow() owns startup), or already logged out
+    if (!authReady) {
+      // The first event from Firebase = the fully resolved auth state (see (1) above) — start
+      // the real login flow now instead of calling it immediately at the bottom of the file.
+      authReady = true;
+      showOnly(loadingEl);
+      runLiffFlow(false);
+      return;
+    }
+    if (!sessionActive) return; // never logged in on this page yet, or already logged out
     var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
-    if (stillLineSession) return; // existing LINE customer session is still fine, nothing to do
-    handleSessionLost();
+    if (stillLineSession) {
+      if (sessionLostTimer) { clearTimeout(sessionLostTimer); sessionLostTimer = null; } // recovered in time, cancel the pending check
+      return;
+    }
+    if (sessionLostTimer) return; // already waiting to confirm, don't stack another timer
+    sessionLostTimer = setTimeout(function () {
+      sessionLostTimer = null;
+      if (!sessionActive) return; // a normal logout already ran while we were waiting
+      handleSessionLost();
+    }, 1500);
   });
 
   function loginErrorMessage(code) {
@@ -391,8 +427,10 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
     });
   }
 
-  // Kick off the flow automatically on page load (checks whether we're already logged in — e.g.
-  // returning from a liff.login() redirect, or a LIFF session already open in this tab).
+  // runLiffFlow(false) used to be called immediately here — moved to fire on the first
+  // onAuthChange() event instead (see the long comment at the subscription above, "Session lost
+  // elsewhere + auth not resolved yet on load") to avoid the auth.currentUser race on page
+  // load/refresh. showOnly(loadingEl) stays here so the loading state shows right away while
+  // waiting for that first event (normally very fast, just avoids a flash of the wrong screen).
   showOnly(loadingEl);
-  runLiffFlow(false);
 })();
