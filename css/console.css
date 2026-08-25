@@ -1002,6 +1002,27 @@ body.cp-scroll-locked{ overflow:hidden; }
 }
 .cp-qc-remove:hover{ border-color:#DC2626; color:#DC2626; }
 
+/* ── รายการสินค้าเลือกได้หลายรายการแบบ checkbox (แทน native <select multiple> เดิมที่ต้องกด
+   Ctrl/Cmd ค้างไว้ ซึ่งพนักงานที่ไม่ถนัด IT มักไม่รู้ — ดู admin.html #cp-o-product-checklist) ── */
+.cp-product-checklist{
+  display:flex; flex-direction:column; gap:0; max-height:190px; overflow-y:auto;
+  border:1.5px solid var(--gray-200); border-radius:var(--r-md); background:#fff;
+}
+.cp-product-checklist-empty{ padding:14px 12px; font-size:12.5px; color:var(--gray-400); text-align:center; }
+.cp-product-check-row{
+  display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer; user-select:none;
+  border-bottom:1px solid var(--gray-100); transition:background .15s var(--ease);
+}
+.cp-product-check-row:last-child{ border-bottom:none; }
+.cp-product-check-row:hover{ background:var(--gray-25); }
+.cp-product-check-row.active{ background:rgba(var(--primary-rgb),0.06); }
+.cp-product-check-row input[type="checkbox"]{
+  width:18px; height:18px; accent-color:var(--primary); cursor:pointer; flex:none; pointer-events:none;
+}
+.cp-product-check-row-name{ flex:1; min-width:0; font-size:13px; font-weight:600; color:var(--secondary); }
+.cp-product-check-row-price{ flex:none; font-size:12px; font-weight:700; color:var(--gray-500); }
+.cp-product-check-row.active .cp-product-check-row-name{ color:var(--primary-dark); }
+
 @media (max-width:768px){
   .cp-order-detail.cp-modal{ max-width:100%; }
   .cp-chip-btn{ min-width:100px; }
