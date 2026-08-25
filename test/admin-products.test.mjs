@@ -1,46 +1,30 @@
-// test/admin-products.test.mjs — รอบที่ 133
+// test/admin-quotations.test.mjs — P3.0 Phase 3 รอบย่อย 3 + 4 + 5
 //
-// ขอบเขต: js/admin-products.js (290 บรรทัด) — แท็บ "สินค้า": กริด/ค้นหา/กรอง/pagination,
-// bulk actions (เปลี่ยนสถานะ/ลบ), popup แกลเลอรีสินค้าแนะนำ (เรียก openProductGalleryPopup()
-// จาก admin-products-gallery.js จริง — ไม่ mock) — คู่กับ js/admin-products-form.js (เทสแยกไว้
-// แล้วรอบ 107) ที่ไฟล์นี้ import openProductModal()/openProductModalClone() กลับมาใช้ตรงๆ (ไม่ mock
-// เช่นกัน เพราะเป็นไฟล์จริงไม่แตะ Firestore ตอน import และมีเทสของตัวเองอยู่แล้ว)
+// ขอบเขต: js/admin-quotations.js — แท็บ "ใบเสนอราคา" (list view + realtime listener + ปุ่มลบ +
+// ปุ่ม "สร้างใหม่" เปิดฟอร์มจริง + ปุ่ม "สร้างจากคำขอ" เปิดโมดัลเลือก quote_request จริง รอบย่อย
+// 5) — pattern เดียวกับ test/admin-leads.test.mjs (realtime listener ผ่าน onSnapshot stub)
+// ผสมกับ test/admin-portfolio.test.mjs (deleteWithUndo flow)
 //
-// ไฟล์นี้ import { reloadAll } from "./admin-page.js" ตรงๆ ที่ระดับบนสุด — "products" อยู่ใน
-// ALLOWED_PARENT_RE ของ test/helpers/admin-page-stub-loader.mjs อยู่แล้วตั้งแต่ก่อนรอบนี้ (ไฟล์อื่น
-// เช่น admin-products-form.js/admin-products-csv.js ที่เคยเทสมาก่อนใช้ "products-form"/
-// "products-csv" ต่างหาก ไม่ชนกับ "products" เปล่าๆ ของไฟล์นี้) — ไม่ต้องแก้ infra เทสไฟล์ไหนเลย
-// ยืนยันด้วยการลอง import ตรงในสภาพแวดล้อมเทสก่อนเขียนเทสตามที่ตกลงไว้ทุกรอบ: ผ่านทันที
+// **collection "quotations"/"quote_requests" ของ onSnapshot() stub**: listenQuotations()
+// (js/db-quotations.js) และ listenAllQuoteRequests() (js/db-quote-requests.js) เรียก
+// onSnapshot(query(collection(db,"..."), ...), ...) — stub ให้ ref.path ตรงตามชื่อ collection
+// (ดู collection() ใน test/helpers/firebase-stub-loader.mjs) — helper
+// triggerQuotationsSnapshot()/triggerQuoteRequestsSnapshot() ท้ายไฟล์นี้ยิง fake snapshot ผ่าน
+// globalThis.__SNAPSHOT_LISTENERS__["quotations"]/["quote_requests"]
 //
-// admin-products-gallery.js (คนละไฟล์ ไม่อยู่ใน ALLOWED_PARENT_RE) ไม่ import "./admin-page.js"
-// เลย (ตรวจ import ครบแล้ว) จึงไม่ต้องแก้ regex เพิ่มจุดนี้
+// startQuotationsListener() มี quotationsStarted (module-private, ไม่มี stop/reset export) —
+// เรียกได้จริงแค่ครั้งเดียวตลอดทั้งไฟล์เทสนี้เหมือน startLeadsListener() ในรอบก่อน — ผูก listener
+// ไว้ใน before() ครั้งเดียว แล้วเรียกซ้ำได้ปลอดภัย (idempotent) ในแต่ละเทสด้านล่าง —
+// startQuoteRequestsListener() ผูกไปพร้อมกัน (เรียกจากภายใน startQuotationsListener() เอง)
 //
-// แพทเทิร์น bulk apply-status/bulk delete อ้างอิงจาก test/admin-blog.test.mjs (รอบ 114) — เหมือน
-// กันทุกจุด (bulk apply-status set disabled=true แบบ synchronous ทันทีตอนคลิกเทสได้, bulk delete
-// ไม่มีจุด synchronous ให้เทส disabled เหมือนกันด้วยเหตุผลเดียวกับรอบ 114/115 คือ deleteDoc()
-// stub resolve เร็วมากจน Promise.all() มักจะ resolve ก่อนมี tick ให้เช็คทัน)
+// ตรวจโค้ดจริงทั้งไฟล์ js/admin-quotations.js ก่อนเขียนเทสนี้ (อ่านครบ) — ไม่พบบั๊ก ไม่มีการแก้โค้ด
+// ผลิตภัณฑ์ไฟล์นี้เลยแม้แต่บรรทัดเดียว (แก้แค่ admin.html เพิ่ม markup + js/admin-page.js ผูกสาย
+// เรียก startQuotationsListener()/switchTab() ตามพรอมต์)
 //
-// จุดต่างจาก admin-blog.js/admin-portfolio.js: ปุ่ม "star" (ติดดาวสินค้าแนะนำ) เป็นแพทเทิร์นใหม่
-// ที่ยังไม่เคยมีไฟล์เทสไหนคลุมมาก่อน — เรียก saveProduct() (updateDoc) ตรงๆ ไม่ผ่าน deleteWithUndo,
-// disable ปุ่มระหว่างทำงาน (synchronous ทันที เทสได้แน่นอนเหมือน bulk apply-status), มี error path
-// ทดสอบได้จริงผ่าน globalThis.__UPDATE_DOC_STUB__ (เพิ่มมาตั้งแต่รอบ 121 สำหรับ admin-products-csv.js
-// — ใช้ซ้ำได้ที่นี่): return { throw: err } จำลอง updateDoc() reject
-//
-// คลิกที่รูปสินค้า "แนะนำ" (featured, data-action="gallery") → เปิด popup จริงจาก
-// admin-products-gallery.js (ไม่ mock) — เทสแค่ยืนยันว่า overlay เปิดพร้อมข้อมูลถูกต้อง ไม่ทดสอบ
-// ตรรกะภายในไฟล์นั้นซ้ำ (มีเทสของตัวเองอยู่แล้วที่ test/admin-products-gallery.test.mjs)
-//
-// คลิกที่ตัวการ์ดเอง (นอกเหนือปุ่ม/checkbox/gallery) → เปิดฟอร์มแก้ไขทันที (ต่างจาก
-// admin-portfolio.js ที่คลิกการ์ดเปิด popup ดูรายละเอียดแทน — พฤติกรรมคนละแบบกันจริง ตรวจโค้ด
-// ยืนยันแล้ว)
-//
-// ตรวจโค้ดจริงทั้งไฟล์ js/admin-products.js + saveProduct()/deleteProduct() ใน js/db-products.js
-// ก่อนเขียนเทสนี้ (อ่านครบ) — ไม่พบบั๊ก จึงเป็นไฟล์เทสล้วนๆ ไม่มีการแก้โค้ดผลิตภัณฑ์เลยแม้แต่บรรทัด
-// เดียว
-//
-// **ไม่มีเทส "ลบไม่สำเร็จ" สำหรับ deleteWithUndo/bulk delete** ด้วยเหตุผลเดียวกับทุกไฟล์ก่อนหน้า:
-// deleteDoc() ใน firebase-stub-loader.mjs ไม่มีช่องทาง __DELETE_DOC_STUB__ ให้สั่ง reject ได้เลย
-// (resolve() เฉยๆ เสมอตามดีไซน์ปัจจุบัน)
+// P3.0 Phase 6 รอบ 10 (badge ใกล้หมดอายุ/หมดอายุแล้ว): แก้โค้ดผลิตภัณฑ์ไฟล์นี้จริงรอบนี้ — เพิ่ม
+// quotationExpiryBadge() (pure function, export ใหม่) + ใช้ต่อท้าย badge สถานะใน renderQuotations()
+// + เจอบั๊กเดิม colspan="5" ผิด (ตารางจริงมี 6 คอลัมน์) ระหว่างแก้ไฟล์นี้พอดี เลยแก้ไปด้วย (ดู
+// REFACTOR-PROGRESS.md หัวข้อ "P3.0 Phase 6 รอบ 10")
 
 import { test, describe, before, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
@@ -55,60 +39,57 @@ const ADMIN_BODY_NO_SCRIPTS = ADMIN_HTML
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, "");
 
 let document;
-let mod;                 // admin-products.js exports
-let setAllProducts, setAllCategories, pendingDeleteProductIds;
-let fillCategorySelects;
+let mod; // admin-quotations.js exports
 
-function resetFirebaseCalls() {
-  globalThis.__ADD_DOC_CALLS__ = [];
-  globalThis.__UPDATE_DOC_CALLS__ = [];
-  globalThis.__DELETE_DOC_CALLS__ = [];
-  globalThis.__UPDATE_DOC_STUB__ = undefined;
+// ── สอดแนม Blob / URL.createObjectURL / URL.revokeObjectURL สำหรับเทสปุ่ม "ส่งออก CSV" (P3.0
+// Phase 6 รอบ 12) — ของจริงจาก Node global เหมือน test/orders-tab-export.test.mjs ทุกประการ
+let lastBlobParts, lastBlobOptions, lastBlobRef;
+let createObjectURLCalls, revokeObjectURLCalls;
+const OriginalBlob = globalThis.Blob;
+const originalCreateObjectURL = globalThis.URL.createObjectURL.bind(globalThis.URL);
+const originalRevokeObjectURL = globalThis.URL.revokeObjectURL.bind(globalThis.URL);
+
+function triggerQuotationsSnapshot(quotations) {
+  const cb = globalThis.__SNAPSHOT_LISTENERS__ && globalThis.__SNAPSHOT_LISTENERS__["quotations"];
+  if (typeof cb !== "function") throw new Error("quotations snapshot listener ยังไม่ได้ลงทะเบียน (เรียก startQuotationsListener() ก่อนหรือยัง?)");
+  cb({ docs: quotations.map(q => ({ id: q.id, data: () => { const { id, ...rest } = q; return rest; } })) });
 }
 
-function resetSpies() {
-  globalThis.__AD_PAGE_STUB_RELOAD_ALL_CALLS__ = [];
-  globalThis.__AD_PAGE_STUB_RELOAD_ALL__ = (...args) => {
-    globalThis.__AD_PAGE_STUB_RELOAD_ALL_CALLS__.push(args);
+// quote_requests: listenAllQuoteRequests() (js/db-quote-requests.js) เรียก onSnapshot ผ่าน
+// collection(db, "quote_requests") — stub ให้ ref.path === "quote_requests" (ดู collection()
+// ใน firebase-stub-loader.mjs) — เริ่มผูกไปพร้อมกันตอน startQuotationsListener() (เรียก
+// startQuoteRequestsListener() ภายในตัวเอง)
+function triggerQuoteRequestsSnapshot(requests) {
+  const cb = globalThis.__SNAPSHOT_LISTENERS__ && globalThis.__SNAPSHOT_LISTENERS__["quote_requests"];
+  if (typeof cb !== "function") throw new Error("quote_requests snapshot listener ยังไม่ได้ลงทะเบียน");
+  cb({ docs: requests.map(r => ({ id: r.id, data: () => { const { id, ...rest } = r; return rest; } })) });
+}
+
+function makeQuoteRequest(overrides) {
+  return {
+    id: "qr-1", billingName: "บริษัท ลูกค้า จำกัด", contactPerson: "คุณลูกค้า",
+    items: [{ name: "ป้ายไฟ LED", qty: 2 }],
+    createdAt: { toMillis: () => Date.now() },
+    ...overrides
   };
 }
 
-const SAMPLE_CATEGORIES = [
-  { id: "cat-a", name: "ป้ายความปลอดภัย" },
-  { id: "cat-b", name: "ป้ายจราจร" },
-];
+function qrRows() { return Array.from(document.getElementById("ad-qr-list-body").querySelectorAll("tr[data-id]")); }
 
-const SAMPLE_PRODUCTS = [
-  {
-    id: "prod-1", name: "ป้ายทางหนีไฟ", code: "SG-001", cat_id: "cat-a",
-    status: "active", price: 250, unit: "แผ่น", featured: true,
-    images: ["https://res.cloudinary.com/x/a.jpg"],
-  },
-  {
-    id: "prod-2", name: "ป้ายจอดรถ", code: "", cat_id: "cat-b",
-    status: "hidden", price: 0, unit: "", featured: false, images: [],
-  },
-];
-
-function overlay() { return document.getElementById("ad-p-overlay"); }
-function galleryOverlay() { return document.getElementById("ad-p-view-overlay"); }
 function field(id) { return document.getElementById(id); }
-function grid() { return document.getElementById("ad-p-grid"); }
-function cards() { return Array.from(grid().querySelectorAll(".ad-card[data-id]")); }
-function card(id) { return document.querySelector(`.ad-card[data-id="${id}"]`); }
-function cardCheckbox(id) { return document.querySelector(`.ad-card-check[data-id="${id}"]`); }
-function pagBox() { return document.getElementById("ad-p-pagination"); }
-function pagInfo() { return document.getElementById("ad-p-pagination-info"); }
-function pagBtns() { return document.getElementById("ad-p-pagination-btns"); }
-function bulkBar() { return document.getElementById("ad-p-bulk-bar"); }
-function bulkCount() { return document.getElementById("ad-p-bulk-count"); }
+function rows() { return Array.from(document.getElementById("ad-q-table-body").querySelectorAll("tr[data-id]")); }
 
-function selectCards(ids) {
-  ids.forEach(id => {
-    const cb = cardCheckbox(id);
-    cb.checked = true;
-    cb.dispatchEvent(new Event("change", { bubbles: true }));
-  });
+function makeQuotation(overrides) {
+  return {
+    id: "q-1", quoteNo: "QT2026-0001", billingName: "บริษัท ทดสอบ จำกัด",
+    contactPerson: "คุณสมชาย", grandTotal: 10700, status: "draft",
+    createdAt: { toMillis: () => Date.now() },
+    ...overrides
+  };
+}
+
+function resetFirebaseCalls() {
+  globalThis.__DELETE_DOC_CALLS__ = [];
 }
 
 function flushMicrotasks() {
@@ -116,416 +97,293 @@ function flushMicrotasks() {
 }
 
 before(async () => {
-  const dom = new JSDOM(`<!doctype html><html><body>${ADMIN_BODY_NO_SCRIPTS}</body></html>`);
+  const dom = new JSDOM(`<!doctype html><html><body>${ADMIN_BODY_NO_SCRIPTS}</body></html>`, {
+    url: "https://example.test/"
+  });
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
   Object.defineProperty(globalThis, "navigator", { value: dom.window.navigator, configurable: true });
   globalThis.Event = dom.window.Event;
   document = dom.window.document;
 
-  mod = await import("../js/admin-products.js");
-  ({ setAllProducts, setAllCategories, pendingDeleteProductIds } = await import("../js/admin-state.js"));
-  ({ fillCategorySelects } = await import("../js/admin-utils.js"));
+  // stub <a>.click() กัน jsdom navigation-not-implemented log — ปุ่ม "ส่งออก CSV" (P3.0 Phase 6
+  // รอบ 12) ใช้ pattern เดียวกับ js/orders-tab-export.js (ดู test/orders-tab-export.test.mjs
+  // หมายเหตุหัวไฟล์เรื่อง Blob/URL.createObjectURL/window jsdom ไม่ implement)
+  let anchorClickCount = 0;
+  dom.window.HTMLAnchorElement.prototype.click = function () { anchorClickCount++; this.__clicked = anchorClickCount; };
+  globalThis.__lastAnchor = null;
+  const originalCreateElement = dom.window.document.createElement.bind(dom.window.document);
+  dom.window.document.createElement = function (tag) {
+    const el = originalCreateElement(tag);
+    if (String(tag).toLowerCase() === "a") globalThis.__lastAnchor = el;
+    return el;
+  };
+
+  mod = await import("../js/admin-quotations.js");
+
+  // startQuotationsListener() ผูก listener ครั้งเดียวตลอดไฟล์เทสนี้ (module-private state ไม่มี
+  // reset ให้ — เหมือน startLeadsListener() ในรอบก่อน)
+  globalThis.__SNAPSHOT_LISTENERS__ = {};
+  mod.startQuotationsListener();
 });
 
 beforeEach(() => {
   resetFirebaseCalls();
-  resetSpies();
-  pendingDeleteProductIds.clear();
-  field("ad-p-search").value = "";
-  field("ad-p-filter-cat").value = "";
-  document.getElementById("ad-p-bulk-clear").click(); // เคลียร์ selectedProductIds ที่ไม่มี setter export
-  setAllCategories(SAMPLE_CATEGORIES.map(c => ({ ...c })));
-  fillCategorySelects();
-  setAllProducts(SAMPLE_PRODUCTS.map(p => ({ ...p, images: [...p.images] })));
+  mod.pendingDeleteQuotationIds.clear();
   const confirmOverlay = document.querySelector(".cp-confirm-overlay");
   if (confirmOverlay && confirmOverlay.style.display === "flex") {
     confirmOverlay.querySelector("#cp-confirm-cancel").click();
   }
-  if (overlay().style.display === "flex") overlay().style.display = "none";
-  if (galleryOverlay().style.display === "flex") galleryOverlay().style.display = "none";
   document.querySelectorAll(".cp-toast-wrap .cp-toast").forEach(el => el.remove());
+
+  // ติดตั้งสอดแนม Blob/URL ใหม่ทุกเทส (เก็บค่าล่าสุดเท่านั้น) — ใช้กับเทสปุ่ม "ส่งออก CSV" ด้านล่าง
+  lastBlobParts = lastBlobOptions = lastBlobRef = null;
+  createObjectURLCalls = [];
+  revokeObjectURLCalls = [];
+  class SpyBlob extends OriginalBlob {
+    constructor(parts, opts) {
+      super(parts, opts);
+      lastBlobParts = parts;
+      lastBlobOptions = opts;
+      lastBlobRef = this;
+    }
+  }
+  globalThis.Blob = SpyBlob;
+  globalThis.URL.createObjectURL = (blob) => { createObjectURLCalls.push(blob); return originalCreateObjectURL(blob); };
+  globalThis.URL.revokeObjectURL = (url) => { revokeObjectURLCalls.push(url); return originalRevokeObjectURL(url); };
+  globalThis.__lastAnchor = null;
 });
 
-describe("renderProducts() — empty states", () => {
-  test("allProducts ว่างเปล่าทั้งหมด → empty-state ไม่มีตัวกรอง (มีปุ่ม CTA เพิ่มรายการแรก)", () => {
-    setAllProducts([]);
-    mod.renderProducts();
-    assert.match(grid().innerHTML, /ยังไม่มีสินค้าในแคตตาล็อก/);
-    assert.equal(cards().length, 0);
-    assert.equal(pagBox().style.display, "none");
-    assert.ok(field("ad-p-empty-add"));
+describe("startQuotationsListener() — realtime listener", () => {
+  test("ผูก listener ของ collection 'quotations' ให้พร้อมรับ realtime snapshot (ผูกไว้แล้วตั้งแต่ before())", () => {
+    assert.equal(typeof globalThis.__SNAPSHOT_LISTENERS__["quotations"], "function");
   });
 
-  test("มีตัวกรอง (ค้นหา) แล้วไม่เจอผลลัพธ์ → ข้อความคนละแบบ ไม่มีปุ่ม CTA", () => {
-    field("ad-p-search").value = "ไม่มีทางเจอ";
-    mod.renderProducts();
-    assert.match(grid().innerHTML, /ไม่พบสินค้าที่ตรงกับตัวกรอง/);
-    assert.doesNotMatch(grid().innerHTML, /ยังไม่มีสินค้าในแคตตาล็อก/);
-    assert.equal(field("ad-p-empty-add"), null);
+  test("เรียกซ้ำ (idempotent): ไม่ผูก listener ใหม่ซ้ำถ้าเริ่มไปแล้ว — ข้อมูลเดิมยังอยู่", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1" })]);
+    mod.startQuotationsListener(); // เรียกซ้ำ — quotationsStarted=true อยู่แล้ว ต้อง return ทันที
+    assert.equal(mod.allQuotations.length, 1);
   });
 
-  test("มีตัวกรอง (หมวดหมู่) แล้วไม่เจอผลลัพธ์ → ข้อความแบบมีตัวกรองเช่นกัน", () => {
-    setAllProducts([{ id: "x", name: "x", cat_id: "cat-a" }]);
-    field("ad-p-filter-cat").value = "cat-b";
-    mod.renderProducts();
-    assert.match(grid().innerHTML, /ไม่พบสินค้าที่ตรงกับตัวกรอง/);
-  });
-
-  test("empty-state ปุ่ม 'เพิ่มรายการแรก' → คลิกแล้วเปิดโมดัลโหมดเพิ่ม", () => {
-    setAllProducts([]);
-    mod.renderProducts();
-    field("ad-p-empty-add").click();
-    assert.equal(overlay().style.display, "flex");
-    assert.equal(field("ad-p-id").value, "");
-  });
-
-  test("ทุกสินค้าถูก mark pending-delete หมด → empty-state แบบมีตัวกรอง (filteredRows ว่างทั้งที่ allProducts มีของ)", () => {
-    pendingDeleteProductIds.add("prod-1");
-    pendingDeleteProductIds.add("prod-2");
-    mod.renderProducts();
-    assert.equal(cards().length, 0);
-    assert.equal(pagBox().style.display, "none");
+  test("snapshot ยิงข้อมูลใหม่ → allQuotations อัปเดต + renderQuotations() ถูกเรียกจริง", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1" }), makeQuotation({ id: "q-2" })]);
+    assert.equal(mod.allQuotations.length, 2);
+    assert.equal(rows().length, 2);
   });
 });
 
-describe("renderProducts() — render ปกติ", () => {
-  test("แสดงครบทุกการ์ด ชื่อ/รหัส/หมวดหมู่/ราคาถูกต้อง", () => {
-    mod.renderProducts();
-    const cs = cards();
-    assert.equal(cs.length, 2);
-    const c1 = card("prod-1");
-    assert.match(c1.querySelector(".ad-card-name").textContent, /ป้ายทางหนีไฟ/);
-    assert.match(c1.querySelector(".ad-card-code").textContent, /SG-001/);
-    assert.match(c1.querySelector(".ad-card-cat").textContent, /ป้ายความปลอดภัย/);
-    assert.match(c1.querySelector(".ad-card-price").textContent, /250/);
+describe("renderQuotations() — empty states", () => {
+  test("allQuotations ว่างเปล่าทั้งหมด → ข้อความ 'ยังไม่มีใบเสนอราคา', ไม่มีแถว", () => {
+    triggerQuotationsSnapshot([]);
+    assert.match(field("ad-q-table-body").innerHTML, /ยังไม่มีใบเสนอราคา/);
+    assert.equal(rows().length, 0);
   });
 
-  test("ไม่มีรหัสสินค้า → ไม่มี .ad-card-code เลย", () => {
-    mod.renderProducts();
-    assert.equal(card("prod-2").querySelector(".ad-card-code"), null);
-  });
-
-  test("price = 0/falsy → แสดง 'สอบถามราคา' แทน", () => {
-    mod.renderProducts();
-    assert.match(card("prod-2").querySelector(".ad-card-price").textContent, /สอบถามราคา/);
-  });
-
-  test("มี price + unit → แสดงราคาปัดรูปแบบไทยพร้อมหน่วย", () => {
-    setAllProducts([{ id: "p-u", name: "มีหน่วย", price: 1500, unit: "ชิ้น" }]);
-    mod.renderProducts();
-    assert.match(card("p-u").querySelector(".ad-card-price").textContent, /1,500 \/ ชิ้น/);
-  });
-
-  test("status='hidden' → มี class ad-card--hidden + badge 'ซ่อนอยู่' บนรูป", () => {
-    mod.renderProducts();
-    const hidden = card("prod-2");
-    assert.equal(hidden.classList.contains("ad-card--hidden"), true);
-    assert.ok(hidden.querySelector(".ad-card-status"));
-    assert.match(hidden.querySelector(".ad-card-status").textContent, /ซ่อนอยู่/);
-    const active = card("prod-1");
-    assert.equal(active.classList.contains("ad-card--hidden"), false);
-    assert.equal(active.querySelector(".ad-card-status"), null);
-  });
-
-  test("มีรูป → ใช้ <img class=port-photo> ไม่มีคลาส no-photo, ไม่มีรูป → svg placeholder + class no-photo", () => {
-    mod.renderProducts();
-    const withImg = card("prod-1");
-    const noImg = card("prod-2");
-    assert.ok(withImg.querySelector(".port-visual img.port-photo"));
-    assert.equal(withImg.querySelector(".port-visual").classList.contains("no-photo"), false);
-    assert.ok(noImg.querySelector(".port-visual svg"));
-    assert.equal(noImg.querySelector(".port-visual").classList.contains("no-photo"), true);
-  });
-
-  test("featured=true → ธง 'แนะนำ' บนรูป + ปุ่มดาวติด is-starred, featured=false → ไม่มีทั้งคู่", () => {
-    mod.renderProducts();
-    const featured = card("prod-1");
-    const notFeatured = card("prod-2");
-    assert.ok(featured.querySelector(".ad-card-feat-flag"));
-    assert.equal(featured.querySelector('[data-action="star"]').classList.contains("is-starred"), true);
-    assert.equal(notFeatured.querySelector(".ad-card-feat-flag"), null);
-    assert.equal(notFeatured.querySelector('[data-action="star"]').classList.contains("is-starred"), false);
-  });
-
-  test("รูปมากกว่า 1 รูป → badge จำนวนรูปที่เหลือ (+N รูป), รูปเดียว → ไม่มี badge", () => {
-    setAllProducts([
-      { id: "p-multi", name: "หลายรูป", images: ["a.jpg", "b.jpg", "c.jpg"] },
-      { id: "p-1img", name: "รูปเดียว", images: ["a.jpg"] },
-    ]);
-    mod.renderProducts();
-    assert.match(card("p-multi").querySelector(".ad-card-imgcount").textContent, /\+2 รูป/);
-    assert.equal(card("p-1img").querySelector(".ad-card-imgcount"), null);
-  });
-
-  test("ชื่อว่าง/undefined → ใช้ค่าดีฟอลต์ 'ไม่มีชื่อ' ไม่พัง", () => {
-    setAllProducts([{ id: "p-noname" }]);
-    mod.renderProducts();
-    assert.match(card("p-noname").querySelector(".ad-card-name").textContent, /ไม่มีชื่อ/);
-  });
-
-  test("escape HTML กัน XSS ในชื่อ/รหัส", () => {
-    setAllProducts([{ id: "p-xss", name: '<img src=x onerror=alert(1)>', code: '<b>x</b>' }]);
-    mod.renderProducts();
-    const c = card("p-xss");
-    assert.doesNotMatch(c.innerHTML, /<img src=x onerror/);
-    assert.match(c.querySelector(".ad-card-name").innerHTML, /&lt;img/);
-    assert.match(c.querySelector(".ad-card-code").innerHTML, /&lt;b&gt;/);
-  });
-
-  test("ตัวกรองค้นหา: ชื่อหรือรหัสสินค้า (case-insensitive, trim)", () => {
-    field("ad-p-search").value = "  sg-001  ";
-    mod.renderProducts();
-    assert.equal(cards().length, 1);
-    assert.ok(card("prod-1"));
-  });
-
-  test("ตัวกรองหมวดหมู่", () => {
-    field("ad-p-filter-cat").value = "cat-b";
-    mod.renderProducts();
-    assert.equal(cards().length, 1);
-    assert.ok(card("prod-2"));
-  });
-
-  test("กรอง pending-delete ออกจากรายการที่แสดง", () => {
-    pendingDeleteProductIds.add("prod-1");
-    mod.renderProducts();
-    assert.equal(cards().length, 1);
-    assert.equal(card("prod-1"), null);
-  });
-
-  test("checkbox ที่เลือกไว้คงอยู่ข้าม re-render", () => {
-    mod.renderProducts();
-    selectCards(["prod-1"]);
-    mod.renderProducts();
-    assert.equal(cardCheckbox("prod-1").checked, true);
+  test("มีใบเสนอราคาอยู่แต่ทุกแถวถูก mark pending-delete หมด → ข้อความ 'ไม่พบใบเสนอราคา' (คนละข้อความ)", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1" })]);
+    mod.pendingDeleteQuotationIds.add("q-1");
+    mod.renderQuotations();
+    assert.match(field("ad-q-table-body").innerHTML, /ไม่พบใบเสนอราคา/);
+    assert.equal(rows().length, 0);
   });
 });
 
-describe("renderProductsPagination()", () => {
-  test("totalRows === 0 → ซ่อนกล่อง pagination", () => {
-    setAllProducts([]);
-    mod.renderProducts();
-    assert.equal(pagBox().style.display, "none");
+describe("renderQuotations() — เนื้อหาแถวปกติ", () => {
+  test("วันที่/เลขที่เอกสาร/ลูกค้า (billingName)/ยอดสุทธิ/badge สถานะ ถูกต้อง", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", billingName: "บริษัท เอ จำกัด", quoteNo: "QT2026-0007", grandTotal: 21400, status: "sent" })]);
+    const row = rows()[0];
+    assert.match(row.innerHTML, /QT2026-0007/);
+    assert.match(row.innerHTML, /บริษัท เอ จำกัด/);
+    assert.match(row.innerHTML, /฿21,400/);
+    const badge = row.querySelector(".cp-status-badge");
+    assert.equal(badge.dataset.status, "sent");
+    assert.equal(badge.textContent, "ส่งลูกค้าแล้ว");
   });
 
-  test("totalRows > 0 (แม้แค่หน้าเดียว) → แสดงกล่อง pagination ทันที", () => {
-    mod.renderProducts();
-    assert.equal(pagBox().style.display, "flex");
+  test("ไม่มี billingName → fallback เป็น contactPerson", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", billingName: "", contactPerson: "คุณสมหญิง" })]);
+    assert.match(rows()[0].innerHTML, /คุณสมหญิง/);
   });
 
-  test("14 รายการ (page size 12) → ได้ 2 หน้าพอดี, ข้อความ/ปุ่มถูกต้อง", () => {
-    const many = Array.from({ length: 14 }, (_, i) => ({ id: `m-${i}`, name: `สินค้า ${i}` }));
-    setAllProducts(many);
-    mod.renderProducts();
-    assert.match(pagInfo().textContent, /แสดง 1–12 จาก 14 รายการ/);
-    const pageBtns = Array.from(pagBtns().querySelectorAll(".cp-page-btn"));
-    const prevBtn = pageBtns.find(b => b.dataset.page === "prev");
-    const nextBtn = pageBtns.find(b => b.dataset.page === "next");
-    assert.equal(prevBtn.disabled, true);
-    assert.equal(nextBtn.disabled, false);
-
-    nextBtn.click();
-    assert.match(pagInfo().textContent, /แสดง 13–14 จาก 14 รายการ/);
-    assert.equal(cards().length, 2);
-
-    const prevBtn2 = Array.from(pagBtns().querySelectorAll(".cp-page-btn")).find(b => b.dataset.page === "prev");
-    prevBtn2.click();
-    assert.match(pagInfo().textContent, /แสดง 1–12 จาก 14 รายการ/);
+  test("ไม่มี billingName และ contactPerson เลย → แสดง —", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", billingName: "", contactPerson: "" })]);
+    // คอลัมน์ลูกค้า (คอลัมน์ที่ 3) ต้องมี "—"
+    const cells = rows()[0].querySelectorAll("td");
+    assert.equal(cells[2].textContent.trim(), "—");
   });
 
-  test("คลิกเลขหน้าตรงๆ เปลี่ยนหน้าได้", () => {
-    const many = Array.from({ length: 14 }, (_, i) => ({ id: `m-${i}`, name: `สินค้า ${i}` }));
-    setAllProducts(many);
-    mod.renderProducts();
-    const page2Btn = Array.from(pagBtns().querySelectorAll(".cp-page-btn")).find(b => b.textContent === "2");
-    page2Btn.click();
-    assert.match(pagInfo().textContent, /แสดง 13–14 จาก 14 รายการ/);
-  });
-});
-
-describe("pSearch/pFilterCat — รีเซ็ตหน้าเป็น 1 ก่อน render ใหม่เสมอ", () => {
-  test("พิมพ์ค้นหาหลังไปหน้า 2 แล้ว → กลับมาหน้า 1", () => {
-    const many = Array.from({ length: 14 }, (_, i) => ({ id: `m-${i}`, name: `สินค้า ${i}` }));
-    setAllProducts(many);
-    mod.renderProducts();
-    Array.from(pagBtns().querySelectorAll(".cp-page-btn")).find(b => b.textContent === "2").click();
-    assert.match(pagInfo().textContent, /แสดง 13–14/);
-
-    field("ad-p-search").value = "สินค้า";
-    field("ad-p-search").dispatchEvent(new Event("input", { bubbles: true }));
-    assert.match(pagInfo().textContent, /แสดง 1–12/);
+  test("ไม่มี quoteNo → คอลัมน์เลขที่เอกสารแสดง —", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "" })]);
+    const cells = rows()[0].querySelectorAll("td");
+    assert.equal(cells[1].textContent.trim(), "—");
   });
 
-  test("เปลี่ยนตัวกรองหมวดหมู่หลังไปหน้า 2 แล้ว → กลับมาหน้า 1", () => {
-    const many = Array.from({ length: 14 }, (_, i) => ({ id: `m-${i}`, name: `สินค้า ${i}`, cat_id: "cat-a" }));
-    setAllProducts(many);
-    mod.renderProducts();
-    Array.from(pagBtns().querySelectorAll(".cp-page-btn")).find(b => b.textContent === "2").click();
-    assert.match(pagInfo().textContent, /แสดง 13–14/);
+  test("สถานะที่ไม่รู้จัก (ไม่อยู่ใน QUOTATION_STATUS_LABEL) → ใช้ค่า status ดิบเป็น label", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", status: "weird_status" })]);
+    const badge = rows()[0].querySelector(".cp-status-badge");
+    assert.equal(badge.textContent, "weird_status");
+  });
 
-    field("ad-p-filter-cat").value = "cat-a";
-    field("ad-p-filter-cat").dispatchEvent(new Event("change", { bubbles: true }));
-    assert.match(pagInfo().textContent, /แสดง 1–12/);
+  test("ไม่มี status เลย → default เป็น 'draft' (ร่าง)", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", status: undefined })]);
+    const badge = rows()[0].querySelector(".cp-status-badge");
+    assert.equal(badge.dataset.status, "draft");
+    assert.equal(badge.textContent, "ร่าง");
+  });
+
+  test("escape HTML กัน XSS ในชื่อลูกค้า/เลขที่เอกสาร", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", billingName: '<img src=x onerror=alert(1)>', quoteNo: "<b>QT</b>" })]);
+    const html = rows()[0].innerHTML;
+    assert.ok(!html.includes("<img"), "ต้องไม่มี <img> ดิบๆ หลุดเข้าไปใน DOM");
+    assert.ok(!html.includes("<b>QT</b>"), "ต้องไม่มี <b> ดิบๆ หลุดเข้าไปใน DOM");
+    assert.match(html, /&lt;img/);
   });
 });
 
-describe("pGrid event delegation — ปุ่มแก้ไข/ทำซ้ำ/คลิกการ์ด", () => {
-  beforeEach(() => { mod.renderProducts(); });
-
-  test("คลิกที่ grid เปล่าๆ (ไม่ตรง .ad-card เลย) → ไม่พัง", () => {
-    assert.doesNotThrow(() => {
-      grid().dispatchEvent(new Event("click", { bubbles: true }));
-    });
-  });
-
-  test("ปุ่มแก้ไข → เปิดโมดัลแก้ไขพร้อมข้อมูลเดิม", () => {
-    card("prod-1").querySelector('[data-action="edit"]').dispatchEvent(new Event("click", { bubbles: true }));
-    assert.equal(overlay().style.display, "flex");
-    assert.equal(field("ad-p-id").value, "prod-1");
-    assert.equal(field("ad-p-name").value, "ป้ายทางหนีไฟ");
-  });
-
-  test("ปุ่มทำซ้ำ → เปิดโมดัลโหมดเพิ่มพร้อมข้อมูลเดิม (ไม่มี id)", () => {
-    card("prod-1").querySelector('[data-action="clone"]').dispatchEvent(new Event("click", { bubbles: true }));
-    assert.equal(overlay().style.display, "flex");
-    assert.equal(field("ad-p-id").value, "");
-    assert.equal(field("ad-p-name").value, "ป้ายทางหนีไฟ");
-  });
-
-  test("คลิก checkbox ไม่เปิดโมดัลใดๆ", () => {
-    cardCheckbox("prod-1").dispatchEvent(new Event("click", { bubbles: true }));
-    assert.equal(overlay().style.display, "none");
-  });
-
-  test("คลิกที่ตัวการ์ดเอง (ไม่ใช่ปุ่ม/checkbox/gallery) → เปิดฟอร์มแก้ไขทันที", () => {
-    // prod-2 ไม่มีรูปเลย จึงไม่มี data-action="gallery" ผูกกับพื้นที่รูป — คลิกที่การ์ดต้องเปิดแก้ไขเสมอ
-    card("prod-2").dispatchEvent(new Event("click", { bubbles: true }));
-    assert.equal(overlay().style.display, "flex");
-    assert.equal(field("ad-p-id").value, "prod-2");
-  });
-
-  test("คลิกที่ id ไม่พบใน allProducts (การ์ดเก่าค้างใน DOM) → ไม่พัง ไม่เปิดอะไร", () => {
-    // จำลองโดยลบสินค้าออกจาก allProducts แต่ยังไม่ re-render กริด
-    setAllProducts([]);
-    assert.doesNotThrow(() => {
-      card("prod-1").dispatchEvent(new Event("click", { bubbles: true }));
-    });
-    assert.equal(overlay().style.display, "none");
+describe("QUOTATION_STATUS_LABEL — ป้ายภาษาไทยครบทุกสถานะที่ db-quotations.js รองรับ", () => {
+  test("มีครบ 6 สถานะ: draft/sent/accepted/rejected/expired/changes_requested (เพิ่ม changes_requested ใน P3.0 Phase 4 รอบ 4)", () => {
+    assert.deepEqual(Object.keys(mod.QUOTATION_STATUS_LABEL).sort(), ["accepted", "changes_requested", "draft", "expired", "rejected", "sent"]);
   });
 });
 
-describe("pGrid event delegation — popup แกลเลอรีสินค้าแนะนำ (data-action=gallery)", () => {
-  beforeEach(() => { mod.renderProducts(); });
+// quotationExpiryBadge() — pure function, P3.0 Phase 6 (badge ใกล้หมดอายุ/หมดอายุแล้ว) — inject
+// `now` ทุกเทสกันเทสพังตอนวันเปลี่ยน (pattern เดียวกับ monthBuckets() ใน test/stats-trends.test.mjs)
+describe("quotationExpiryBadge() — badge ใกล้หมดอายุ/หมดอายุแล้ว (P3.0 Phase 6)", () => {
+  const TODAY = new Date(2026, 7, 21); // 21 ส.ค. 2026 (เดือนใน Date คือ 0-based)
 
-  test("คลิกที่รูปสินค้า featured (มีรูป) → เปิด popup แกลเลอรีจริง พร้อมข้อมูลถูกต้อง", () => {
-    card("prod-1").querySelector('.port-visual[data-action="gallery"]')
-      .dispatchEvent(new Event("click", { bubbles: true }));
-    assert.equal(galleryOverlay().style.display, "flex");
-    assert.equal(field("ad-p-view-title").textContent, "ป้ายทางหนีไฟ");
-    assert.equal(overlay().style.display, "none", "ไม่ใช่ฟอร์มแก้ไข — ต้องเป็น popup แกลเลอรีเท่านั้น");
+  test("ไม่มี validUntil เลย (สตริงว่าง) → null ไม่มี badge", () => {
+    assert.equal(mod.quotationExpiryBadge("", "sent", TODAY), null);
   });
 
-  test("สินค้าไม่มีรูปเลย → data-action ของ .port-visual เป็นค่าว่าง ไม่เปิด popup แกลเลอรี", () => {
-    const visual = card("prod-2").querySelector(".port-visual");
-    assert.equal(visual.getAttribute("data-action"), "");
-    visual.dispatchEvent(new Event("click", { bubbles: true }));
-    assert.equal(galleryOverlay().style.display, "none");
-    // คลิกที่รูป (ไม่ใช่ปุ่ม/checkbox) ที่ไม่มี data-action="gallery" ยังคง bubble ไปเปิดฟอร์มแก้ไขตามปกติ
-    assert.equal(overlay().style.display, "flex");
-  });
-});
-
-describe("pGrid event delegation — ปุ่มดาว (ติดดาวสินค้าแนะนำ, แพทเทิร์นใหม่)", () => {
-  beforeEach(() => { mod.renderProducts(); });
-
-  test("คลิกดาวสินค้าที่ยังไม่ featured → saveProduct({featured:true}) (updateDoc) + toast สำเร็จ + reloadAll()", async () => {
-    const btn = card("prod-2").querySelector('[data-action="star"]');
-    btn.click();
-    assert.equal(btn.disabled, true, "ปุ่มต้อง disable ทันทีแบบ synchronous");
-    await flushMicrotasks();
-    await flushMicrotasks();
-
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__.length, 1);
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__[0].path, "products/prod-2");
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__[0].payload.featured, true);
-    const toastEls = document.querySelectorAll(".cp-toast-wrap .cp-toast.success");
-    assert.match(toastEls[toastEls.length - 1].textContent, /ติดดาว "ป้ายจอดรถ" เป็นสินค้าแนะนำแล้ว/);
-    assert.equal(globalThis.__AD_PAGE_STUB_RELOAD_ALL_CALLS__.length, 1);
+  test("validUntil parse ไม่ได้ (สตริงมั่วๆ) → null ไม่ throw", () => {
+    assert.equal(mod.quotationExpiryBadge("ไม่ใช่วันที่", "sent", TODAY), null);
   });
 
-  test("คลิกดาวสินค้าที่ featured อยู่แล้ว → saveProduct({featured:false}) + ข้อความ toast คนละแบบ", async () => {
-    const btn = card("prod-1").querySelector('[data-action="star"]');
-    btn.click();
-    await flushMicrotasks();
-    await flushMicrotasks();
-
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__[0].payload.featured, false);
-    const toastEls = document.querySelectorAll(".cp-toast-wrap .cp-toast.success");
-    assert.match(toastEls[toastEls.length - 1].textContent, /เอา "ป้ายทางหนีไฟ" ออกจากสินค้าแนะนำแล้ว/);
+  test("validUntil ยังเหลืออีกเยอะ (เกิน 7 วัน) → null ไม่มี badge", () => {
+    assert.equal(mod.quotationExpiryBadge("2026-09-15", "sent", TODAY), null);
   });
 
-  test("payload ยังมีฟิลด์อื่นของสินค้าเดิมติดไปด้วย (name/code ไม่หาย)", async () => {
-    card("prod-1").querySelector('[data-action="star"]').dispatchEvent(new Event("click", { bubbles: true }));
-    await flushMicrotasks();
-    await flushMicrotasks();
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__[0].payload.name, "ป้ายทางหนีไฟ");
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__[0].payload.code, "SG-001");
+  test("validUntil เหลืออีก 7 วันพอดี (ขอบเขตบน inclusive) → badge 'ใกล้หมดอายุ' สี approval", () => {
+    assert.deepEqual(mod.quotationExpiryBadge("2026-08-28", "sent", TODAY), { label: "ใกล้หมดอายุ", css: "approval" });
   });
 
-  test("saveProduct() reject (updateDoc throw) → toast error พร้อมข้อความ err.message + ปุ่มกลับมา enabled, ไม่เรียก reloadAll()", async () => {
-    globalThis.__UPDATE_DOC_STUB__ = () => ({ throw: new Error("เครือข่ายขัดข้อง") });
-    const btn = card("prod-1").querySelector('[data-action="star"]');
-    btn.click();
-    await flushMicrotasks();
-    await flushMicrotasks();
+  test("validUntil เหลืออีก 1 วัน → badge 'ใกล้หมดอายุ'", () => {
+    assert.deepEqual(mod.quotationExpiryBadge("2026-08-22", "draft", TODAY), { label: "ใกล้หมดอายุ", css: "approval" });
+  });
 
-    assert.equal(btn.disabled, false);
-    const errToast = document.querySelector(".cp-toast-wrap .cp-toast.error");
-    assert.ok(errToast);
-    assert.match(errToast.textContent, /อัปเดตไม่สำเร็จ: เครือข่ายขัดข้อง/);
-    assert.equal(globalThis.__AD_PAGE_STUB_RELOAD_ALL_CALLS__.length, 0);
+  test("validUntil ตรงกับวันนี้พอดี (0 วัน) → ยังนับเป็น 'ใกล้หมดอายุ' ไม่ใช่ 'หมดอายุแล้ว'", () => {
+    assert.deepEqual(mod.quotationExpiryBadge("2026-08-21", "sent", TODAY), { label: "ใกล้หมดอายุ", css: "approval" });
+  });
+
+  test("validUntil ผ่านมาแล้ว 1 วัน → badge 'หมดอายุแล้ว' สี rejected", () => {
+    assert.deepEqual(mod.quotationExpiryBadge("2026-08-20", "sent", TODAY), { label: "หมดอายุแล้ว", css: "rejected" });
+  });
+
+  test("validUntil ผ่านมาแล้วนาน (หลายเดือน) → ยังคง badge 'หมดอายุแล้ว' เหมือนกัน", () => {
+    assert.deepEqual(mod.quotationExpiryBadge("2026-01-01", "changes_requested", TODAY), { label: "หมดอายุแล้ว", css: "rejected" });
+  });
+
+  test("status ปิดผลไปแล้ว (accepted) แม้ validUntil ผ่านมาแล้ว → null ไม่ต้องเตือนซ้ำ", () => {
+    assert.equal(mod.quotationExpiryBadge("2026-01-01", "accepted", TODAY), null);
+  });
+
+  test("status ปิดผลไปแล้ว (rejected) → null", () => {
+    assert.equal(mod.quotationExpiryBadge("2026-01-01", "rejected", TODAY), null);
+  });
+
+  test("status ปิดผลไปแล้ว (expired) → null (ไม่ต้องซ้อน badge บนสถานะที่บอกอยู่แล้วว่าหมดอายุ)", () => {
+    assert.equal(mod.quotationExpiryBadge("2026-01-01", "expired", TODAY), null);
+  });
+
+  test("ไม่มี status เลย (undefined) → null (undefined ไม่อยู่ใน EXPIRY_ACTIVE_STATUSES)", () => {
+    assert.equal(mod.quotationExpiryBadge("2026-01-01", undefined, TODAY), null);
+  });
+
+  test("ไม่ส่ง now มาเลย (ใช้ default = new Date() จริง) → ไม่ throw อย่างน้อย", () => {
+    assert.doesNotThrow(() => mod.quotationExpiryBadge("2099-01-01", "draft"));
   });
 });
 
-describe("pGrid event delegation — ปุ่มลบ (deleteWithUndo)", () => {
-  beforeEach(() => { mod.renderProducts(); });
+describe("renderQuotations() — badge ใกล้หมดอายุ/หมดอายุแล้ว ต่อท้าย badge สถานะ (P3.0 Phase 6)", () => {
+  test("มี validUntil ใกล้หมดอายุ (พรุ่งนี้) + status='sent' → มี badge ที่สองต่อท้าย badge สถานะ", () => {
+    const soon = new Date(); soon.setDate(soon.getDate() + 1);
+    const soonStr = soon.toISOString().slice(0, 10);
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", status: "sent", validUntil: soonStr })]);
+    const badges = rows()[0].querySelectorAll(".cp-status-badge");
+    assert.equal(badges.length, 2, "ต้องมี badge สถานะหลัก + badge เตือนหมดอายุ รวม 2 อัน");
+    assert.equal(badges[1].dataset.status, "approval");
+    assert.equal(badges[1].textContent, "ใกล้หมดอายุ");
+  });
 
-  test("คลิกลบ → confirmDialog เปิดขึ้น ข้อความมีชื่อสินค้า", async () => {
-    card("prod-1").querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
+  test("มี validUntil หมดอายุไปแล้ว (เมื่อวาน) + status='draft' → badge ที่สองเป็น 'หมดอายุแล้ว' สี rejected", () => {
+    const past = new Date(); past.setDate(past.getDate() - 1);
+    const pastStr = past.toISOString().slice(0, 10);
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", status: "draft", validUntil: pastStr })]);
+    const badges = rows()[0].querySelectorAll(".cp-status-badge");
+    assert.equal(badges.length, 2);
+    assert.equal(badges[1].dataset.status, "rejected");
+    assert.equal(badges[1].textContent, "หมดอายุแล้ว");
+  });
+
+  test("ไม่มี validUntil เลย → มีแค่ badge สถานะหลักอันเดียว ไม่มี badge ที่สอง", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", status: "sent", validUntil: "" })]);
+    const badges = rows()[0].querySelectorAll(".cp-status-badge");
+    assert.equal(badges.length, 1);
+  });
+
+  test("validUntil หมดอายุไปแล้วแต่ status='accepted' (ปิดผลแล้ว) → ไม่มี badge ที่สอง", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", status: "accepted", validUntil: "2020-01-01" })]);
+    const badges = rows()[0].querySelectorAll(".cp-status-badge");
+    assert.equal(badges.length, 1);
+  });
+});
+
+describe("ad-q-table-body — event delegation ปุ่มลบ", () => {
+  beforeEach(() => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "QT2026-0001" }), makeQuotation({ id: "q-2", quoteNo: "QT2026-0002" })]);
+  });
+
+  test("คลิกที่ไม่ใช่ปุ่ม data-action → ไม่ทำอะไร", () => {
+    rows()[0].click();
+    const co = document.querySelector(".cp-confirm-overlay");
+    assert.ok(!co || co.style.display !== "flex");
+  });
+
+  test("คลิกลบ → เปิด confirmDialog ข้อความมีเลขที่เอกสารอยู่ในนั้น", async () => {
+    rows()[0].querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
     await flushMicrotasks();
     const co = document.querySelector(".cp-confirm-overlay");
     assert.equal(co.style.display, "flex");
-    assert.match(co.querySelector("#cp-confirm-msg").textContent, /ลบสินค้า "ป้ายทางหนีไฟ"/);
+    assert.match(co.querySelector("#cp-confirm-msg").textContent, /ลบใบเสนอราคา "QT2026-0001" ใช่หรือไม่/);
   });
 
-  test("กด 'ยกเลิก' บน confirm → ไม่ลบ", async () => {
-    card("prod-1").querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
+  test("กด 'ยกเลิก' บน confirm → ไม่ลบ, แถวยังอยู่ครบ", async () => {
+    rows()[0].querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
     await flushMicrotasks();
-    document.querySelector(".cp-confirm-overlay #cp-confirm-cancel").click();
+    document.querySelector("#cp-confirm-cancel").click();
     await flushMicrotasks();
-    assert.deepEqual(globalThis.__DELETE_DOC_CALLS__, []);
-    assert.equal(cards().length, 2);
+    assert.equal((globalThis.__DELETE_DOC_CALLS__ || []).length, 0);
+    assert.equal(rows().length, 2);
   });
 
-  test("ยืนยันแล้วกด 'เลิกทำ' บน undo toast → ไม่ลบจริง การ์ดกลับมาครบ", async () => {
-    card("prod-1").querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
+  test("ยืนยันลบ แล้วกด 'เลิกทำ' ทันที → ไม่ลบจริง, รายการกลับมาแสดงเหมือนเดิม", async () => {
+    rows()[0].querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
     await flushMicrotasks();
     document.querySelector("#cp-confirm-ok").click();
     await flushMicrotasks();
-    assert.equal(cards().length, 1); // prod-1 หายไปชั่วคราว
+    assert.equal(rows().length, 1); // q-1 หายไปชั่วคราว
     const undoBtn = document.querySelector(".cp-toast-undo-btn");
     assert.ok(undoBtn, "ต้องมี toast เลิกทำโผล่ขึ้นมา");
     undoBtn.click();
     await flushMicrotasks();
     assert.equal((globalThis.__DELETE_DOC_CALLS__ || []).length, 0);
-    assert.equal(cards().length, 2, "กด 'เลิกทำ' แล้วการ์ดต้องกลับมาครบ");
+    assert.equal(rows().length, 2, "กด 'เลิกทำ' แล้วรายการต้องกลับมาครบ");
   });
 
-  test("ยืนยันลบ แล้วปล่อยผ่านจนหมดเวลา (5000ms) → deleteProduct() ถูกเรียกจริง + onCommitted = reloadAll()", async (t) => {
+  test("ยืนยันลบ แล้วปล่อยผ่านจนหมดเวลา (5000ms) → deleteQuotation() ถูกเรียกจริง", async (t) => {
     const flushReal = () => new Promise((r) => setImmediate(r));
     t.mock.timers.enable({ apis: ["setTimeout"] });
-    card("prod-1").querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
+    rows()[0].querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
     await flushReal();
     document.querySelector("#cp-confirm-ok").click();
     await flushReal();
@@ -533,193 +391,410 @@ describe("pGrid event delegation — ปุ่มลบ (deleteWithUndo)", () =>
     await flushReal();
     await flushReal();
     assert.equal(globalThis.__DELETE_DOC_CALLS__.length, 1);
-    assert.equal(globalThis.__DELETE_DOC_CALLS__[0].path, "products/prod-1");
-    assert.equal(globalThis.__AD_PAGE_STUB_RELOAD_ALL_CALLS__.length, 1);
+    assert.equal(globalThis.__DELETE_DOC_CALLS__[0].path, "quotations/q-1");
     t.mock.timers.reset();
   });
 });
 
-describe("bulk actions — checkbox เลือกการ์ด (ad-card-check)", () => {
-  beforeEach(() => { mod.renderProducts(); });
-
-  test("ติ๊กเลือกการ์ดเดียว: bulk bar ได้ class active, count เป็น 1", () => {
-    selectCards(["prod-1"]);
-    assert.equal(bulkBar().classList.contains("active"), true);
-    assert.equal(bulkCount().textContent, "1");
+describe("ปุ่ม 'สร้างใหม่' เปิดฟอร์มจริง (รอบย่อย 4) / 'สร้างจากคำขอ' เปิดโมดัลเลือกคำขอจริง (รอบย่อย 5)", () => {
+  test("คลิก 'สร้างใบเสนอราคาใหม่' → เปิดโมดัลฟอร์มจริง (ad-q-overlay) ไม่ใช่แค่ toast แล้ว", () => {
+    field("ad-q-add-btn").click();
+    assert.equal(document.getElementById("ad-q-overlay").style.display, "flex");
+    document.getElementById("ad-q-overlay").style.display = "none"; // เก็บกวาดกันชนกับเทสถัดไป
   });
 
-  test("ติ๊กแล้วเอาติ๊กออก: count กลับเป็น 0, bulk bar หมด active", () => {
-    const cb = cardCheckbox("prod-2");
-    cb.checked = true;
-    cb.dispatchEvent(new Event("change", { bubbles: true }));
-    assert.equal(bulkCount().textContent, "1");
-    cb.checked = false;
-    cb.dispatchEvent(new Event("change", { bubbles: true }));
-    assert.equal(bulkCount().textContent, "0");
-    assert.equal(bulkBar().classList.contains("active"), false);
-  });
-
-  test("ติ๊กหลายการ์ด: count นับรวมถูกต้อง", () => {
-    selectCards(["prod-1", "prod-2"]);
-    assert.equal(bulkCount().textContent, "2");
-  });
-
-  test("ติ๊กที่ไม่ใช่ .ad-card-check (change event อื่นใน grid) → ไม่พัง ไม่นับ", () => {
-    assert.doesNotThrow(() => {
-      grid().dispatchEvent(new Event("change", { bubbles: true }));
-    });
-    assert.equal(bulkCount().textContent, "0");
+  test("คลิก 'สร้างจากคำขอ' → เปิดโมดัลเลือกคำขอจริง (ad-qr-overlay) ไม่ใช่ toast placeholder แล้ว", () => {
+    triggerQuotationsSnapshot([]);
+    triggerQuoteRequestsSnapshot([makeQuoteRequest({ id: "qr-1" })]);
+    field("ad-q-add-from-request-btn").click();
+    assert.equal(document.getElementById("ad-qr-overlay").style.display, "flex");
+    const toast = document.querySelector(".cp-toast-wrap .cp-toast");
+    assert.ok(!toast, "ต้องไม่มี toast placeholder โผล่ขึ้นมาอีกแล้ว");
+    document.getElementById("ad-qr-overlay").style.display = "none";
   });
 });
 
-describe("bulk actions — ปุ่ม 'ล้างการเลือก' (ad-p-bulk-clear)", () => {
-  test("เลือกไว้แล้วกดล้าง: selection ว่างทั้งหมด, checkbox ทุกการ์ดเอาติ๊กออก, bulk bar หมด active", () => {
-    mod.renderProducts();
-    selectCards(["prod-1", "prod-2"]);
-    assert.equal(bulkCount().textContent, "2");
+describe("โมดัลเลือกคำขอใบเสนอราคา (ad-qr-overlay, รอบย่อย 5)", () => {
+  beforeEach(() => {
+    document.getElementById("ad-qr-overlay").style.display = "none";
+    document.getElementById("ad-q-overlay").style.display = "none";
+  });
 
-    document.getElementById("ad-p-bulk-clear").click();
+  test("startQuoteRequestsListener() ผูกไปพร้อมกับ startQuotationsListener() — listener ของ 'quote_requests' พร้อมใช้แล้ว", () => {
+    assert.equal(typeof globalThis.__SNAPSHOT_LISTENERS__["quote_requests"], "function");
+  });
 
-    assert.equal(bulkCount().textContent, "0");
-    assert.equal(bulkBar().classList.contains("active"), false);
-    assert.equal(cardCheckbox("prod-1").checked, false);
-    assert.equal(cardCheckbox("prod-2").checked, false);
+  test("ไม่มีคำขอเลย → ข้อความว่างเปล่าในโมดัล", () => {
+    triggerQuotationsSnapshot([]);
+    triggerQuoteRequestsSnapshot([]);
+    field("ad-q-add-from-request-btn").click();
+    assert.match(field("ad-qr-list-body").innerHTML, /ไม่มีคำขอใบเสนอราคาที่ยังไม่ถูกแปลง/);
+    assert.equal(qrRows().length, 0);
+  });
+
+  test("มีคำขอที่ยังไม่ถูกแปลง → แสดงในรายการ พร้อมชื่อลูกค้า/จำนวนรายการ", () => {
+    triggerQuotationsSnapshot([]);
+    triggerQuoteRequestsSnapshot([makeQuoteRequest({ id: "qr-1", billingName: "บริษัท เอ จำกัด", items: [{ name: "ป้าย A" }, { name: "ป้าย B" }] })]);
+    field("ad-q-add-from-request-btn").click();
+    assert.equal(qrRows().length, 1);
+    assert.match(qrRows()[0].innerHTML, /บริษัท เอ จำกัด/);
+    assert.match(qrRows()[0].innerHTML, /2 รายการ/);
+  });
+
+  test("คำขอที่แปลงเป็นใบเสนอราคาไปแล้ว (มี quotation ที่ requestId ตรงกัน) → ถูกกรองออกจากรายการ", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", requestId: "qr-1" })]);
+    triggerQuoteRequestsSnapshot([
+      makeQuoteRequest({ id: "qr-1" }),
+      makeQuoteRequest({ id: "qr-2", billingName: "บริษัท บี จำกัด" })
+    ]);
+    field("ad-q-add-from-request-btn").click();
+    assert.equal(qrRows().length, 1);
+    assert.match(qrRows()[0].innerHTML, /บริษัท บี จำกัด/);
+  });
+
+  test("คลิก 'ใช้คำขอนี้' → ปิดโมดัลเลือกคำขอ, เปิดฟอร์มใบเสนอราคาแบบ prefill", () => {
+    triggerQuotationsSnapshot([]);
+    triggerQuoteRequestsSnapshot([makeQuoteRequest({ id: "qr-1", billingName: "บริษัท ซี จำกัด" })]);
+    field("ad-q-add-from-request-btn").click();
+    qrRows()[0].querySelector('[data-action="use"]').dispatchEvent(new Event("click", { bubbles: true }));
+    assert.equal(document.getElementById("ad-qr-overlay").style.display, "none");
+    assert.equal(document.getElementById("ad-q-overlay").style.display, "flex");
+    assert.equal(field("ad-q-billing-name").value, "บริษัท ซี จำกัด");
+    document.getElementById("ad-q-overlay").style.display = "none";
+  });
+
+  test("กด 'ปิด' ในโมดัลเลือกคำขอ → ปิดโมดัลโดยไม่เปิดฟอร์มใดๆ", () => {
+    triggerQuotationsSnapshot([]);
+    triggerQuoteRequestsSnapshot([makeQuoteRequest({ id: "qr-1" })]);
+    field("ad-q-add-from-request-btn").click();
+    document.getElementById("ad-qr-cancel").click();
+    assert.equal(document.getElementById("ad-qr-overlay").style.display, "none");
+    assert.equal(document.getElementById("ad-q-overlay").style.display, "none");
   });
 });
 
-describe("bulk actions — ปุ่ม 'เปลี่ยนสถานะ' (ad-p-bulk-apply-status)", () => {
-  beforeEach(() => { mod.renderProducts(); });
-
-  test("ไม่ได้เลือกสถานะเลย (select ว่าง) → ไม่ทำอะไร (early return)", async () => {
-    selectCards(["prod-1"]);
-    field("ad-p-bulk-status-select").value = "";
-    document.getElementById("ad-p-bulk-apply-status").click();
-    await flushMicrotasks();
-    assert.equal((globalThis.__UPDATE_DOC_CALLS__ || []).length, 0);
+describe("โมดัลเลือกคำขอใบเสนอราคา — ปุ่มลบคำขอ (data-action=\"delete\")", () => {
+  beforeEach(() => {
+    document.getElementById("ad-qr-overlay").style.display = "none";
+    document.getElementById("ad-q-overlay").style.display = "none";
+    triggerQuotationsSnapshot([]);
+    triggerQuoteRequestsSnapshot([makeQuoteRequest({ id: "qr-1", billingName: "บริษัท ดี จำกัด" })]);
+    field("ad-q-add-from-request-btn").click();
   });
 
-  test("ไม่มีการ์ดถูกเลือกเลย → ไม่ทำอะไร แม้เลือกสถานะไว้แล้ว (early return)", async () => {
-    field("ad-p-bulk-status-select").value = "hidden";
-    document.getElementById("ad-p-bulk-apply-status").click();
-    await flushMicrotasks();
-    assert.equal((globalThis.__UPDATE_DOC_CALLS__ || []).length, 0);
+  test("แต่ละแถวมีปุ่มลบ นอกเหนือจากปุ่ม 'ใช้คำขอนี้'", () => {
+    assert.ok(qrRows()[0].querySelector('[data-action="use"]'));
+    assert.ok(qrRows()[0].querySelector('[data-action="delete"]'));
   });
 
-  test("เลือก 2 การ์ดแล้วเปลี่ยนสถานะ → saveProduct() (updateDoc) ถูกเรียกครบทุกรายการด้วย status ใหม่, เคลียร์ selection, reset select, toast สำเร็จ, reloadAll()", async () => {
-    selectCards(["prod-1", "prod-2"]);
-    field("ad-p-bulk-status-select").value = "hidden";
-    const btn = document.getElementById("ad-p-bulk-apply-status");
-    btn.click();
-    await flushMicrotasks();
-    await flushMicrotasks();
-
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__.length, 2);
-    const paths = globalThis.__UPDATE_DOC_CALLS__.map(c => c.path).sort();
-    assert.deepEqual(paths, ["products/prod-1", "products/prod-2"]);
-    globalThis.__UPDATE_DOC_CALLS__.forEach(c => assert.equal(c.payload.status, "hidden"));
-    const p1Call = globalThis.__UPDATE_DOC_CALLS__.find(c => c.path === "products/prod-1");
-    assert.equal(p1Call.payload.name, "ป้ายทางหนีไฟ"); // ฟิลด์อื่นของสินค้าเดิมยังติดไปด้วย
-
-    assert.equal(bulkCount().textContent, "0");
-    assert.equal(field("ad-p-bulk-status-select").value, "");
-    assert.equal(btn.disabled, false);
-    const toastEls = document.querySelectorAll(".cp-toast-wrap .cp-toast.success");
-    assert.equal(toastEls.length >= 1, true);
-    assert.equal(toastEls[toastEls.length - 1].textContent, "เปลี่ยนสถานะแล้ว 2 รายการ");
-    assert.equal(globalThis.__AD_PAGE_STUB_RELOAD_ALL_CALLS__.length, 1);
-  });
-
-  test("ปุ่มถูก disable ระหว่างทำงาน", async () => {
-    selectCards(["prod-1"]);
-    field("ad-p-bulk-status-select").value = "hidden";
-    const btn = document.getElementById("ad-p-bulk-apply-status");
-    btn.click();
-    assert.equal(btn.disabled, true);
-    await flushMicrotasks();
-    await flushMicrotasks();
-    assert.equal(btn.disabled, false);
-  });
-
-  test("การ์ดที่เลือกไว้ไม่พบใน allProducts อีกแล้ว (ถูกลบไปก่อนหน้า) → ข้ามเงียบๆ ไม่ throw ไม่เรียก saveProduct สำหรับ id นั้น", async () => {
-    selectCards(["prod-1", "prod-2"]);
-    setAllProducts([SAMPLE_PRODUCTS[0]]); // prod-2 หายไปจาก allProducts แต่ selection ยังค้าง
-    field("ad-p-bulk-status-select").value = "hidden";
-    document.getElementById("ad-p-bulk-apply-status").click();
-    await flushMicrotasks();
-    await flushMicrotasks();
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__.length, 1);
-    assert.equal(globalThis.__UPDATE_DOC_CALLS__[0].path, "products/prod-1");
-  });
-
-  test("saveProduct() reject บางรายการ (updateDoc throw) → toast error พร้อม err.message, ปุ่มกลับมา enabled", async () => {
-    globalThis.__UPDATE_DOC_STUB__ = () => ({ throw: new Error("บันทึกล้มเหลว") });
-    selectCards(["prod-1"]);
-    field("ad-p-bulk-status-select").value = "hidden";
-    const btn = document.getElementById("ad-p-bulk-apply-status");
-    btn.click();
-    await flushMicrotasks();
-    await flushMicrotasks();
-
-    assert.equal(btn.disabled, false);
-    const errToast = document.querySelector(".cp-toast-wrap .cp-toast.error");
-    assert.ok(errToast);
-    assert.match(errToast.textContent, /อัปเดตสถานะไม่สำเร็จ: บันทึกล้มเหลว/);
-    assert.equal(globalThis.__AD_PAGE_STUB_RELOAD_ALL_CALLS__.length, 0);
-  });
-});
-
-describe("bulk actions — ปุ่ม 'ลบที่เลือก' (ad-p-bulk-delete)", () => {
-  beforeEach(() => { mod.renderProducts(); });
-
-  test("ไม่มีการ์ดไหนถูกเลือกเลย: กดแล้วไม่เปิด confirmDialog เลย (early return)", () => {
-    document.getElementById("ad-p-bulk-delete").click();
-    const co = document.querySelector(".cp-confirm-overlay");
-    if (co) assert.notEqual(co.style.display, "flex");
-    assert.deepEqual(globalThis.__DELETE_DOC_CALLS__, []);
-  });
-
-  test("เลือก 2 การ์ดแล้วกดลบ, กด 'ยกเลิก' บน confirm → ไม่เรียก deleteProduct() เลย, selection คงอยู่", async () => {
-    selectCards(["prod-1", "prod-2"]);
-    document.getElementById("ad-p-bulk-delete").click();
+  test("คลิกลบ → เปิด confirmDialog ข้อความมีชื่อลูกค้าอยู่ในนั้น", async () => {
+    qrRows()[0].querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
     await flushMicrotasks();
     const co = document.querySelector(".cp-confirm-overlay");
     assert.equal(co.style.display, "flex");
-    assert.match(co.querySelector("#cp-confirm-msg").textContent, /ลบสินค้าที่เลือก 2 รายการ/);
-    co.querySelector("#cp-confirm-cancel").click();
-    await flushMicrotasks();
-
-    assert.deepEqual(globalThis.__DELETE_DOC_CALLS__, []);
-    assert.equal(bulkCount().textContent, "2");
+    assert.match(co.querySelector("#cp-confirm-msg").textContent, /บริษัท ดี จำกัด/);
   });
 
-  test("เลือก 2 การ์ดแล้วกดลบ, กด 'ยืนยัน': เรียก deleteProduct() ครบทั้ง 2 รายการทันที (ไม่มี undo), เคลียร์ selection, ปุ่มกลับมา enabled, toast สำเร็จ, reloadAll()", async () => {
-    selectCards(["prod-1", "prod-2"]);
-    const btn = document.getElementById("ad-p-bulk-delete");
-    btn.click();
+  test("กด 'ยกเลิก' บน confirm → ไม่ลบ, ไม่เรียก deleteDoc, แถวยังอยู่", async () => {
+    qrRows()[0].querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
     await flushMicrotasks();
-    document.querySelector(".cp-confirm-overlay #cp-confirm-ok").click();
+    document.querySelector("#cp-confirm-cancel").click();
     await flushMicrotasks();
-    await flushMicrotasks();
+    assert.equal((globalThis.__DELETE_DOC_CALLS__ || []).length, 0);
+    assert.equal(qrRows().length, 1);
+  });
 
-    assert.equal(globalThis.__DELETE_DOC_CALLS__.length, 2);
-    const paths = globalThis.__DELETE_DOC_CALLS__.map(c => c.path).sort();
-    assert.deepEqual(paths, ["products/prod-1", "products/prod-2"]);
-    assert.equal(bulkCount().textContent, "0");
-    assert.equal(btn.disabled, false);
-    // ไม่มี undo toast สำหรับ bulk delete (ต่างจากลบรายแถวเดียวที่ผ่าน deleteWithUndo)
-    assert.equal(document.querySelector(".cp-toast-undo-btn"), null);
-    const toastEls = document.querySelectorAll(".cp-toast-wrap .cp-toast.success");
-    assert.equal(toastEls.length >= 1, true);
-    assert.equal(toastEls[toastEls.length - 1].textContent, "ลบแล้ว 2 รายการ");
-    assert.equal(globalThis.__AD_PAGE_STUB_RELOAD_ALL_CALLS__.length, 1);
+  test("ยืนยันลบ แล้วกด 'เลิกทำ' ทันที → ไม่ลบจริง, แถวกลับมาแสดงเหมือนเดิม", async () => {
+    qrRows()[0].querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
+    await flushMicrotasks();
+    document.querySelector("#cp-confirm-ok").click();
+    await flushMicrotasks();
+    assert.equal(qrRows().length, 0); // qr-1 หายไปชั่วคราว
+    const undoBtn = document.querySelector(".cp-toast-undo-btn");
+    assert.ok(undoBtn, "ต้องมี toast เลิกทำโผล่ขึ้นมา");
+    undoBtn.click();
+    await flushMicrotasks();
+    assert.equal((globalThis.__DELETE_DOC_CALLS__ || []).length, 0);
+    assert.equal(qrRows().length, 1, "กด 'เลิกทำ' แล้วแถวต้องกลับมา");
+  });
+
+  test("ยืนยันลบ แล้วปล่อยผ่านจนหมดเวลา (5000ms) → deleteQuoteRequest() ถูกเรียกจริงกับ collection quote_requests", async (t) => {
+    const flushReal = () => new Promise((r) => setImmediate(r));
+    t.mock.timers.enable({ apis: ["setTimeout"] });
+    qrRows()[0].querySelector('[data-action="delete"]').dispatchEvent(new Event("click", { bubbles: true }));
+    await flushReal();
+    document.querySelector("#cp-confirm-ok").click();
+    await flushReal();
+    t.mock.timers.tick(5000);
+    await flushReal();
+    await flushReal();
+    assert.equal(globalThis.__DELETE_DOC_CALLS__.length, 1);
+    assert.equal(globalThis.__DELETE_DOC_CALLS__[0].path, "quote_requests/qr-1");
+    t.mock.timers.reset();
   });
 });
 
-describe("pAddBtn", () => {
-  test("คลิกเพิ่มสินค้า → เปิดโมดัลโหมดเพิ่ม (openProductModal(null))", () => {
-    field("ad-p-add-btn").click();
-    assert.equal(overlay().style.display, "flex");
-    assert.equal(field("ad-p-id").value, "");
-    assert.equal(field("ad-p-name").value, "");
+describe("ปุ่ม 'แก้ไข' ต่อแถว (รอบย่อย 4)", () => {
+  test("คลิกปุ่มแก้ไขในแถว → เปิดโมดัลฟอร์มแก้ไข prefill quoteNo ของแถวนั้น", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "QT2026-0001" })]);
+    rows()[0].querySelector('[data-action="edit"]').dispatchEvent(new Event("click", { bubbles: true }));
+    assert.equal(document.getElementById("ad-q-overlay").style.display, "flex");
+    assert.match(document.getElementById("ad-q-modal-title").textContent, /QT2026-0001/);
+    document.getElementById("ad-q-overlay").style.display = "none";
+  });
+});
+
+// ── คลิกทั้งแถว (ไม่ใช่ปุ่ม) → เปิดข้อมูลให้ดูทันที ไม่ต้องกด "แก้ไข" ก่อน ──────────────────
+// UX ตรงกับแท็บ "คำสั่งผลิต" (js/orders-tab.js): ทั้งแถวคลิกได้ (มี class cp-row-clickable),
+// เปิดฟอร์มเดิม (มีข้อมูลครบทุกช่องอยู่แล้ว ใช้เป็นทั้งหน้าดู/แก้ไขในตัว) โดยไม่ต้องเล็งคลิก
+// ปุ่มไอคอนเล็กๆ ก่อน — เหมาะกับผู้ใช้ที่ไม่ถนัด IT
+describe("คลิกทั้งแถว (ไม่ใช่ปุ่ม) → เปิดข้อมูลใบเสนอราคาให้ดูทันที", () => {
+  test("แถวมี class cp-row-clickable", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "QT2026-0001" })]);
+    assert.ok(rows()[0].classList.contains("cp-row-clickable"));
+  });
+
+  test("คลิกที่เซลล์ข้อมูล (เช่นชื่อลูกค้า) → เปิดโมดัลฟอร์มเดิม prefill quoteNo ของแถวนั้น", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "QT2026-0001" })]);
+    rows()[0].querySelector("td").dispatchEvent(new Event("click", { bubbles: true }));
+    assert.equal(document.getElementById("ad-q-overlay").style.display, "flex");
+    assert.match(document.getElementById("ad-q-modal-title").textContent, /QT2026-0001/);
+    document.getElementById("ad-q-overlay").style.display = "none";
+  });
+});
+
+// ── ปุ่ม "ดูใบเสนอราคา" ต่อแถว — เปิดหน้า public ในแท็บใหม่ทันที ไม่ต้องคัดลอกลิงก์ไปวางเอง ──
+describe("ปุ่ม 'ดูใบเสนอราคา' ต่อแถว", () => {
+  let openCalls;
+  let originalOpen;
+
+  beforeEach(() => {
+    openCalls = [];
+    originalOpen = globalThis.window.open;
+    globalThis.window.open = (...args) => { openCalls.push(args); return null; };
+  });
+
+  afterEach(() => {
+    globalThis.window.open = originalOpen;
+  });
+
+  test("มี publicToken → ปุ่มไม่ disabled, title บอกว่าดูใบเสนอราคา", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: "tok-abc-123" })]);
+    const btn = rows()[0].querySelector('[data-action="view"]');
+    assert.equal(btn.hasAttribute("disabled"), false);
+    assert.match(btn.title, /ดูใบเสนอราคา/);
+  });
+
+  test("คลิกปุ่ม → เปิดแท็บใหม่ไปยัง URL public ที่ถูกต้อง (origin + /quotation-view.html?token=...)", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: "tok-abc-123" })]);
+    rows()[0].querySelector('[data-action="view"]').dispatchEvent(new Event("click", { bubbles: true }));
+    assert.equal(openCalls.length, 1);
+    assert.equal(openCalls[0][0], `${window.location.origin}/quotation-view.html?token=tok-abc-123`);
+    assert.equal(openCalls[0][1], "_blank");
+  });
+
+  test("ไม่มี publicToken → ปุ่ม disabled + title อธิบายเหตุผล", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: undefined })]);
+    const btn = rows()[0].querySelector('[data-action="view"]');
+    assert.equal(btn.hasAttribute("disabled"), true);
+    assert.match(btn.title, /ยังไม่มีลิงก์สาธารณะ/);
+  });
+
+  test("ไม่มี publicToken แล้วยังสั่งคลิกได้ (เช่นผ่าน script) → ไม่เปิดแท็บใหม่, แจ้ง toast แทน", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: undefined })]);
+    rows()[0].querySelector('[data-action="view"]').dispatchEvent(new Event("click", { bubbles: true }));
+    assert.equal(openCalls.length, 0, "ไม่ควรมีการเรียก window.open() เลย");
+    const toast = document.querySelector(".cp-toast-wrap .cp-toast");
+    assert.ok(toast, "ต้องมี toast แจ้งเหตุผล");
+    assert.match(toast.textContent, /ยังไม่มีลิงก์สาธารณะ/);
+  });
+});
+
+// ── ปุ่ม "คัดลอกเป็นฉบับร่างใหม่" ต่อแถว (P3.0 Phase 6 รอบ 11) ─────────────────────────────
+// เรียก openQuotationFormFromClone() (js/admin-quotations-form.js) — เปิดฟอร์มให้แอดมินตรวจ/แก้
+// ก่อนบันทึกจริง ไม่บันทึกอัตโนมัติทันทีที่กด (ดูเหตุผลในคอมเมนต์หัวฟังก์ชันนั้น) — เทสนี้เช็คแค่ว่า
+// โมดัลเปิดจริง + หัวข้อโมดัลถูกต้อง + prefill ข้อมูลลูกค้ามาจากแถวที่คลิกถูกต้อง (ไม่เช็ค submit
+// ซ้ำที่นี่ เพราะ submit handler เดิมของฟอร์มใช้ path เดียวกับโหมดอื่นอยู่แล้ว ทดสอบละเอียดกว่าไว้ที่
+// test/admin-quotations-form.test.mjs แทน)
+describe("ปุ่ม 'คัดลอกเป็นฉบับร่างใหม่' ต่อแถว (P3.0 Phase 6 รอบ 11)", () => {
+  test("คลิกปุ่ม clone ในแถว → เปิดโมดัลฟอร์ม หัวข้อ 'คัดลอกเป็นฉบับร่างใหม่' + prefill ชื่อลูกค้าเดิม", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "QT2026-0001", billingName: "บริษัท โคลน จำกัด" })]);
+    rows()[0].querySelector('[data-action="clone"]').dispatchEvent(new Event("click", { bubbles: true }));
+    assert.equal(document.getElementById("ad-q-overlay").style.display, "flex");
+    assert.match(document.getElementById("ad-q-modal-title").textContent, /คัดลอกเป็นฉบับร่างใหม่/);
+    assert.equal(document.getElementById("ad-q-billing-name").value, "บริษัท โคลน จำกัด");
+    assert.equal(document.getElementById("ad-q-status").value, "draft");
+    document.getElementById("ad-q-overlay").style.display = "none";
+  });
+
+  test("ปุ่ม clone มี title อธิบายชัดเจน", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1" })]);
+    const btn = rows()[0].querySelector('[data-action="clone"]');
+    assert.ok(btn, "ต้องมีปุ่ม clone ในแถว");
+    assert.match(btn.title, /คัดลอกเป็นฉบับร่างใหม่/);
+  });
+});
+
+// ── ปุ่ม "คัดลอกลิงก์" ต่อแถว (P3.0 Phase 4 รอบ 3) ────────────────────────────────────────
+// JSDOM ไม่มี navigator.clipboard ให้โดย default — mock ด้วย stub เก็บค่าที่ถูกเรียก แล้วลบทิ้ง
+// ใน afterEach ถัดไปด้วย beforeEach (ประกาศ describe-local แทนแก้ before()/beforeEach() หลักของ
+// ไฟล์ เพื่อไม่กระทบเทสชุดอื่นที่ไม่เกี่ยวกับ clipboard เลย)
+describe("ปุ่ม 'คัดลอกลิงก์' ต่อแถว (Phase 4 รอบ 3)", () => {
+  let writeTextCalls;
+
+  beforeEach(() => {
+    writeTextCalls = [];
+    Object.defineProperty(globalThis.navigator, "clipboard", {
+      value: { writeText: (text) => { writeTextCalls.push(text); return Promise.resolve(); } },
+      configurable: true
+    });
+  });
+
+  test("มี publicToken → ปุ่มไม่ disabled, title บอกให้คัดลอกลิงก์ลูกค้า", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: "tok-abc-123" })]);
+    const btn = rows()[0].querySelector('[data-action="copy-link"]');
+    assert.equal(btn.hasAttribute("disabled"), false);
+    assert.match(btn.title, /คัดลอกลิงก์ให้ลูกค้า/);
+  });
+
+  test("คลิกปุ่ม → คัดลอก URL ถูกต้องเข้า clipboard (origin + /quotation-view.html?token=...)", async () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: "tok-abc-123" })]);
+    rows()[0].querySelector('[data-action="copy-link"]').dispatchEvent(new Event("click", { bubbles: true }));
+    await flushMicrotasks();
+    assert.equal(writeTextCalls.length, 1);
+    assert.equal(writeTextCalls[0], `${window.location.origin}/quotation-view.html?token=tok-abc-123`);
+  });
+
+  test("คัดลอกสำเร็จ → แสดง toast แจ้งผล", async () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: "tok-abc-123" })]);
+    rows()[0].querySelector('[data-action="copy-link"]').dispatchEvent(new Event("click", { bubbles: true }));
+    await flushMicrotasks();
+    const toast = document.querySelector(".cp-toast-wrap .cp-toast");
+    assert.ok(toast, "ต้องมี toast แสดงขึ้น");
+    assert.match(toast.textContent, /คัดลอกลิงก์ใบเสนอราคาแล้ว/);
+  });
+
+  test("token มีอักขระพิเศษ → encodeURIComponent ก่อนต่อ URL", async () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: "tok/with+special=chars" })]);
+    rows()[0].querySelector('[data-action="copy-link"]').dispatchEvent(new Event("click", { bubbles: true }));
+    await flushMicrotasks();
+    assert.equal(writeTextCalls[0], `${window.location.origin}/quotation-view.html?token=${encodeURIComponent("tok/with+special=chars")}`);
+  });
+
+  test("ไม่มี publicToken (เอกสารเก่าก่อน Phase 4) → ปุ่ม disabled + title อธิบายเหตุผล", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: undefined })]);
+    const btn = rows()[0].querySelector('[data-action="copy-link"]');
+    assert.equal(btn.hasAttribute("disabled"), true);
+    assert.match(btn.title, /ยังไม่มีลิงก์สาธารณะ/);
+  });
+
+  test("ไม่มี publicToken แล้วยังสั่งคลิกได้ (เช่นผ่าน script) → ไม่คัดลอกอะไร, แจ้ง toast แทน", async () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: undefined })]);
+    rows()[0].querySelector('[data-action="copy-link"]').dispatchEvent(new Event("click", { bubbles: true }));
+    await flushMicrotasks();
+    assert.equal(writeTextCalls.length, 0, "ไม่ควรมีการเรียก clipboard.writeText() เลย");
+    const toast = document.querySelector(".cp-toast-wrap .cp-toast");
+    assert.ok(toast, "ต้องมี toast แจ้งเหตุผล");
+    assert.match(toast.textContent, /ยังไม่มีลิงก์สาธารณะ/);
+  });
+
+  test("clipboard.writeText() reject → แจ้ง toast ว่าคัดลอกไม่สำเร็จ", async () => {
+    Object.defineProperty(globalThis.navigator, "clipboard", {
+      value: { writeText: () => Promise.reject(new Error("denied")) },
+      configurable: true
+    });
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", publicToken: "tok-abc-123" })]);
+    rows()[0].querySelector('[data-action="copy-link"]').dispatchEvent(new Event("click", { bubbles: true }));
+    await flushMicrotasks();
+    const toast = document.querySelector(".cp-toast-wrap .cp-toast");
+    assert.ok(toast, "ต้องมี toast แจ้งเหตุผล");
+    assert.match(toast.textContent, /คัดลอกลิงก์ไม่สำเร็จ/);
+  });
+});
+
+// ── ปุ่ม "ส่งออก CSV" (P3.0 Phase 6 รอบ 12, ad-q-export-csv-btn) ────────────────────────────
+function exportCsv() { document.getElementById("ad-q-export-csv-btn").click(); }
+function csvQ(s) { return `"${String(s ?? "").replace(/"/g, '""')}"`; }
+const Q_CSV_HEADER = "เลขที่เอกสาร,วันที่สร้าง,ลูกค้า,ยอดสุทธิ (บาท),สถานะ,วันหมดอายุ";
+
+describe("ปุ่ม 'ส่งออก CSV' (ad-q-export-csv-btn) — P3.0 Phase 6 รอบ 12", () => {
+  test("allQuotations ว่างเปล่า → toast error 'ไม่มีข้อมูลให้ส่งออก', ไม่สร้าง Blob เลย", () => {
+    triggerQuotationsSnapshot([]);
+    exportCsv();
+
+    assert.equal(lastBlobRef, null, "ต้องไม่มีการสร้าง Blob เลยเมื่อไม่มีข้อมูล");
+    assert.deepEqual(createObjectURLCalls, []);
+    const toast = document.querySelector(".cp-toast-wrap .cp-toast.error");
+    assert.ok(toast);
+    assert.equal(toast.textContent, "ไม่มีข้อมูลให้ส่งออก");
+  });
+
+  test("มีข้อมูล → Blob มี BOM นำหน้า + header row + data row ตรงตามสูตรทุก field, ไม่กรองอะไรเลย (แท็บนี้ไม่มี filter)", () => {
+    const createdAt = { toMillis: () => Date.parse("2026-03-15T10:30:00Z") };
+    triggerQuotationsSnapshot([
+      makeQuotation({ id: "q-1", quoteNo: "QT2026-0001", billingName: "บริษัท ทดสอบ จำกัด",
+        contactPerson: "คุณสมชาย", grandTotal: 10700, status: "sent", validUntil: "2026-04-01", createdAt }),
+      makeQuotation({ id: "q-2", quoteNo: "QT2026-0002", billingName: "", contactPerson: "คุณสมหญิง",
+        grandTotal: 5000, status: "draft", validUntil: "", createdAt })
+    ]);
+    exportCsv();
+
+    assert.equal(lastBlobParts.length, 1);
+    const raw = lastBlobParts[0];
+    assert.equal(raw.charCodeAt(0), 0xFEFF, "ตัวอักษรแรกต้องเป็น BOM — เช็คจาก parts ดิบ ไม่ใช่ .text() เพราะ Node ตัด BOM ทิ้งตอน decode");
+    const lines = raw.slice(1).split("\r\n");
+    assert.equal(lines[0], Q_CSV_HEADER);
+    assert.equal(lines.length, 3); // header + 2 quotations
+    assert.equal(lines[1], [csvQ("QT2026-0001"), csvQ("2026-03-15"), csvQ("บริษัท ทดสอบ จำกัด"), 10700, csvQ("ส่งลูกค้าแล้ว"), csvQ("2026-04-01")].join(","));
+    // q-2: billingName ว่าง -> fallback contactPerson ("คุณสมหญิง"), validUntil ว่าง -> csvCell("") = ""(quoted empty)
+    assert.equal(lines[2], [csvQ("QT2026-0002"), csvQ("2026-03-15"), csvQ("คุณสมหญิง"), 5000, csvQ("ร่าง"), csvQ("")].join(","));
+
+    assert.equal(lastBlobOptions.type, "text/csv;charset=utf-8;");
+  });
+
+  test("createdAt ไม่มีค่า (falsy) → คอลัมน์วันที่สร้างเป็นค่าว่าง (ไม่ throw)", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "QT2026-0003", createdAt: undefined })]);
+    exportCsv();
+
+    const lines = lastBlobParts[0].slice(1).split("\r\n");
+    assert.equal(lines[1], [csvQ("QT2026-0003"), csvQ(""), csvQ("บริษัท ทดสอบ จำกัด"), 10700, csvQ("ร่าง"), csvQ("")].join(","));
+  });
+
+  test("status ไม่อยู่ใน QUOTATION_STATUS_LABEL (ข้อมูลแปลกปลอม) → แสดง status ดิบแทน label", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "QT2026-0004", status: "unknown_status" })]);
+    exportCsv();
+
+    const lines = lastBlobParts[0].slice(1).split("\r\n");
+    assert.ok(lines[1].includes(csvQ("unknown_status")));
+  });
+
+  test("grandTotal เป็น undefined → fallback เป็น 0 ในคอลัมน์ยอดสุทธิ (ไม่ใช่ค่าว่าง/NaN)", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1", quoteNo: "QT2026-0005", grandTotal: undefined })]);
+    exportCsv();
+
+    const lines = lastBlobParts[0].slice(1).split("\r\n");
+    const cells = lines[1].split(",");
+    assert.equal(cells[3], "0");
+  });
+
+  test("Blob ถูกส่งเข้า URL.createObjectURL() ตัวเดียวกันจริง + สร้าง <a download> ถูกต้อง + click() + remove() + revokeObjectURL() + toast success", () => {
+    triggerQuotationsSnapshot([makeQuotation({ id: "q-1" })]);
+    exportCsv();
+
+    assert.equal(createObjectURLCalls.length, 1);
+    assert.equal(createObjectURLCalls[0], lastBlobRef);
+
+    const a = globalThis.__lastAnchor;
+    assert.ok(a, "ต้องมีการสร้าง <a> element");
+    assert.equal(a.download, `quotations-${new Date().toISOString().slice(0,10)}.csv`);
+    assert.ok(a.__clicked, "ต้องเรียก a.click()");
+    assert.equal(document.body.contains(a), false, "a ต้องถูก remove() ออกจาก DOM แล้วหลังคลิก");
+
+    assert.equal(revokeObjectURLCalls.length, 1);
+    assert.equal(revokeObjectURLCalls[0], a.href);
+
+    const toast = document.querySelector(".cp-toast-wrap .cp-toast.success");
+    assert.ok(toast);
+    assert.equal(toast.textContent, "ส่งออก CSV แล้ว");
   });
 });
