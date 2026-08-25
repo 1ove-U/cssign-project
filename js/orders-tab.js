@@ -76,7 +76,7 @@ import { filterOrders } from "./orders-tab-filters.js";
 import { renderOrderRow } from "./orders-tab-row.js";
 import { renderPagination } from "./orders-tab-pagination.js";
 import { openOrderModal, openOrderModalClone,
-         loadProductPicker, loadStaffPicker } from "./orders-tab-modal.js";
+         loadProductPicker, loadStaffPicker, loadQuoteRequestPicker } from "./orders-tab-modal.js";
 import { renderKanban } from "./orders-tab-kanban.js";
 import { renderCalendar } from "./orders-tab-calendar.js";
 import { renderStatsCards, renderChart, renderBreakdown } from "./orders-tab-stats.js";
@@ -132,6 +132,7 @@ export function initOrdersTab() {
   started = true;
   loadProductPicker();
   loadStaffPicker();
+  loadQuoteRequestPicker();
   startOrdersListener();
 }
 
