@@ -460,7 +460,7 @@ service cloud.firestore {
       allow create: if isAuthenticated()
                     && incomingData().keys().hasAll(['code','customer','item','qty','status'])
                     && incomingData().keys().hasOnly([
-                         'code','customer','phone','email','lineUserId','item','category','product_id','unit_price','qty','status','progress',
+                         'code','customer','phone','email','lineUserId','item','category','product_id','product_ids','unit_price','qty','status','progress',
                          'dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId',
                          'attachments','designFiles',
                          'deposit','paymentStatus','discount','vatIncluded','invoiceAddress',
@@ -470,6 +470,7 @@ service cloud.firestore {
                     && incomingData().qty is number && incomingData().qty > 0
                     && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
                     && (!('unit_price' in incomingData()) || incomingData().unit_price is number)
+                    && (!('product_ids' in incomingData()) || incomingData().product_ids is list)
                     && (!('progress' in incomingData()) || (incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100))
                     && (!('paymentStatus' in incomingData()) || incomingData().paymentStatus in ['unpaid','deposit_paid','paid_full'])
                     && (!('shippingMethod' in incomingData()) || incomingData().shippingMethod in ['pickup','self_delivery','courier'])
@@ -488,7 +489,7 @@ service cloud.firestore {
                       // lineUserId เดียวของ order ที่ trackingId ตรงกันเท่านั้น)
                       && !isLineCustomerToken()
                       && incomingData().keys().hasOnly([
-                           'code','customer','phone','email','lineUserId','item','category','product_id','unit_price','qty','status','progress',
+                           'code','customer','phone','email','lineUserId','item','category','product_id','product_ids','unit_price','qty','status','progress',
                            'dueDate','notes','createdAt','updatedAt','shippedAt','completedAt','createdBy','trackingId',
                            'attachments','designFiles',
                            'deposit','paymentStatus','discount','vatIncluded','invoiceAddress',
@@ -497,6 +498,7 @@ service cloud.firestore {
                          ])
                       && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
                       && (!('unit_price' in incomingData()) || incomingData().unit_price is number)
+                      && (!('product_ids' in incomingData()) || incomingData().product_ids is list)
                       && (!('progress' in incomingData()) || (incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100))
                       && (!('paymentStatus' in incomingData()) || incomingData().paymentStatus in ['unpaid','deposit_paid','paid_full'])
                       && (!('shippingMethod' in incomingData()) || incomingData().shippingMethod in ['pickup','self_delivery','courier'])
