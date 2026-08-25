@@ -308,14 +308,22 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   }
 
   // ===========================
-  // Session lost elsewhere (2026-08 follow-up) — same pattern as js/my-orders-page-en.js: if the
-  // LINE customer session logged in on this page gets signed out from a different tab in the
-  // same browser (e.g. an admin.html tab left open that auto-signs-out any session carrying a
-  // lineUserId claim), this page previously had no idea — the profile/quote-requests panel stayed
-  // on screen as if still logged in. Fixed by subscribing to onAuthChange() separately, watched
-  // only while sessionActive=true (after afterLogin() has run), resetting gently back to the
-  // "Log in with LINE" screen if the session goes away.
+  // Session lost elsewhere + auth not resolved yet on load (2026-08 follow-up, round 2) — same
+  // pattern as js/my-orders-page-en.js (see the long comment there for full detail). Short
+  // version, two real bugs found after shipping round 1:
+  // (1) auth.currentUser race on page load — runLiffFlow(false) used to be called immediately at
+  // the bottom of the file, before Firebase finished resolving the persisted session (always
+  // async, even on a plain refresh) — racing loginWithLine() against the session restoring in
+  // the background flipped the auth state mid-flight, which could also affect the
+  // listenMyQuoteRequests() Firestore listener. Fixed by waiting for the first onAuthChange()
+  // event before starting runLiffFlow(false).
+  // (2) False positive from round 1 — multiple tabs of this site open at once can make
+  // onAuthStateChanged fire a spurious transient event even when the real session is fine. Fixed
+  // by debouncing with a 1.5s grace timer (sessionLostTimer) before treating it as a real loss.
   // ===========================
+  var authReady = false;
+  var sessionLostTimer = null;
+
   function handleSessionLost() {
     sessionActive = false;
     currentLineUserId = null;
@@ -335,10 +343,26 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   }
 
   onAuthChange(function (user) {
-    if (!sessionActive) return; // never logged in on this page yet (runLiffFlow() owns startup), or already logged out
+    if (!authReady) {
+      // The first event from Firebase = the fully resolved auth state (see (1) above) — start
+      // the real login flow now instead of calling it immediately at the bottom of the file.
+      authReady = true;
+      showOnly(loadingEl);
+      runLiffFlow(false);
+      return;
+    }
+    if (!sessionActive) return; // never logged in on this page yet, or already logged out
     var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
-    if (stillLineSession) return;
-    handleSessionLost();
+    if (stillLineSession) {
+      if (sessionLostTimer) { clearTimeout(sessionLostTimer); sessionLostTimer = null; }
+      return;
+    }
+    if (sessionLostTimer) return;
+    sessionLostTimer = setTimeout(function () {
+      sessionLostTimer = null;
+      if (!sessionActive) return;
+      handleSessionLost();
+    }, 1500);
   });
 
   function loginErrorMessage(code) {
@@ -399,6 +423,8 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
     });
   }
 
+  // runLiffFlow(false) used to be called immediately here — moved to fire on the first
+  // onAuthChange() event instead (see the comment at the subscription above) to avoid the
+  // auth.currentUser race on page load/refresh.
   showOnly(loadingEl);
-  runLiffFlow(false);
 })();
