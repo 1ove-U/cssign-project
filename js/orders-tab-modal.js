@@ -46,11 +46,26 @@
 // ตั้งแต่ต้น) — แก้โดยเพิ่มประกาศ `let allProducts = []; let catNameMap = {};` ไว้ตรงจุดที่
 // ควรอยู่ (ก่อน loadProductPicker) เป็นจุดเดียวที่เปลี่ยน logic จากของเดิมในไฟล์นี้ นอกเหนือ
 // จากการย้ายโค้ดไปไฟล์ใหม่ตามปกติ
+//
+// 2026-08 update: 2 จุดในหมวด "ข้อมูลงาน" —
+//   1) ช่อง "LINE user ID ลูกค้า" (cp-o-line-user-id) เดิมเป็นช่องพิมพ์เปล่าล้วนๆ แก้ให้ผูกกับ
+//      <datalist> (cp-o-line-user-datalist) ที่เติมรายชื่อจาก collection "quote_requests" (ดู
+//      js/db-quote-requests.js) อัตโนมัติ — แสดงชื่อลูกค้าคู่กับ LINE user ID ให้แอดมินรู้ว่าเป็นใคร
+//      ก่อนเลือก แต่ยังพิมพ์เองได้เหมือนเดิมด้วย (input ปกติ ไม่ใช่ select บังคับเลือก) เพราะลูกค้า
+//      บางคนไม่เคยขอใบเสนอราคามาก่อนเลยก็มี — โหลดผ่าน loadQuoteRequestPicker() (realtime listener
+//      เดียวกับที่ js/admin-quotations.js ใช้ในโมดัลเลือกคำขอ) เรียกครั้งเดียวตอน initOrdersTab()
+//   2) ช่องเลือกสินค้า (cp-o-product) เดิมเป็น <select> เลือกได้ทีละรายการ แก้เป็น <select multiple>
+//      เลือกได้หลายรายการพร้อมกัน (กด Ctrl/Cmd ค้างไว้) — ตอนเลือกหลายชิ้น ชื่อรายการ/หมวดป้าย/
+//      ราคารวมต่อหน่วยจะรวมจากทุกสินค้าที่เลือกให้อัตโนมัติ (ดู applyProductSelection() ด้านล่าง)
+//      บันทึกเป็น product_ids (array ใหม่) คู่กับ product_id เดิม (เก็บแค่ตัวแรกไว้ backward-compat
+//      กับของเก่า/หน้าอื่นที่ยังอ่าน product_id เดี่ยวอยู่ — ดู js/db-orders.js ORDER_ALLOWED_FIELDS/
+//      normalizeOrderExtras() + firestore.rules ที่แก้คู่กัน)
 // ===========================
 import { logAudit, listStaff } from "./db.js";
 import { getProducts } from "./db-products.js";
 import { getCategories } from "./db-taxonomy.js";
 import { addOrder, updateOrder } from "./db-orders.js";
+import { listenAllQuoteRequests } from "./db-quote-requests.js";
 import { orderGrandTotal, orderBalance } from "./db-orders-stats.js";
 import { attachInlineValidation, validateFormInline,
          attachUnsavedGuard } from "./ui-form-validation.js";
@@ -150,6 +165,8 @@ const orderHeadCode   = document.getElementById("cp-o-head-code");
 const orderCancelBtn  = document.getElementById("cp-order-cancel");
 attachInlineValidation(orderForm);
 const productSelect     = document.getElementById("cp-o-product");
+const productChecklist  = document.getElementById("cp-o-product-checklist");
+const lineUserDatalist  = document.getElementById("cp-o-line-user-datalist");
 const unitPriceRow      = document.getElementById("cp-o-unit-price-row");
 const unitPriceDisplay  = document.getElementById("cp-o-unit-price-display");
 const unitPriceHidden   = document.getElementById("cp-o-unit-price");
@@ -163,37 +180,136 @@ let allProducts = [];
 let catNameMap = {};
 
 // ── Product picker (ผูกคำสั่งผลิตกับสินค้าจริงในแคตตาล็อก เพื่อคำนวณยอดขาย) ──
+// เลือกได้หลายรายการ (multi-select) — ไม่มี option "— เลือกสินค้า... —" เหมือนของเดิมแล้ว เพราะ
+// select multiple ไม่ต้องมี placeholder แบบนั้น (ไม่เลือกเลยก็คือค่าว่างอยู่แล้วโดยไม่ต้องมี option พิเศษ)
 export async function loadProductPicker() {
   try {
     const [products, categories] = await Promise.all([getProducts(), getCategories()]);
     allProducts = products || [];
     catNameMap = {};
     (categories || []).forEach(c => { catNameMap[c.id] = c.name; });
-    productSelect.innerHTML = '<option value="">— เลือกสินค้าจากแคตตาล็อก (ไม่บังคับ แต่จำเป็นถ้าต้องการนับยอดขาย) —</option>' +
-      allProducts.map(p => {
-        const priceLabel = p.price ? ` — ฿${Number(p.price).toLocaleString("th-TH")}` : "";
-        return `<option value="${p.id}">${escapeHtml(p.name || "สินค้า")}${priceLabel}</option>`;
-      }).join("");
+    productSelect.innerHTML = allProducts.map(p => {
+      const priceLabel = p.price ? ` — ฿${Number(p.price).toLocaleString("th-TH")}` : "";
+      return `<option value="${p.id}">${escapeHtml(p.name || "สินค้า")}${priceLabel}</option>`;
+    }).join("");
+    renderProductChecklist();
   } catch (err) {
     console.warn("โหลดรายการสินค้าสำหรับผูกคำสั่งผลิตไม่สำเร็จ", err);
   }
 }
 
-productSelect.addEventListener("change", () => {
-  const product = allProducts.find(p => p.id === productSelect.value);
-  if (!product) {
+// ── UI checkbox แทน native select multiple (ดูคอมเมนต์ใน admin.html #cp-o-product-checklist) ──
+// วาดรายการ checkbox ตาม allProducts — เรียกครั้งเดียวตอนโหลดสินค้าเสร็จ (ไม่ได้เรียกซ้ำตอนเปิด/
+// ปิดป๊อปอัพ เพราะรายการสินค้าไม่เปลี่ยนบ่อย — สถานะติ๊ก/ไม่ติ๊กต่อครั้งจัดการผ่าน
+// syncProductChecklistFromSelect() แยกต่างหาก)
+function renderProductChecklist() {
+  if (!allProducts.length) {
+    productChecklist.innerHTML = '<div class="cp-product-checklist-empty">ยังไม่มีสินค้าในแคตตาล็อก</div>';
+    return;
+  }
+  productChecklist.innerHTML = allProducts.map(p => {
+    const priceLabel = p.price ? `฿${Number(p.price).toLocaleString("th-TH")}` : "";
+    return `
+      <label class="cp-product-check-row" data-product-id="${p.id}">
+        <input type="checkbox" value="${p.id}">
+        <span class="cp-product-check-row-name">${escapeHtml(p.name || "สินค้า")}</span>
+        <span class="cp-product-check-row-price">${escapeHtml(priceLabel)}</span>
+      </label>`;
+  }).join("");
+}
+
+// อ่านสถานะ .selected ปัจจุบันของ select ที่ซ่อนไว้ (แหล่งความจริงเดียว) มาอัปเดต checkbox/active
+// class ของ UI ให้ตรงกัน — ต้องเรียกทุกครั้งที่มีอะไรไปเปลี่ยน productSelect.options[].selected
+// จากภายนอก checkbox เอง เช่น openOrderModal(order) ตอน restore ค่าเดิมของคำสั่งผลิตที่แก้ไข
+function syncProductChecklistFromSelect() {
+  const selectedIds = new Set(Array.from(productSelect.selectedOptions).map(o => o.value));
+  productChecklist.querySelectorAll(".cp-product-check-row").forEach(row => {
+    const isSelected = selectedIds.has(row.dataset.productId);
+    row.classList.toggle("active", isSelected);
+    row.querySelector('input[type="checkbox"]').checked = isSelected;
+  });
+}
+
+// คลิกที่แถวไหนก็ตาม → toggle .selected ของ option คู่กันใน select จริง แล้วยิง "change" event ต่อ
+// เหมือนผู้ใช้คลิกเลือกใน select multiple เอง (applyProductSelection() ที่ผูก listener ไว้กับ
+// select จะทำงานต่ออัตโนมัติ ไม่ต้องเรียกซ้ำตรงนี้) — ใช้ event delegation ที่ container เพราะแถว
+//ถูกสร้างใหม่ทุกครั้งที่ renderProductChecklist()
+productChecklist.addEventListener("click", (e) => {
+  const row = e.target.closest(".cp-product-check-row");
+  if (!row) return;
+  e.preventDefault(); // กัน label ค่า default toggle checkbox ซ้ำสอง (เรา toggle เองข้างล่างแล้ว)
+  const productId = row.dataset.productId;
+  const option = Array.from(productSelect.options).find(o => o.value === productId);
+  if (!option) return;
+  option.selected = !option.selected;
+  productSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  syncProductChecklistFromSelect();
+});
+
+// ── LINE user ID picker (P.multi-select-2026-08) — เติม <datalist> จากลูกค้าที่เคยส่งคำขอใบเสนอ
+// ราคา (collection "quote_requests", มี lineUserId ติดมาถ้าตอน login ด้วย LINE อยู่ตอนส่งคำขอ —
+// ดู js/db-quote-requests.js saveQuoteRequest()) แสดงชื่อคู่กับ LINE user ID เพื่อให้แอดมินรู้ว่า
+// เป็นใครก่อนเลือก — ใช้ pattern listener เดียวกับ js/admin-quotations.js
+// startQuoteRequestsListener() (โมดัลเลือกคำขอของแท็บใบเสนอราคา) แต่แยก listener ของตัวเองเพราะ
+// คนละไฟล์ คนละ scope — เรียกครั้งเดียวตอน initOrdersTab() เหมือน loadProductPicker()/loadStaffPicker()
+let quoteRequestPickerStarted = false;
+export function loadQuoteRequestPicker() {
+  if (quoteRequestPickerStarted) return;
+  quoteRequestPickerStarted = true;
+  listenAllQuoteRequests(
+    (requests) => {
+      // เรียง createdAt ล่าสุดก่อนอยู่แล้ว (query จาก listenAllQuoteRequests()) — เจอ lineUserId
+      // ซ้ำเก็บแค่ชื่อจากคำขอล่าสุดพอ (ตัวแรกที่เจอ) กันรายชื่อซ้ำในลิสต์เดียวกัน
+      const seen = new Map(); // lineUserId -> ชื่อที่แสดง
+      (requests || []).forEach(r => {
+        const uid = String(r.lineUserId || "").trim();
+        if (!uid || seen.has(uid)) return;
+        seen.set(uid, r.billingName || r.contactPerson || "ไม่ระบุชื่อ");
+      });
+      lineUserDatalist.innerHTML = Array.from(seen.entries())
+        .map(([uid, name]) => `<option value="${escapeHtml(uid)}">${escapeHtml(name)}</option>`)
+        .join("");
+    },
+    (err) => console.warn("โหลดรายชื่อผู้ขอใบเสนอราคาสำหรับผูก LINE user ID ไม่สำเร็จ", err)
+  );
+}
+
+// รายการสินค้าที่ถูกเลือกอยู่ตอนนี้ใน cp-o-product (multi-select) — คืนเป็น object สินค้าเต็ม
+// (จับคู่กับ allProducts) ไม่ใช่แค่ id เฉยๆ เพราะต้องใช้ name/price/unit/cat_id ต่อ
+function selectedProducts() {
+  return Array.from(productSelect.selectedOptions)
+    .map(opt => allProducts.find(p => p.id === opt.value))
+    .filter(Boolean);
+}
+
+// รวมชื่อ/หมวด/ราคาต่อหน่วยจากสินค้าที่เลือกทั้งหมด (เลือกได้หลายรายการ) เข้าช่อง "ชื่อรายการ/ป้าย",
+// "หมวดป้าย" และแถวราคาต่อหน่วย — ยังเก็บโมเดลข้อมูลเดิมไว้ (unit_price ตัวเดียว, item เป็น text
+// เดียว) เพื่อไม่กระทบการคำนวณยอดเงิน/สถิติที่อื่นที่อ่าน field เดิมอยู่ — แค่ "รวม" ค่าจากทุกสินค้า
+// ที่เลือกเข้าไปในนั้นแทนที่จะดึงจากสินค้าชิ้นเดียว
+function applyProductSelection() {
+  const products = selectedProducts();
+  if (!products.length) {
     unitPriceRow.style.display = "none";
     unitPriceHidden.value = "0";
     return;
   }
-  document.getElementById("cp-o-item").value = product.name || "";
-  document.getElementById("cp-o-category").value = catNameMap[product.cat_id] || "";
-  const price = Number(product.price) || 0;
-  unitPriceHidden.value = String(price);
-  unitPriceDisplay.value = price ? `฿${price.toLocaleString("th-TH")} / ${product.unit || "หน่วย"}` : "สินค้านี้ยังไม่ระบุราคา";
+  document.getElementById("cp-o-item").value = products.map(p => p.name || "สินค้า").join(", ");
+  const categories = [...new Set(products.map(p => catNameMap[p.cat_id]).filter(Boolean))];
+  document.getElementById("cp-o-category").value = categories.join(", ");
+  const totalPrice = products.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+  unitPriceHidden.value = String(totalPrice);
+  if (!totalPrice) {
+    unitPriceDisplay.value = "สินค้าที่เลือกยังไม่ระบุราคา";
+  } else if (products.length > 1) {
+    unitPriceDisplay.value = `฿${totalPrice.toLocaleString("th-TH")} รวม ${products.length} รายการ / หน่วย`;
+  } else {
+    unitPriceDisplay.value = `฿${totalPrice.toLocaleString("th-TH")} / ${products[0].unit || "หน่วย"}`;
+  }
   unitPriceRow.style.display = "";
   updateFinanceSummary();
-});
+}
+
+productSelect.addEventListener("change", applyProductSelection);
 
 // ── Staff picker (ผูก assignee ของคำสั่งผลิตกับ collection "staff" — ดู listStaff() ใน js/db.js) ──
 export async function loadStaffPicker() {
@@ -300,7 +416,17 @@ export function openOrderModal(order) {
   document.getElementById("cp-o-phone").value      = order ? order.phone || "" : "";
   document.getElementById("cp-o-email").value      = order ? order.email || "" : "";
   document.getElementById("cp-o-line-user-id").value = order ? order.lineUserId || "" : "";
-  productSelect.value                              = order ? order.product_id || "" : "";
+  // เลือกได้หลายรายการ — order.product_ids (array ใหม่) ถ้ามี ไม่งั้น fallback ไป product_id
+  // เดี่ยวของเดิม (คำสั่งผลิตเก่าก่อนอัปเดตนี้ยังมีแค่ field เดียว)
+  {
+    const selectedIds = order
+      ? (Array.isArray(order.product_ids) && order.product_ids.length
+          ? order.product_ids
+          : (order.product_id ? [order.product_id] : []))
+      : [];
+    Array.from(productSelect.options).forEach(opt => { opt.selected = selectedIds.includes(opt.value); });
+    syncProductChecklistFromSelect();
+  }
   document.getElementById("cp-o-item").value       = order ? order.item || "" : "";
   document.getElementById("cp-o-category").value   = order ? order.category || "" : "";
   const price = order ? Number(order.unit_price) || 0 : 0;
@@ -404,7 +530,11 @@ orderForm.addEventListener("submit", async (e) => {
     lineUserId: document.getElementById("cp-o-line-user-id").value.trim(),
     item:      document.getElementById("cp-o-item").value.trim(),
     category:  document.getElementById("cp-o-category").value.trim(),
-    product_id: productSelect.value,
+    // cp-o-product เป็น select multiple แล้ว (เลือกได้หลายรายการ) — product_id เก็บแค่ตัวแรกไว้
+    // backward-compat กับของเก่า/หน้าอื่นที่ยังอ่าน field เดี่ยวอยู่ ส่วน product_ids คือ array
+    // เต็มของทุกรายการที่เลือก (ดูหมายเหตุหัวไฟล์ "2026-08 update" ข้อ 2)
+    product_id: Array.from(productSelect.selectedOptions).map(o => o.value)[0] || "",
+    product_ids: Array.from(productSelect.selectedOptions).map(o => o.value),
     unit_price: Number(unitPriceHidden.value) || 0,
     qty:       document.getElementById("cp-o-qty").value,
     dueDate:   document.getElementById("cp-o-due").value,
