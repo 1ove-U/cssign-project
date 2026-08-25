@@ -27,7 +27,7 @@
 import { loginWithLine } from "./db-orders.js";
 // Same signOut + auth as js/my-orders-page-en.js uses from P2.9-A2/B — copied straight over per
 // this round's prompt (not abstracted into a shared module ahead of time).
-import { logoutAdmin, auth } from "./db.js";
+import { logoutAdmin, auth, onAuthChange } from "./db.js";
 // Quote request history (P3.0 Phase 5 round 9) — listenMyQuoteRequests() (js/db-quote-requests.js)
 // was already wired into the Thai page in round 8; this round wires the same function into the
 // English page, replacing listenMyLeads() (js/leads.js). No `-en` version of
@@ -87,6 +87,11 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   var currentLineUserId = null;
   var unsubscribeLeads = null;
 
+  // Tracks whether the page is currently in the "logged in" state (afterLogin() has run, no
+  // logout yet) — keeps the onAuthChange() subscription below from firing during the normal
+  // runLiffFlow() startup flow (same pattern as js/my-orders-page-en.js).
+  var sessionActive = false;
+
   function escapeHtml(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -143,6 +148,7 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   }
 
   function afterLogin(profile, lineUserId) {
+    sessionActive = true;
     renderProfile(profile);
     currentLineUserId = lineUserId || null;
     showOnly(profileEl);
@@ -275,6 +281,7 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   function handleLogout() {
     if (!logoutBtn || logoutBtn.disabled) return;
     logoutBtn.disabled = true;
+    sessionActive = false; // set before logoutAdmin() so the onAuthChange() listener below doesn't also run handleSessionLost()
     currentLineUserId = null;
     resetLeadsPanel(); // cancels any pending listenMyQuoteRequests() subscription + collapses the panel back
     Promise.resolve(logoutAdmin())
@@ -299,6 +306,40 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   if (logoutBtn) {
     logoutBtn.addEventListener("click", handleLogout);
   }
+
+  // ===========================
+  // Session lost elsewhere (2026-08 follow-up) — same pattern as js/my-orders-page-en.js: if the
+  // LINE customer session logged in on this page gets signed out from a different tab in the
+  // same browser (e.g. an admin.html tab left open that auto-signs-out any session carrying a
+  // lineUserId claim), this page previously had no idea — the profile/quote-requests panel stayed
+  // on screen as if still logged in. Fixed by subscribing to onAuthChange() separately, watched
+  // only while sessionActive=true (after afterLogin() has run), resetting gently back to the
+  // "Log in with LINE" screen if the session goes away.
+  // ===========================
+  function handleSessionLost() {
+    sessionActive = false;
+    currentLineUserId = null;
+    resetLeadsPanel();
+    try {
+      if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
+        liffInstance.logout();
+      }
+    } catch (err) {
+      console.error("liff logout error (session lost):", err);
+    }
+    nameEl.textContent = "";
+    avatarEl.src = "";
+    avatarEl.style.display = "none";
+    showOnly(loginEl);
+    showError("Your session expired or was signed out from another device/tab. Please log in again.");
+  }
+
+  onAuthChange(function (user) {
+    if (!sessionActive) return; // never logged in on this page yet (runLiffFlow() owns startup), or already logged out
+    var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
+    if (stillLineSession) return;
+    handleSessionLost();
+  });
 
   function loginErrorMessage(code) {
     if (code === "invalid_line_token") return "LINE verification failed. Please try logging in again.";
