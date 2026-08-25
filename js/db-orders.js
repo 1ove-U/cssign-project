@@ -280,6 +280,12 @@ export async function addOrder(order) {
     item:       order.item || "",
     category:   order.category || "",
     product_id: order.product_id || "",
+    // 2026-08: cp-o-product ในฟอร์มแอดมิน (js/orders-tab-modal.js) เปลี่ยนเป็น select multiple
+    // (เลือกสินค้าได้หลายรายการ) แล้ว — product_id ยังคงเก็บแค่ตัวแรกไว้ backward-compat ส่วนนี้คือ
+    // array เต็มของทุกรายการที่เลือก (กรองให้เหลือแต่ string ไม่ว่างเท่านั้น กัน field แปลกปลอม)
+    product_ids: Array.isArray(order.product_ids)
+      ? order.product_ids.filter(id => typeof id === "string" && id).slice(0, 50)
+      : [],
     unit_price: Number(order.unit_price) || 0,
     qty:        Number(order.qty) || 1,
     status:     order.status || "received",
@@ -305,7 +311,7 @@ export async function addOrder(order) {
 // ประเมินจาก "เอกสารทั้งใบหลัง merge" — ตอนนี้ครอบคลุมทุก field แปลกปลอม ไม่ใช่แค่ตัวที่รู้จัก
 // ล่วงหน้าเท่านั้น เผื่อมี field เก่าอื่นอีกจากสคีมารุ่นก่อนๆ ที่ยังไม่เจอ)
 const ORDER_ALLOWED_FIELDS = new Set([
-  "code", "customer", "phone", "email", "lineUserId", "item", "category", "product_id",
+  "code", "customer", "phone", "email", "lineUserId", "item", "category", "product_id", "product_ids",
   "unit_price", "qty", "status", "progress",
   "dueDate", "notes", "createdAt", "updatedAt", "shippedAt", "completedAt", "createdBy", "trackingId",
   "attachments", "designFiles",
