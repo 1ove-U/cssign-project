@@ -15,7 +15,7 @@ import { loginWithLine, listenMyOrders, linkLineAccount, ORDER_STATUS } from "./
 // time; if an existing LINE customer session is already there (uid starting with "line_"), skip
 // straight to afterLogin() instead of forcing a re-login (see "P2.9-B" in
 // p2.9-account-hub-plan.md).
-import { logoutAdmin, auth } from "./db.js";
+import { logoutAdmin, auth, onAuthChange } from "./db.js";
 
 (function () {
   var loadingEl        = document.getElementById("mo-loading");
@@ -68,6 +68,12 @@ import { logoutAdmin, auth } from "./db.js";
   var liffInstance = null;
 
   var unsubscribeOrders = null;
+
+  // Tracks whether the page is currently in the "logged in" state (afterLogin() has run, no
+  // logout yet) — used to keep the onAuthChange() subscription below from firing during the
+  // normal runLiffFlow() startup flow (sessionActive starts false, so the very first
+  // onAuthStateChanged event delivered right after subscribing is simply ignored).
+  var sessionActive = false;
 
   function showOnly(el) {
     [loadingEl, loginEl, ordersLoadingEl, emptyEl, listEl].forEach(function (e) {
@@ -127,6 +133,7 @@ import { logoutAdmin, auth } from "./db.js";
   }
 
   function afterLogin(lineUserId) {
+    sessionActive = true;
     showOnly(ordersLoadingEl);
     showLinkMore(); // login succeeded — show "link another order" right away, no need to wait for orders to load
     showLogout();   // same idea — show the "log out" button as soon as login succeeds (P2.9-A2)
@@ -144,6 +151,7 @@ import { logoutAdmin, auth } from "./db.js";
   function handleLogout() {
     if (!logoutBtn || logoutBtn.disabled) return;
     logoutBtn.disabled = true;
+    sessionActive = false; // set before logoutAdmin() so the onAuthChange() listener below doesn't also run handleSessionLost()
     if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
     Promise.resolve(logoutAdmin())
       .catch(function (err) {
@@ -168,6 +176,44 @@ import { logoutAdmin, auth } from "./db.js";
   if (logoutBtn) {
     logoutBtn.addEventListener("click", handleLogout);
   }
+
+  // ===========================
+  // Session lost elsewhere (2026-08 follow-up) — if the LINE customer session logged in on this
+  // page gets signed out from a different tab in the same browser (e.g. an admin.html tab left
+  // open, which signs out any session carrying a lineUserId claim automatically — see the
+  // BUGFIX 2026-08 note in js/admin-page.js; signOut(auth) affects every tab of the same site
+  // since they share one auth instance), this page previously had no idea the session was gone —
+  // the existing listenMyOrders() subscription kept running against a now-null
+  // auth.currentUser and threw an unpredictable error partway through. Fixed by subscribing to
+  // onAuthChange() separately, watched only while sessionActive=true (i.e. after afterLogin() has
+  // run). If the user changes to null, or to a non-LINE-customer account (uid without the
+  // "line_" prefix — covers switching this same tab to an admin session), reset gently back to
+  // the "Log in with LINE" screen instead of leaving a stuck error on screen. No extra guarding
+  // needed for token refreshes — onAuthStateChanged (unlike onIdTokenChanged) only fires on an
+  // actual user change (sign-in/out), not on a routine token refresh.
+  function handleSessionLost() {
+    sessionActive = false;
+    if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
+    try {
+      if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
+        liffInstance.logout();
+      }
+    } catch (err) {
+      console.error("liff logout error (session lost):", err);
+    }
+    listEl.innerHTML = "";
+    hideLinkMore();
+    hideLogout();
+    showOnly(loginEl);
+    showError("Your session expired or was signed out from another device/tab. Please log in again.");
+  }
+
+  onAuthChange(function (user) {
+    if (!sessionActive) return; // never logged in on this page yet (runLiffFlow() owns startup), or already logged out
+    var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
+    if (stillLineSession) return; // existing LINE customer session is still fine, nothing to do
+    handleSessionLost();
+  });
 
   function loginErrorMessage(code) {
     if (code === "invalid_line_token") return "LINE verification failed. Please try logging in again.";
