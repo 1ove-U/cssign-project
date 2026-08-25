@@ -186,18 +186,33 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
   }
 
   // ===========================
-  // เซสชันหลุดจากที่อื่น (2026-08 follow-up) — เดิมถ้า session ของบัญชี LINE ที่ login ค้างอยู่ในหน้า
-  // นี้ถูก signOut(auth) จากแท็บอื่นในเบราว์เซอร์เดียวกัน (เช่น เผลอเปิด admin.html ค้างไว้คนละแท็บ
-  // แล้ว admin-page.js ตรวจเจอ custom claim lineUserId แล้ว signOut ให้อัตโนมัติตาม BUGFIX
-  // 2026-08 ใน js/admin-page.js — signOut(auth) กระทบทุกแท็บของเว็บเดียวกันเพราะใช้ auth instance
-  // เดียวกัน) หน้านี้จะไม่รู้ตัวเลยว่า session หลุดไปแล้ว ปล่อยให้ listener เดิม (listenMyOrders())
-  // ยังพยายามทำงานต่อด้วย auth.currentUser ที่เป็น null ไปแล้ว เกิด error ที่ทำนายไม่ได้กลางทาง —
-  // แก้โดย subscribe onAuthChange() แยกไว้เฝ้าดูตลอดเวลาที่ sessionActive=true (คือหลัง afterLogin()
-  // เรียกไปแล้ว) ถ้าเจอ user เปลี่ยนไปเป็น null หรือกลายเป็นบัญชีที่ไม่ใช่ลูกค้า LINE (ไม่มี "line_"
-  // prefix ที่ uid — เผื่อเคสสลับไปเป็น session แอดมินในแท็บนี้เอง) ระหว่างทาง ให้พากลับไปหน้า
-  // "เข้าสู่ระบบด้วย LINE" อย่างนุ่มนวลแทนที่จะปล่อยให้ค้าง error ไว้ — ไม่ต้อง guard เพิ่มเรื่อง
-  // token refresh เพราะ onAuthStateChanged (ต่างจาก onIdTokenChanged) ยิงเฉพาะตอน user
-  // เปลี่ยน (sign-in/out) จริงๆ เท่านั้น ไม่ยิงซ้ำตอน refresh token เฉยๆ
+  // เซสชันหลุดจากที่อื่น + auth ยังไม่ resolve ตอนหน้าโหลด (2026-08 follow-up รอบ 2) — 2 ปัญหาที่
+  // เจอจริงหลังปล่อยรอบแรก:
+  //
+  // (1) auth.currentUser race ตอนหน้าโหลด — เดิม runLiffFlow(false) ถูกเรียกทันทีตอนสคริปต์รัน
+  // (ท้ายไฟล์) ซึ่ง auth.currentUser ยังไม่ทันถูก resolve เสร็จ (Firebase อ่าน persisted session จาก
+  // IndexedDB แบบ async เสมอ ต่อให้เป็นแค่การกด "รีเฟรชหน้า" ธรรมดาไม่ใช่ redirect กลับจาก LINE ก็
+  // ตาม) ทำให้ hasExistingLineSession() เช็คแล้วได้ false ทั้งที่จริงมี session ค้างอยู่ พา flow ไป
+  // เรียก loginWithLine() (สร้าง custom token ใหม่) ซ้ำแข่งกับตอนที่ session เดิมกำลัง restore อยู่
+  // พอดี ทำให้ auth state เปลี่ยนกลางทางไม่แน่นอน (สลับ user 2 รอบใกล้ๆ กัน) — Firestore listener ที่
+  // listenMyOrders() เพิ่ง subscribe ไปได้ auth context ไม่ตรงกับตอนที่ request จริงไปถึง backend
+  // กลายเป็น "Missing or insufficient permissions" (เห็นใน console ตอนแค่รีเฟรชหน้าเฉยๆ) — แก้โดย
+  // รอ event แรกจาก onAuthChange() ก่อน (Firebase การันตีว่า event แรกที่ยิงมาคือ state ที่ resolve
+  // เสร็จแล้วจริง — auth.currentUser ตอนนั้นจะตรงกับ user ที่ callback ได้รับเป๊ะ) แล้วค่อยเริ่ม
+  // runLiffFlow(false) ตรงนั้นแทนที่จะเรียกทันทีท้ายไฟล์แบบเดิม
+  //
+  // (2) false positive จากรอบก่อนหน้า — เพราะเหตุผลเดียวกับข้อ (1) เบราว์เซอร์เดียวกันที่เปิดหลาย
+  // แท็บของเว็บนี้พร้อมกัน (Firebase sync auth state ข้ามแท็บผ่าน storage event) บางจังหวะ
+  // onAuthStateChanged จะยิง event แปลกๆ ชั่วครู่ (เช่น null สั้นๆ) ระหว่างที่แท็บอื่นกำลัง
+  // init/sync ตัวเองอยู่ ทั้งที่ session จริงยังปกติดี — ถ้า handleSessionLost() ทำงานทันทีตาม event
+  // แรกที่เจอ จะโดน "เตะ" ออกจากระบบ error message เร็วเกินไปทั้งที่ไม่มีอะไรผิดจริง (ตามที่เจอในหน้า
+  // my-account.html) — แก้โดยหน่วงเช็คซ้ำ 1.5 วิ (sessionLostTimer) ก่อนค่อยเชื่อว่า session หลุด
+  // จริง ถ้าระหว่างนั้น auth state กลับมาเป็น session ลูกค้า LINE ปกติอีกครั้ง (หรือ logout ปกติผ่าน
+  // handleLogout() ไปแล้ว) จะยกเลิกไม่ทำ handleSessionLost() เลย
+  // ===========================
+  var authReady = false;
+  var sessionLostTimer = null;
+
   function handleSessionLost() {
     sessionActive = false;
     if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
@@ -216,10 +231,26 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
   }
 
   onAuthChange(function (user) {
-    if (!sessionActive) return; // ยังไม่เคย login สำเร็จในหน้านี้ (runLiffFlow() คุม flow เริ่มต้นเองอยู่แล้ว) หรือ logout ไปแล้ว
+    if (!authReady) {
+      // event แรกจาก Firebase = auth state ที่ resolve เสร็จแล้วจริง (ดูข้อ (1) ด้านบน) — เริ่ม
+      // flow login จริงตอนนี้แทนที่จะเรียกทันทีท้ายไฟล์แบบเดิม
+      authReady = true;
+      showOnly(loadingEl);
+      runLiffFlow(false);
+      return;
+    }
+    if (!sessionActive) return; // ยังไม่เคย login สำเร็จในหน้านี้ หรือ logout ไปแล้ว
     var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
-    if (stillLineSession) return; // session ลูกค้า LINE เดิมยังอยู่ปกติ ไม่ต้องทำอะไร
-    handleSessionLost();
+    if (stillLineSession) {
+      if (sessionLostTimer) { clearTimeout(sessionLostTimer); sessionLostTimer = null; } // session กลับมาปกติทัน ยกเลิกที่รอเช็คไว้
+      return;
+    }
+    if (sessionLostTimer) return; // กำลังรอเช็คซ้ำอยู่แล้ว ไม่ต้องตั้งซ้อน
+    sessionLostTimer = setTimeout(function () {
+      sessionLostTimer = null;
+      if (!sessionActive) return; // logout ปกติไปแล้วระหว่างที่รอ ไม่ต้องทำซ้ำ
+      handleSessionLost();
+    }, 1500);
   });
 
   function loginErrorMessage(code) {
@@ -400,8 +431,9 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
     });
   }
 
-  // เริ่ม flow อัตโนมัติตอนหน้าโหลด (เช็คว่า login ค้างอยู่แล้วหรือยัง — เผื่อกลับมาจาก
-  // liff.login() redirect หรือเคยเปิด LIFF ผ่านมาก่อนหน้านี้ในเซสชันเดียวกัน)
+  // เดิมเรียก runLiffFlow(false) ตรงนี้ทันที — ย้ายไปเรียกตอน onAuthChange() ยิง event แรกแทน (ดู
+  // คอมเมนต์ยาวที่จุด subscribe ด้านบน หัวข้อ "เซสชันหลุดจากที่อื่น + auth ยังไม่ resolve ตอนหน้า
+  // โหลด") กัน auth.currentUser race ตอนหน้าโหลด/รีเฟรช — showOnly(loadingEl) ยังคงอยู่ตรงนี้เพื่อให้
+  // เห็น loading state ทันทีระหว่างรอ event แรกนั้น (ปกติเร็วมาก แต่กันจอกระพริบ)
   showOnly(loadingEl);
-  runLiffFlow(false);
 })();
