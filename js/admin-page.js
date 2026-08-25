@@ -123,7 +123,21 @@ onAuthChange(async (user) => {
   // (อ่านได้แค่ของตัวเอง) ทุก listener แบบกว้างของแอดมิน (เช่น listenAllQuoteRequests()
   // ในแท็บใบเสนอราคา) จะ permission-denied เงียบๆ กลายเป็นข้อมูลไม่ขึ้นในแดชบอร์ดเลย —
   // แก้โดยเช็ค custom claim `lineUserId` ก่อนเสมอ ถ้าเจอ แปลว่า user นี้คือบัญชีลูกค้า ไม่ใช่
-  // ทีมงาน ต้อง signOut แล้วกลับไปโชว์ฟอร์ม login แอดมินตามปกติแทน
+  // ทีมงาน โชว์ gate/error กลับไปหน้า login แอดมินตามปกติแทน
+  //
+  // แก้ต่อ (2026-08 รอบ 2) — เดิมตรงนี้เรียก `await logoutAdmin()` (คือ signOut(auth)) ด้วย เพื่อ
+  // เคลียร์ session ลูกค้าออกจาก auth instance ก่อนโชว์ฟอร์ม login แอดมิน — แต่ signOut(auth) ไม่ได้
+  // จำกัดผลแค่แท็บ admin.html แท็บนี้เท่านั้น มันเป็น global operation ที่ล้าง session ของ auth
+  // instance ทั้งตัว ซึ่ง "แชร์กันทุกแท็บของเว็บเดียวกันในเบราว์เซอร์เดียวกัน" (Firebase Auth
+  // persistence แบบ default ผูกกับ origin ไม่ใช่ผูกกับแท็บ) ผลคือถ้าลูกค้า login LINE ค้างไว้ในแท็บ
+  // my-orders.html/my-account.html อยู่แล้วเปิด admin.html เป็นอีกแท็บ (หรือลืมปิดแท็บ admin.html
+  // ค้างไว้จากก่อนหน้า) โค้ดตรงนี้จะ signOut ลูกค้าออกจากทุกแท็บทันทีโดยไม่ตั้งใจ ทั้งที่ลูกค้าไม่ได้
+  // ทำอะไรผิดเลย (ดู REFACTOR-PROGRESS.md/บั๊กที่รายงานปี 2026-08 รอบ "เด้งออกจาก login LINE ทันที
+  // ที่เปิด admin.html อีกแท็บ") — เอา logoutAdmin() ออกจากจุดนี้ ปล่อยให้ session ลูกค้าอยู่เฉยๆ ใน
+  // auth instance ต่อไป แค่ไม่ยอมให้แท็บ admin.html นี้ "เข้าใช้งาน" สิทธิ์นั้น (โชว์ gate + ข้อความ
+  // error ค้างไว้เฉยๆ) พอแอดมินพิมพ์อีเมล/รหัสผ่านจริงแล้วกด login ผ่านฟอร์ม (loginAdmin() ด้านบน)
+  // signInWithEmailAndPassword() จะสลับ auth session เป็นของแอดมินเองโดยธรรมชาติอยู่แล้ว (เป็น action
+  // ที่แอดมินตั้งใจกดเอง ไม่ใช่ผลข้างเคียงเงียบๆ)
   let tokenResult = null;
   try {
     tokenResult = await user.getIdTokenResult();
@@ -131,7 +145,10 @@ onAuthChange(async (user) => {
     console.warn("[admin-page] อ่าน ID token claims ไม่สำเร็จ (ถือว่าไม่ใช่บัญชีลูกค้า LINE ไปก่อน)", err);
   }
   if (tokenResult && tokenResult.claims && typeof tokenResult.claims.lineUserId === "string") {
-    await logoutAdmin();
+    app.style.display = "none";
+    gate.style.display = "flex";
+    if (leadsUnsub) { leadsUnsub(); leadsUnsub = null; }
+    stopOrdersTab();
     loginError.textContent = "บัญชีนี้เป็นบัญชีลูกค้า (เข้าสู่ระบบผ่าน LINE) ไม่ใช่บัญชีทีมงาน กรุณาเข้าสู่ระบบด้วยอีเมล/รหัสผ่านของแอดมิน";
     loginError.style.display = "block";
     return;
