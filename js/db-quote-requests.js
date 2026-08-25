@@ -18,7 +18,7 @@
  */
 
 import { collection, addDoc, serverTimestamp,
-         query, where, orderBy, onSnapshot }
+         query, where, orderBy, onSnapshot, doc, deleteDoc }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { db, auth } from "./db.js";
 
@@ -157,6 +157,21 @@ export function listenAllQuoteRequests(callback, onError) {
     snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
     err => { if (onError) onError(err); else console.error("listenAllQuoteRequests error:", err); }
   );
+}
+
+/**
+ * ลบคำขอใบเสนอราคา (แอดมินเท่านั้น — firestore.rules บังคับ isAdminRole() ที่
+ * match /quote_requests/{requestId} → allow delete) — ใช้ใน "โมดัลเลือกคำขอ" ของแท็บ
+ * ใบเสนอราคา (js/admin-quotations.js) ให้แอดมินลบคำขอที่ไม่ต้องการออกได้ (เช่น คำขอซ้ำ/
+ * สแปม/ทดสอบ) — เอกสารนี้เป็นแหล่งข้อมูลเดียวกับที่ลูกค้าเห็นในพาแนล "ใบเสนอราคาของฉัน"
+ * (my-account.html, ผ่าน listenMyQuoteRequests() ด้านบน) เพราะทั้งสองฝั่ง query จาก
+ * collection "quote_requests" เดียวกันตรงๆ ไม่มีสำเนาแยก — ลบที่นี่ครั้งเดียวจึงหายไปจาก
+ * ทั้งฝั่งแอดมินและฝั่งลูกค้าพร้อมกันทันทีผ่าน realtime listener ของแต่ละฝั่งเอง ไม่ต้องลบซ้ำ
+ * ที่ไหนเพิ่ม
+ * @param {string} id
+ */
+export async function deleteQuoteRequest(id) {
+  await deleteDoc(doc(db, "quote_requests", id));
 }
 
 /**
