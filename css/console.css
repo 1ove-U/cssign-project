@@ -754,6 +754,45 @@ body.cp-scroll-locked{ overflow:hidden; }
 /* ── ป๊อปอัพรายละเอียดกว้างขึ้น (เนื้อหาแบ่งเป็นหมวด/แท็บ อ่านง่ายกว่าฟอร์มยาวเดียว) ── */
 .cp-order-detail.cp-modal{ max-width:640px; }
 
+/* ── โมดัลเลือกคำขอใบเสนอราคา (ad-qr-picker-modal, ปุ่ม "สร้างจากคำขอ") — เดิมใช้
+   .cp-table ปกติที่มี min-width:880px (กันคอลัมน์บีบในตารางหลักของแดชบอร์ด) ทำให้ตารางแค่
+   4 คอลัมน์สั้นๆ ในโมดัลแคบ (max-width เดิม 480px) ล้นจนต้องเลื่อนแนวนอนเห็นได้ไม่ครบ —
+   แก้โดย (1) ขยายโมดัลนี้กว้างขึ้นเป็น 620px ให้มีที่พอสำหรับคอลัมน์ action ที่มี 2 ปุ่ม และ
+   (2) ยกเลิก min-width + บังคับ table-layout:fixed เฉพาะตารางในโมดัลนี้ ให้คอลัมน์หด/ตัดคำ
+   ตามความกว้างจริงของโมดัลเสมอแทนการดันให้ล้น — ผลคือเห็นทุกคอลัมน์โดยไม่ต้องเลื่อนแนวนอน
+   ทั้งจอกว้างและจอแคบ (มือถือ) */
+.ad-qr-picker-modal.cp-modal{ max-width:620px; }
+.ad-qr-picker-modal .cp-table-wrap{ overflow-x:visible; }
+.ad-qr-picker-modal .cp-table{ min-width:0; width:100%; table-layout:fixed; }
+.ad-qr-picker-modal .cp-table th,
+.ad-qr-picker-modal .cp-table td{ white-space:normal; word-break:break-word; padding:12px 10px; }
+.ad-qr-picker-modal .cp-table th:nth-child(1),
+.ad-qr-picker-modal .cp-table td:nth-child(1){ width:26%; }
+.ad-qr-picker-modal .cp-table th:nth-child(2),
+.ad-qr-picker-modal .cp-table td:nth-child(2){ width:22%; }
+.ad-qr-picker-modal .cp-table th:nth-child(3),
+.ad-qr-picker-modal .cp-table td:nth-child(3){ width:18%; }
+.ad-qr-picker-modal .cp-table th:nth-child(4),
+.ad-qr-picker-modal .cp-table td:nth-child(4){ width:34%; }
+.ad-qr-row-actions{ display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+.ad-qr-use-btn{ padding:7px 12px !important; font-size:12.5px !important; white-space:nowrap; }
+
+@media (max-width:640px){
+  .ad-qr-picker-modal.cp-modal{ max-width:100%; padding:18px; }
+  .ad-qr-picker-modal .cp-table th,
+  .ad-qr-picker-modal .cp-table td{ padding:10px 6px; font-size:12px; }
+  .ad-qr-picker-modal .cp-table th:nth-child(1),
+  .ad-qr-picker-modal .cp-table td:nth-child(1){ width:24%; }
+  .ad-qr-picker-modal .cp-table th:nth-child(2),
+  .ad-qr-picker-modal .cp-table td:nth-child(2){ width:19%; }
+  .ad-qr-picker-modal .cp-table th:nth-child(3),
+  .ad-qr-picker-modal .cp-table td:nth-child(3){ width:16%; }
+  .ad-qr-picker-modal .cp-table th:nth-child(4),
+  .ad-qr-picker-modal .cp-table td:nth-child(4){ width:41%; }
+  .ad-qr-row-actions{ flex-direction:column; align-items:stretch; }
+  .ad-qr-use-btn{ width:100%; text-align:center; }
+}
+
 /* ── ฟอร์มสร้าง/แก้ไขใบเสนอราคา (P3.0 Phase 3 รอบย่อย 4) — กว้างกว่าโมดัลทั่วไปเพราะมีตาราง
    รายการสินค้าหลายคอลัมน์ ── */
 .ad-q-form-modal.cp-modal{ max-width:760px; }
