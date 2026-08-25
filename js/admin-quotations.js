@@ -43,7 +43,7 @@
 // deleteWithUndo() catch แล้วโชว์ toast "ลบไม่สำเร็จ" ให้อยู่แล้ว)
 // ===========================
 import { listenQuotations, deleteQuotation } from "./db-quotations.js";
-import { listenAllQuoteRequests } from "./db-quote-requests.js";
+import { listenAllQuoteRequests, deleteQuoteRequest } from "./db-quote-requests.js";
 import { formatBaht } from "./orders-tab.js";
 import { confirmDialog, errorStateHTML } from "./ui-helpers.js";
 import { escapeHtml, deleteWithUndo, showToast, openOverlay, closeOverlay } from "./admin-utils.js";
@@ -63,6 +63,9 @@ export const pendingDeleteQuotationIds = new Set();
 // listenAllQuoteRequests() ตอน startQuotationsListener() ครั้งแรก — ใช้แค่ในโมดัลเลือกคำขอ
 // ด้านล่าง (ad-qr-overlay) ยังไม่ export เพราะยังไม่มีไฟล์อื่นต้องใช้
 let allQuoteRequests = [];
+// ปุ่มลบคำขอใบเสนอราคาในโมดัลเลือกคำขอ ใช้ pattern deleteWithUndo() เดียวกับตารางใบเสนอราคาหลัก
+// ด้านบน (Set ของตัวเอง แยกจาก pendingDeleteQuotationIds เพราะคนละรายการ/คนละคอลเลกชัน)
+const pendingDeleteQuoteRequestIds = new Set();
 
 let quotationsStarted = false;
 let quotationsUnsub = null;
@@ -146,7 +149,12 @@ function startQuoteRequestsListener() {
   if (quoteRequestsStarted) return;
   quoteRequestsStarted = true;
   quoteRequestsUnsub = listenAllQuoteRequests(
-    (requests) => { allQuoteRequests = requests; },
+    (requests) => {
+      allQuoteRequests = requests;
+      // ถ้าโมดัลเลือกคำขอเปิดอยู่พอดี ให้ render ใหม่ทันที (เช่น มีคำขอใหม่เข้ามา หรือแอดมิน
+      // อีกคนลบคำขอไปพร้อมกัน) — ไม่ re-render ตารางหลักเหมือนเดิม (คนละตารางกัน)
+      if (qrOverlay && qrOverlay.style.display !== "none") renderQuoteRequestPicker();
+    },
     (err) => { console.error("listenAllQuoteRequests error:", err); }
   );
 }
@@ -354,7 +362,7 @@ function quoteRequestDateLabel(r) {
 function renderQuoteRequestPicker() {
   if (!qrListBody) return;
   const converted = convertedRequestIds();
-  const available = allQuoteRequests.filter(r => !converted.has(r.id));
+  const available = allQuoteRequests.filter(r => !converted.has(r.id) && !pendingDeleteQuoteRequestIds.has(r.id));
 
   if (!available.length) {
     qrListBody.innerHTML = `<tr><td colspan="4" class="cp-empty">ไม่มีคำขอใบเสนอราคาที่ยังไม่ถูกแปลง — ลูกค้ายังไม่ส่งคำขอเข้ามา หรือแปลงเป็นใบเสนอราคาไปหมดแล้ว</td></tr>`;
@@ -369,20 +377,46 @@ function renderQuoteRequestPicker() {
         <td class="cp-subtext">${quoteRequestDateLabel(r)}</td>
         <td>${escapeHtml(customerName)}</td>
         <td>${itemCount} รายการ</td>
-        <td><button type="button" class="btn btn-primary cl-btn" data-action="use">ใช้คำขอนี้</button></td>
+        <td>
+          <div class="cp-row-actions ad-qr-row-actions">
+            <button type="button" class="btn btn-primary cl-btn ad-qr-use-btn" data-action="use">ใช้คำขอนี้</button>
+            <button type="button" class="cp-icon-btn danger" data-action="delete" title="ลบคำขอนี้"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+          </div>
+        </td>
       </tr>`;
   }).join("");
 }
 
 if (qrListBody) {
-  qrListBody.addEventListener("click", (e) => {
-    const btn = e.target.closest('button[data-action="use"]');
-    if (!btn) return;
-    const row = btn.closest("tr[data-id]");
-    const request = allQuoteRequests.find(r => r.id === row.dataset.id);
-    if (!request) return;
-    closeOverlay(qrOverlay);
-    openQuotationFormFromRequest(request);
+  qrListBody.addEventListener("click", async (e) => {
+    const useBtn = e.target.closest('button[data-action="use"]');
+    if (useBtn) {
+      const row = useBtn.closest("tr[data-id]");
+      const request = allQuoteRequests.find(r => r.id === row.dataset.id);
+      if (!request) return;
+      closeOverlay(qrOverlay);
+      openQuotationFormFromRequest(request);
+      return;
+    }
+    const delBtn = e.target.closest('button[data-action="delete"]');
+    if (delBtn) {
+      const row = delBtn.closest("tr[data-id]");
+      const id = row.dataset.id;
+      const request = allQuoteRequests.find(r => r.id === id);
+      if (!request) return;
+      const customerName = request.billingName || request.contactPerson || "";
+      // ลบคำขอนี้ทิ้ง — เอกสารเดียวกับที่ลูกค้าเห็นใน "ใบเสนอราคาของฉัน" (my-account.html)
+      // ลบครั้งนี้ครั้งเดียวก็หายไปจากฝั่งลูกค้าด้วยทันที (ดูคอมเมนต์ deleteQuoteRequest()
+      // ใน js/db-quote-requests.js — คนละคอลเลกชันกับ "quotations"/"leads" จึงไม่กระทบข้อมูล
+      // ใบเสนอราคาที่ออกไปแล้วหรือลีดอื่นในระบบ)
+      if (await confirmDialog(`ลบคำขอใบเสนอราคาของ "${customerName}" ใช่หรือไม่? (ลูกค้าจะไม่เห็นคำขอนี้อีกต่อไป)`, { title: "ลบคำขอใบเสนอราคา", danger: true })) {
+        deleteWithUndo({
+          pendingSet: pendingDeleteQuoteRequestIds, id, renderFn: renderQuoteRequestPicker,
+          message: `ลบคำขอใบเสนอราคาของ "${customerName}" แล้ว`,
+          deleteFn: () => deleteQuoteRequest(id), targetType: "quote_request"
+        });
+      }
+    }
   });
 }
 if (qrCancelBtn) qrCancelBtn.addEventListener("click", () => closeOverlay(qrOverlay));
