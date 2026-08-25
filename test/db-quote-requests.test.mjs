@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
 import { auth } from "../js/db.js";
 
-let saveQuoteRequest, listenMyQuoteRequests, isValidThaiTaxId;
+let saveQuoteRequest, listenMyQuoteRequests, isValidThaiTaxId, deleteQuoteRequest;
 
 before(async () => {
   const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "https://example.test/quote-request-test" });
@@ -20,6 +20,7 @@ before(async () => {
   saveQuoteRequest = mod.saveQuoteRequest;
   listenMyQuoteRequests = mod.listenMyQuoteRequests;
   isValidThaiTaxId = mod.isValidThaiTaxId;
+  deleteQuoteRequest = mod.deleteQuoteRequest;
 });
 
 const originalFetch = globalThis.fetch;
@@ -36,6 +37,7 @@ function stubTurnstileOk() {
 afterEach(() => {
   globalThis.fetch = originalFetch;
   globalThis.__ADD_DOC_CALLS__ = [];
+  globalThis.__DELETE_DOC_CALLS__ = [];
   globalThis.__SNAPSHOT_LISTENERS__ = {};
   auth.currentUser = null;
 });
@@ -173,5 +175,25 @@ describe("isValidThaiTaxId()", () => {
 
   test("มีตัวอักษรปน → false", () => {
     assert.equal(isValidThaiTaxId("110170020745X"), false);
+  });
+});
+
+// ── deleteQuoteRequest() — ลบคำขอใบเสนอราคา (แอดมิน) ────────────────────────────────────
+// เพิ่มพร้อมปุ่มลบในโมดัลเลือกคำขอของแท็บใบเสนอราคา (js/admin-quotations.js) — ลบเอกสารใน
+// collection "quote_requests" เดียวกับที่ listenMyQuoteRequests()/listenAllQuoteRequests()
+// อ่านตรงๆ ไม่มีสำเนาแยกไว้ที่อื่น จึงไม่ต้องมีฟังก์ชันลบเพิ่มเติมฝั่ง "ลูกค้า" — ดู stub
+// deleteDoc() ใน test/helpers/firebase-stub-loader.mjs (capture เข้า __DELETE_DOC_CALLS__)
+describe("deleteQuoteRequest()", () => {
+  test("เรียก deleteDoc() กับ collection quote_requests + id ที่ส่งเข้าไปตรงๆ", async () => {
+    await deleteQuoteRequest("qr-123");
+    const call = globalThis.__DELETE_DOC_CALLS__[0];
+    assert.ok(call, "ต้องมีการเรียก deleteDoc()");
+    assert.equal(call.path, "quote_requests/qr-123");
+  });
+
+  test("id ต่างกัน → path ตรงกับ id นั้นเป๊ะ (ไม่ hardcode)", async () => {
+    await deleteQuoteRequest("another-id-999");
+    const call = globalThis.__DELETE_DOC_CALLS__[0];
+    assert.equal(call.path, "quote_requests/another-id-999");
   });
 });
