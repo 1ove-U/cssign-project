@@ -935,66 +935,76 @@
       <form class="cp-modal ad-q-form-modal cl-sticky-footer" id="ad-q-form">
         <div class="cp-modal-title" id="ad-q-modal-title">สร้างใบเสนอราคาใหม่</div>
 
+        <!-- หมายเหตุ (redesign): เดิมหน้านี้แบ่งเป็น 3 แท็บที่มองเห็นได้ทีละหมวด ต้องกดสลับไปมา
+             ผู้ใช้ให้แก้ให้เห็นทุกหมวดพร้อมกันในหน้าเดียวโดยไม่ต้องเลื่อน/สลับแท็บอ่าน — ปุ่มแท็บเดิม
+             (.cp-od-tabs) เก็บ markup ไว้เผื่อ JS อ้างอิง data-od-tab แต่ซ่อนด้วย CSS
+             (.ad-q-form-modal .cp-od-tabs{display:none} ใน console.css) ส่วน .cp-od-panel ทุกหมวด
+             ถูกบังคับ display:flex ตลอดด้วย CSS เดียวกัน แล้วจัดเป็นกริด 2 คอลัมน์ผ่าน .ad-q-grid ด้านล่าง -->
         <div class="cp-od-tabs" role="tablist" aria-label="หมวดข้อมูลใบเสนอราคา">
           <button type="button" class="cp-od-tab active" data-od-tab="customer" role="tab" aria-selected="true">ข้อมูลลูกค้า</button>
           <button type="button" class="cp-od-tab" data-od-tab="items" role="tab" aria-selected="false">รายการสินค้า</button>
           <button type="button" class="cp-od-tab" data-od-tab="summary" role="tab" aria-selected="false">สรุปยอด &amp; หมายเหตุ</button>
         </div>
 
-        <!-- ── หมวด 1: ข้อมูลลูกค้า ── -->
-        <div class="cp-od-panel active" data-od-panel="customer">
-          <div class="cp-modal-row">
-            <input class="cl-input" id="ad-q-billing-name" aria-label="ชื่อลูกค้า/บริษัท" placeholder="ชื่อลูกค้า/บริษัท" required>
-            <input class="cl-input" id="ad-q-contact-person" aria-label="ผู้ติดต่อ (ไม่บังคับ)" placeholder="ผู้ติดต่อ (ไม่บังคับ)">
+        <div class="ad-q-grid">
+          <!-- ── หมวด 1: ข้อมูลลูกค้า ── -->
+          <div class="cp-od-panel ad-q-panel-customer" data-od-panel="customer">
+            <div class="cp-od-panel-heading">ข้อมูลลูกค้า</div>
+            <div class="cp-modal-row">
+              <input class="cl-input" id="ad-q-billing-name" aria-label="ชื่อลูกค้า/บริษัท" placeholder="ชื่อลูกค้า/บริษัท" required>
+              <input class="cl-input" id="ad-q-contact-person" aria-label="ผู้ติดต่อ (ไม่บังคับ)" placeholder="ผู้ติดต่อ (ไม่บังคับ)">
+            </div>
+            <div class="cp-modal-row">
+              <input class="cl-input" id="ad-q-phone" aria-label="เบอร์โทร (ไม่บังคับ)" placeholder="เบอร์โทร (ไม่บังคับ)">
+              <select class="cl-input" id="ad-q-status" aria-label="สถานะ">
+                <option value="draft">ร่าง</option>
+                <option value="sent">ส่งลูกค้าแล้ว</option>
+                <option value="accepted">ลูกค้าตอบรับ</option>
+                <option value="rejected">ลูกค้าปฏิเสธ</option>
+                <option value="expired">หมดอายุ</option>
+              </select>
+            </div>
+            <textarea class="cl-input" id="ad-q-billing-address" aria-label="ที่อยู่ออกใบเสนอราคา (ไม่บังคับ)" placeholder="ที่อยู่ออกใบเสนอราคา (ไม่บังคับ)" rows="2"></textarea>
           </div>
-          <div class="cp-modal-row">
-            <input class="cl-input" id="ad-q-phone" aria-label="เบอร์โทร (ไม่บังคับ)" placeholder="เบอร์โทร (ไม่บังคับ)">
-            <select class="cl-input" id="ad-q-status" aria-label="สถานะ">
-              <option value="draft">ร่าง</option>
-              <option value="sent">ส่งลูกค้าแล้ว</option>
-              <option value="accepted">ลูกค้าตอบรับ</option>
-              <option value="rejected">ลูกค้าปฏิเสธ</option>
-              <option value="expired">หมดอายุ</option>
-            </select>
-          </div>
-          <textarea class="cl-input" id="ad-q-billing-address" aria-label="ที่อยู่ออกใบเสนอราคา (ไม่บังคับ)" placeholder="ที่อยู่ออกใบเสนอราคา (ไม่บังคับ)" rows="2"></textarea>
-        </div>
 
-        <!-- ── หมวด 2: รายการสินค้า (กว้างเต็มที่ ไม่บีบคอลัมน์) ── -->
-        <div class="cp-od-panel" data-od-panel="items">
-          <div class="ad-q-items-wrap">
-            <table class="cp-table ad-q-items-table">
-              <thead><tr><th>ชื่อสินค้า</th><th>ตัวเลือก</th><th>จำนวน</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>ส่วนลด</th><th>รวม</th><th></th></tr></thead>
-              <tbody id="ad-q-items-body"></tbody>
-            </table>
-            <button type="button" class="ad-upload-btn" id="ad-q-add-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-              เพิ่มรายการสินค้า
-            </button>
-          </div>
-        </div>
+          <!-- ── หมวด 3: สรุปยอด & หมายเหตุ ── -->
+          <div class="cp-od-panel ad-q-panel-summary" data-od-panel="summary">
+            <div class="cp-od-panel-heading">สรุปยอด &amp; หมายเหตุ</div>
+            <div class="cp-modal-row">
+              <select class="cl-input" id="ad-q-vat-mode" aria-label="เงื่อนไข VAT">
+                <option value="excluded">ราคายังไม่รวม VAT (บวกเพิ่ม 7%)</option>
+                <option value="included">ราคารวม VAT แล้ว</option>
+                <option value="none">ไม่มี VAT</option>
+              </select>
+              <!-- วันหมดอายุใบเสนอราคา (P3.0 Phase 6, badge ใกล้หมดอายุ) — ฟิลด์นี้มีอยู่แล้วใน schema
+              (js/db-quotations.js validUntil) และแสดงผลอยู่แล้วที่หน้า public (quotation-view.html
+              id="qv-valid-until") แต่ก่อนหน้านี้ไม่เคยมีช่องกรอกในฟอร์มแอดมินเลยสักจุด (ตรวจแล้วจริง
+              ด้วย grep ก่อนเพิ่ม) — ไม่บังคับกรอก (ถ้าเว้นว่างจะไม่มี badge เตือนหมดอายุที่ตารางรายการ
+              ดู js/admin-quotations.js quotationExpiryBadge()) -->
+              <input class="cl-input" type="date" id="ad-q-valid-until" aria-label="วันหมดอายุใบเสนอราคา (ไม่บังคับ)" placeholder="วันหมดอายุ">
+            </div>
+            <textarea class="cl-input" id="ad-q-notes" aria-label="หมายเหตุ (ไม่บังคับ)" placeholder="หมายเหตุ (ไม่บังคับ)" rows="2"></textarea>
 
-        <!-- ── หมวด 3: สรุปยอด & หมายเหตุ ── -->
-        <div class="cp-od-panel" data-od-panel="summary">
-          <div class="cp-modal-row">
-            <select class="cl-input" id="ad-q-vat-mode" aria-label="เงื่อนไข VAT">
-              <option value="excluded">ราคายังไม่รวม VAT (บวกเพิ่ม 7%)</option>
-              <option value="included">ราคารวม VAT แล้ว</option>
-              <option value="none">ไม่มี VAT</option>
-            </select>
-            <!-- วันหมดอายุใบเสนอราคา (P3.0 Phase 6, badge ใกล้หมดอายุ) — ฟิลด์นี้มีอยู่แล้วใน schema
-            (js/db-quotations.js validUntil) และแสดงผลอยู่แล้วที่หน้า public (quotation-view.html
-            id="qv-valid-until") แต่ก่อนหน้านี้ไม่เคยมีช่องกรอกในฟอร์มแอดมินเลยสักจุด (ตรวจแล้วจริง
-            ด้วย grep ก่อนเพิ่ม) — ไม่บังคับกรอก (ถ้าเว้นว่างจะไม่มี badge เตือนหมดอายุที่ตารางรายการ
-            ดู js/admin-quotations.js quotationExpiryBadge()) -->
-            <input class="cl-input" type="date" id="ad-q-valid-until" aria-label="วันหมดอายุใบเสนอราคา (ไม่บังคับ)" placeholder="วันหมดอายุ">
+            <div class="ad-q-totals">
+              <div>ยอดรวมก่อน VAT: <span id="ad-q-subtotal">฿0</span></div>
+              <div>VAT: <span id="ad-q-vat">฿0</span></div>
+              <div class="ad-q-grandtotal">ยอดสุทธิ: <span id="ad-q-grandtotal">฿0</span></div>
+            </div>
           </div>
-          <textarea class="cl-input" id="ad-q-notes" aria-label="หมายเหตุ (ไม่บังคับ)" placeholder="หมายเหตุ (ไม่บังคับ)" rows="2"></textarea>
 
-          <div class="ad-q-totals">
-            <div>ยอดรวมก่อน VAT: <span id="ad-q-subtotal">฿0</span></div>
-            <div>VAT: <span id="ad-q-vat">฿0</span></div>
-            <div class="ad-q-grandtotal">ยอดสุทธิ: <span id="ad-q-grandtotal">฿0</span></div>
+          <!-- ── หมวด 2: รายการสินค้า (กว้างเต็มที่ ไม่บีบคอลัมน์) ── -->
+          <div class="cp-od-panel ad-q-panel-items" data-od-panel="items">
+            <div class="cp-od-panel-heading">รายการสินค้า</div>
+            <div class="ad-q-items-wrap">
+              <table class="cp-table ad-q-items-table">
+                <thead><tr><th>ชื่อสินค้า</th><th>ตัวเลือก</th><th>จำนวน</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>ส่วนลด</th><th>รวม</th><th></th></tr></thead>
+                <tbody id="ad-q-items-body"></tbody>
+              </table>
+              <button type="button" class="ad-upload-btn" id="ad-q-add-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                เพิ่มรายการสินค้า
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1586,8 +1596,16 @@
       <button type="button" class="cp-od-tab" data-od-tab="history" role="tab" aria-selected="false">ประวัติ</button>
     </div>
 
+    <!-- หมายเหตุ (redesign): เดิม 6 หมวดนี้เป็นแท็บที่เห็นได้ทีละหมวด ต้องกดสลับแท็บไปมา ผู้ใช้ให้แก้
+         ให้เห็นทุกหมวดพร้อมกันในหน้าเดียวโดยไม่ต้องเลื่อน/สลับแท็บอ่าน — ปุ่มแท็บด้านบน (.cp-od-tabs)
+         เก็บ markup ไว้เผื่อโค้ด JS เดิมอ้างอิง data-od-tab แต่ซ่อนด้วย CSS (.cp-order-detail .cp-od-tabs
+         {display:none} ใน console.css) ส่วน .cp-od-panel ทุกหมวดถูกบังคับ display:flex ตลอดด้วย CSS
+         เดียวกัน แล้วจัดเป็นกริด 3 คอลัมน์ผ่าน .cp-o-grid ด้านล่าง (ดูหัวข้อ "Order detail popup redesign
+         — all-visible grid" ใน console.css) -->
+    <div class="cp-o-grid">
     <!-- ── หมวด 1: ข้อมูลงาน ── -->
-    <div class="cp-od-panel active" data-od-panel="info">
+    <div class="cp-od-panel cp-o-panel-info" data-od-panel="info">
+      <div class="cp-od-panel-heading">ข้อมูลงาน</div>
       <div class="cp-modal-row">
         <input class="cl-input" id="cp-o-code" aria-label="เลขที่คำสั่งผลิต เช่น PO-2026-0120" placeholder="เลขที่คำสั่งผลิต เช่น PO-2026-0120" required>
         <input class="cl-input" id="cp-o-customer" aria-label="ลูกค้า / หน่วยงาน" placeholder="ลูกค้า / หน่วยงาน" required>
@@ -1654,7 +1672,8 @@
     </div>
 
     <!-- ── หมวด 2: การเงิน ── -->
-    <div class="cp-od-panel" data-od-panel="finance">
+    <div class="cp-od-panel cp-o-panel-finance" data-od-panel="finance">
+      <div class="cp-od-panel-heading">การเงิน</div>
       <div class="cp-modal-row">
         <input class="cl-input" type="number" min="0" step="0.01" id="cp-o-deposit" aria-label="ยอดมัดจำที่รับแล้ว (บาท)" placeholder="ยอดมัดจำที่รับแล้ว (บาท)">
         <input class="cl-input" type="number" min="0" step="0.01" id="cp-o-discount" aria-label="ส่วนลด (บาท)" placeholder="ส่วนลด (บาท)">
@@ -1680,7 +1699,8 @@
     </div>
 
     <!-- ── หมวด 3: การจัดส่ง ── -->
-    <div class="cp-od-panel" data-od-panel="shipping">
+    <div class="cp-od-panel cp-o-panel-shipping" data-od-panel="shipping">
+      <div class="cp-od-panel-heading">การจัดส่ง</div>
       <div class="cp-modal-row">
         <input class="cl-input" id="cp-o-recipient" aria-label="ชื่อผู้รับปลายทาง (ถ้าต่างจากลูกค้า)" placeholder="ชื่อผู้รับปลายทาง (ถ้าต่างจากลูกค้า)">
         <input class="cl-input" type="number" min="0" step="0.01" id="cp-o-shipping-cost" aria-label="ค่าจัดส่ง (บาท)" placeholder="ค่าจัดส่ง (บาท)">
@@ -1698,7 +1718,8 @@
     </div>
 
     <!-- ── หมวด 4: แนบไฟล์ ── -->
-    <div class="cp-od-panel" data-od-panel="attach">
+    <div class="cp-od-panel cp-o-panel-attach" data-od-panel="attach">
+      <div class="cp-od-panel-heading">แนบไฟล์</div>
       <div class="cp-attach-grid" id="cp-o-attach-grid"></div>
       <div class="cp-modal-row">
         <label class="ad-upload-btn">
@@ -1716,18 +1737,21 @@
     </div>
 
     <!-- ── หมวด 5: อนุมัติแบบ (P0.2c — ประวัติที่ลูกค้ากดอนุมัติ/ขอแก้ไขแบบเองจากหน้า public) ── -->
-    <div class="cp-od-panel" data-od-panel="design-approvals">
+    <div class="cp-od-panel cp-o-panel-design" data-od-panel="design-approvals">
+      <div class="cp-od-panel-heading">อนุมัติแบบ</div>
       <div class="cp-history-list" id="cp-o-design-approvals-list">
         <div class="cp-qc-empty">บันทึกคำสั่งผลิตนี้ให้เสร็จก่อน แล้วประวัติอนุมัติแบบจะเริ่มปรากฏที่นี่</div>
       </div>
     </div>
 
     <!-- ── หมวด 6: ประวัติ (audit trail เฉพาะคำสั่งผลิตนี้) ── -->
-    <div class="cp-od-panel" data-od-panel="history">
+    <div class="cp-od-panel cp-o-panel-history" data-od-panel="history">
+      <div class="cp-od-panel-heading">ประวัติ</div>
       <div class="cp-history-list" id="cp-o-history-list">
         <div class="cp-qc-empty">บันทึกหลังจากเพิ่มคำสั่งผลิตแล้วจึงจะเริ่มเห็นประวัติที่นี่</div>
       </div>
     </div>
+    </div><!-- /.cp-o-grid -->
 
     <div class="cl-actions">
       <button type="button" class="btn btn-secondary cl-btn" id="cp-order-cancel">ยกเลิก</button>
