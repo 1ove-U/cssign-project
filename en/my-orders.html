@@ -1,398 +1,348 @@
-// ===========================
-// js/my-orders-page-en.js — controls the English "My Orders" page (en/my-orders.html) — P2.8c-I
-// ===========================
-// English-text duplicate of js/my-orders-page.js (P2.8c-E/F), following the same pattern as
-// js/products-detail-popup-en.js — the project keeps a separate `-en.js` file per bilingual page
-// instead of runtime language-detection inside one file. Logic, element ids, and flow are
-// identical to js/my-orders-page.js; only user-facing strings differ. Any future logic fix to
-// my-orders-page.js should be mirrored here too (see comment left in my-orders-page.js at the
-// consumer import, and the note added to REFACTOR-PROGRESS.md/CHANGELOG.md for this round).
-import { loginWithLine, listenMyOrders, linkLineAccount, ORDER_STATUS } from "./db-orders.js";
-// Customer-side signOut (P2.9-A2, mirrors P2.9-A1) — uses the existing logoutAdmin() from
-// js/db.js directly (wraps signOut(auth), the same auth instance the admin uses — see
-// p2.9-account-hub-plan.md for why no separate signOutCustomer() alias was added this round).
-// auth (P2.9-B) — check auth.currentUser directly before entering the liff.login() flow every
-// time; if an existing LINE customer session is already there (uid starting with "line_"), skip
-// straight to afterLogin() instead of forcing a re-login (see "P2.9-B" in
-// p2.9-account-hub-plan.md).
-import { logoutAdmin, auth, onAuthChange } from "./db.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Orders — CS.SIGN, Full-Service Safety Sign Manufacturer</title>
+<meta name="description" content="Log in with LINE to see the status of all your orders in one place. No need to remember a PO number.">
+<meta name="robots" content="noindex, follow">
 
-(function () {
-  var loadingEl        = document.getElementById("mo-loading");
-  var loginEl          = document.getElementById("mo-login");
-  var loginBtn         = document.getElementById("mo-login-btn");
-  var errorEl          = document.getElementById("mo-error");
-  var errorTextEl      = document.getElementById("mo-error-text");
-  var ordersLoadingEl  = document.getElementById("mo-orders-loading");
-  var emptyEl          = document.getElementById("mo-empty");
-  var listEl           = document.getElementById("mo-list");
-  // Log out button (P2.9-A2, mirrors P2.9-A1) — same as linkMoreEl below: must stay visible
-  // alongside the "logged in" states (orders-loading/empty/list), not part of the 5-state
-  // showOnly() group, so visibility is controlled separately via showLogout()/hideLogout()
-  var logoutEl         = document.getElementById("mo-logout");
-  var logoutBtn        = document.getElementById("mo-logout-btn");
-  // "Link another order" (P2.8c-F parity) — shown only after successful login, controlled
-  // separately from the 5-state showOnly() group (see my-orders-page.js for the full rationale).
-  var linkMoreEl       = document.getElementById("mo-link-more");
-  var linkMoreToggle   = document.getElementById("mo-link-more-toggle");
-  var linkMoreForm     = document.getElementById("mo-link-more-form");
-  var linkMoreCodeEl   = document.getElementById("mo-link-more-code");
-  var linkMorePhoneEl  = document.getElementById("mo-link-more-phone");
-  var linkMoreSubmit   = document.getElementById("mo-link-more-submit");
-  var linkMoreMsgEl    = document.getElementById("mo-link-more-msg");
-  if (!loadingEl || !loginEl || !listEl) return; // not on en/my-orders.html
+<!-- ══ Open Graph / Social ══ -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://cssign.co.th/en/my-orders.html">
+<meta property="og:title"       content="My Orders — CS.SIGN">
+<meta property="og:description" content="Log in with LINE to see the status of all your orders in one place.">
+<meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale"      content="en_US">
+<link rel="canonical" href="https://cssign.co.th/en/my-orders.html">
 
-  // Same LIFF_ID as js/track-modal.js / js/my-orders-page.js (P1.5/P2.8c) — must match
-  // [vars] LIFF_ID in cloudflare-worker/wrangler.toml exactly.
-  var LIFF_ID = "2011108044-Nmgfktx5";
+<!-- hreflang -->
+<link rel="alternate" hreflang="th" href="https://cssign.co.th/my-orders.html">
+<link rel="alternate" hreflang="en" href="https://cssign.co.th/en/my-orders.html">
+<link rel="alternate" hreflang="x-default" href="https://cssign.co.th/my-orders.html">
 
-  var liffSdkPromise = null;
-  function loadLiffSdk() {
-    if (window.liff) return Promise.resolve(window.liff);
-    if (liffSdkPromise) return liffSdkPromise;
-    liffSdkPromise = new Promise(function (resolve, reject) {
-      var script = document.createElement("script");
-      script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
-      script.onload = function () { resolve(window.liff); };
-      script.onerror = function () {
-        liffSdkPromise = null;
-        reject(new Error("Failed to load LIFF SDK"));
-      };
-      document.head.appendChild(script);
-    });
-    return liffSdkPromise;
-  }
+<link rel="icon" href="../assets/favicon.ico" sizes="any">
+<link rel="icon" href="../assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="../assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="manifest" href="../assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
 
-  // Kept from the successful runLiffFlow() call so the "link another order" form (P2.8c-F) can
-  // reuse the same LIFF session without calling liff.init() again.
-  var liffInstance = null;
+<link rel="stylesheet" href="../css/style.css?v=20260711a">
+<link rel="stylesheet" href="../css/shared-widgets.css">
+<link rel="stylesheet" href="../css/exit-intent-cta.css">
+<link rel="stylesheet" href="../css/track-modal.css">
+<link rel="stylesheet" href="../css/cart-modal.css">
+<link rel="stylesheet" href="../css/fancy-effects.css">
+</head>
+<body data-page="my-orders">
+<a href="#top" class="skip-link">Skip to main content</a>
 
-  var unsubscribeOrders = null;
+<!-- ============================================================
+     STICKY NAVIGATION
+     ============================================================ -->
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        +66 62-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="Chat on LINE" title="Chat on LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="Search the site">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="../my-orders.html">TH</a>
+        <a href="#" class="is-active">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
 
-  // Tracks whether the page is currently in the "logged in" state (afterLogin() has run, no
-  // logout yet) — used to keep the onAuthChange() subscription below from firing during the
-  // normal runLiffFlow() startup flow (sessionActive starts false, so the very first
-  // onAuthStateChanged event delivered right after subscribing is simply ignored).
-  var sessionActive = false;
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
 
-  function showOnly(el) {
-    [loadingEl, loginEl, ordersLoadingEl, emptyEl, listEl].forEach(function (e) {
-      if (e) e.style.display = "none";
-    });
-    hideError();
-    if (el) el.style.display = el === listEl ? "flex" : (el === loadingEl || el === ordersLoadingEl ? "flex" : "block");
-  }
-  function showError(msg) {
-    errorTextEl.textContent = msg;
-    errorEl.classList.add("show");
-  }
-  function hideError() {
-    errorEl.classList.remove("show");
-  }
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="products.html" class="nav-link">Products</a>
+      <a href="portfolio.html" class="nav-link">Portfolio</a>
+      <a href="about.html" class="nav-link">About Us</a>
+      <a href="blog.html" class="nav-link">Articles</a>
+      <a href="contact.html" class="nav-link">Contact</a>
+    </nav>
 
-  function escapeHtml(s) {
-    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">Request a Quote</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="Track your order status" title="Track your order status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
 
-  // Single order card — reuses the existing .tm-* classes from css/track-modal.css (already
-  // loaded on every page) instead of adding new CSS, same as my-orders-page.js.
-  function renderOrderCard(order) {
-    var statusInfo = ORDER_STATUS[order.status] || { label: order.status, css: "received" };
-    var progress = Math.max(0, Math.min(100, order.progress || 0));
-    return (
-      '<div style="border:1px solid var(--gray-100); border-radius:var(--r-lg); padding:18px 20px; background:var(--bg);">' +
-        '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px;">' +
-          '<div>' +
-            '<div class="tm-result-code">' + escapeHtml(order.code || "\u2014") + '</div>' +
-            '<div class="tm-result-item">' + escapeHtml(order.item || "") + (order.qty ? " \u00b7 Qty " + escapeHtml(String(order.qty)) : "") + '</div>' +
-          '</div>' +
-          '<span class="tm-badge ' + statusInfo.css + '">' + escapeHtml(statusInfo.label) + '</span>' +
-        '</div>' +
-        (order.status !== "cancelled" ?
-          '<div class="tm-progress-bar"><i style="width:' + progress + '%"></i></div>'
-        : "") +
-      '</div>'
-    );
-  }
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="Close menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="portfolio.html">Portfolio</a>
+    <a href="about.html">About Us</a>
+    <a href="blog.html">Articles</a>
+    <a href="#" data-track-modal-open>Track your order status</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="../my-orders.html">TH · ไทย</a>
+    <a href="#" class="is-active">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>Add LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">Request a Quote</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">Call +66 62-883-3880</a>
+  </div>
+</div>
 
-  function renderOrders(orders) {
-    if (!orders || orders.length === 0) {
-      showOnly(emptyEl);
-      return;
-    }
-    listEl.innerHTML = orders.map(renderOrderCard).join("");
-    showOnly(listEl);
-  }
+<main id="top">
 
-  function onOrdersError(err) {
-    console.error("listenMyOrders error:", err);
-    showOnly(listEl); // keep whatever is already on screen instead of clearing it on a transient error
-    showError("Failed to load your orders. Please refresh the page or call +66 62-883-3880");
-  }
+<!-- ============================================================
+     MY ORDERS (P2.8c-I) — English mirror of my-orders.html (P2.8c-E/F).
+     LINE = single customer identity, no separate password/OTP — see
+     p2.8c-line-customer-plan.md. Uses js/my-orders-page-en.js (English text variant of
+     js/my-orders-page.js), same ids, same loginWithLine()/listenMyOrders()/linkLineAccount()
+     from js/db-orders.js (round P2.8c-D).
+     ============================================================ -->
+<section class="article-hero">
+  <div class="wrap">
+    <div class="article-breadcrumb"><a href="index.html">Home</a> / My Orders</div>
+    <h1>My Orders</h1>
+    <div class="article-updated">Log in with LINE to see the status of all your orders in one place. No need to remember a PO number.</div>
+  </div>
+</section>
 
-  function afterLogin(lineUserId) {
-    sessionActive = true;
-    showOnly(ordersLoadingEl);
-    showLinkMore(); // login succeeded — show "link another order" right away, no need to wait for orders to load
-    showLogout();   // same idea — show the "log out" button as soon as login succeeds (P2.9-A2)
-    if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
-    unsubscribeOrders = listenMyOrders(lineUserId, renderOrders, onOrdersError);
-  }
+<section class="article-body">
+  <div class="wrap">
+    <div class="article-content" id="mo-root" style="max-width:640px;">
 
-  // ===========================
-  // Log out (P2.9-A2, mirrors P2.9-A1)
-  // ===========================
-  // signOut(auth) on the Firebase side via the existing logoutAdmin() + liff.logout() if a LIFF
-  // session is still active (avoids the next runLiffFlow() auto-logging back in before the
-  // login button is even visible — full "remember session" handling is P2.9-B). Does not
-  // redirect away from this page — resets the UI back to the "Log in with LINE" state.
-  function handleLogout() {
-    if (!logoutBtn || logoutBtn.disabled) return;
-    logoutBtn.disabled = true;
-    sessionActive = false; // set before logoutAdmin() so the onAuthChange() listener below doesn't also run handleSessionLost()
-    if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
-    Promise.resolve(logoutAdmin())
-      .catch(function (err) {
-        console.error("my-orders logout error:", err);
-      })
-      .finally(function () {
-        try {
-          if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
-            liffInstance.logout();
-          }
-        } catch (err) {
-          console.error("liff logout error:", err);
-        }
-        listEl.innerHTML = "";
-        hideLinkMore();
-        hideLogout();
-        showOnly(loginEl);
-        logoutBtn.disabled = false;
-      });
-  }
+      <!-- Log out (P2.9-A) — shown only after a successful LINE login (visibility controlled
+           separately alongside mo-link-more, not part of the 5-state group showOnly() manages).
+           Clicking it signs out of Firebase (signOut(auth)) + liff.logout() (if a LIFF login is
+           still active), then resets back to the "Log in with LINE" state — does not redirect
+           away from this page. -->
+      <div id="mo-logout" style="display:none; text-align:right; margin-bottom:14px;">
+        <button type="button" id="mo-logout-btn" class="btn btn-secondary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Log out
+        </button>
+      </div>
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", handleLogout);
-  }
+      <!-- Initial state — checking whether a LIFF login is already active (auto-detected on
+           return from the liff.login() redirect) -->
+      <div id="mo-loading" style="display:flex; align-items:center; gap:10px; justify-content:center; padding:48px 0; color:var(--gray-500); font-size:14px;">
+        <span class="tm-submit-spinner" style="display:inline-block; position:static; border-color:var(--gray-300); border-top-color:var(--primary);"></span>
+        Checking your login status...
+      </div>
 
-  // ===========================
-  // Session lost elsewhere (2026-08 follow-up) — if the LINE customer session logged in on this
-  // page gets signed out from a different tab in the same browser (e.g. an admin.html tab left
-  // open, which signs out any session carrying a lineUserId claim automatically — see the
-  // BUGFIX 2026-08 note in js/admin-page.js; signOut(auth) affects every tab of the same site
-  // since they share one auth instance), this page previously had no idea the session was gone —
-  // the existing listenMyOrders() subscription kept running against a now-null
-  // auth.currentUser and threw an unpredictable error partway through. Fixed by subscribing to
-  // onAuthChange() separately, watched only while sessionActive=true (i.e. after afterLogin() has
-  // run). If the user changes to null, or to a non-LINE-customer account (uid without the
-  // "line_" prefix — covers switching this same tab to an admin session), reset gently back to
-  // the "Log in with LINE" screen instead of leaving a stuck error on screen. No extra guarding
-  // needed for token refreshes — onAuthStateChanged (unlike onIdTokenChanged) only fires on an
-  // actual user change (sign-in/out), not on a routine token refresh.
-  function handleSessionLost() {
-    sessionActive = false;
-    if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
-    try {
-      if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
-        liffInstance.logout();
-      }
-    } catch (err) {
-      console.error("liff logout error (session lost):", err);
-    }
-    listEl.innerHTML = "";
-    hideLinkMore();
-    hideLogout();
-    showOnly(loginEl);
-    showError("Your session expired or was signed out from another device/tab. Please log in again.");
-  }
+      <!-- Not logged in -->
+      <div id="mo-login" style="display:none; text-align:center; padding:32px 0;">
+        <p style="color:var(--gray-600); margin-bottom:20px;">Log in with the same LINE account you used (or previously linked) with your order, to see all your orders automatically.</p>
+        <button type="button" id="mo-login-btn" class="tm-line-link-btn" style="margin:0 auto;">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2C6.48 2 2 5.94 2 10.8c0 2.98 1.78 5.62 4.5 7.24-.15.5-.63 2.14-.72 2.47-.11.4.15.4.31.29.13-.09 2.05-1.4 2.88-1.97a13 13 0 0 0 3.03.35c5.52 0 10-3.94 10-8.8S17.52 2 12 2Z"/></svg>
+          Log In with LINE
+        </button>
+      </div>
 
-  onAuthChange(function (user) {
-    if (!sessionActive) return; // never logged in on this page yet (runLiffFlow() owns startup), or already logged out
-    var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
-    if (stillLineSession) return; // existing LINE customer session is still fine, nothing to do
-    handleSessionLost();
-  });
+      <!-- error (login failed / LIFF SDK failed to load / listenMyOrders error) -->
+      <div class="tm-error" id="mo-error" role="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="mo-error-text"></span>
+      </div>
 
-  function loginErrorMessage(code) {
-    if (code === "invalid_line_token") return "LINE verification failed. Please try logging in again.";
-    if (code === "server_misconfigured") return "The login system is temporarily unavailable. Please try again later or call +66 62-883-3880";
-    return "Login failed. Please try again or call +66 62-883-3880";
-  }
+      <!-- login succeeded: loading orders -->
+      <div id="mo-orders-loading" style="display:none; align-items:center; gap:10px; justify-content:center; padding:48px 0; color:var(--gray-500); font-size:14px;">
+        <span class="tm-submit-spinner" style="display:inline-block; position:static; border-color:var(--gray-300); border-top-color:var(--primary);"></span>
+        Loading your orders...
+      </div>
 
-  // ===========================
-  // Link another order (P2.8c-F parity)
-  // ===========================
-  function showLogout() {
-    if (logoutEl) logoutEl.style.display = "block";
-  }
-  function hideLogout() {
-    if (logoutEl) logoutEl.style.display = "none";
-  }
+      <!-- logged in, but no orders linked to this LINE account yet -->
+      <div id="mo-empty" style="display:none; text-align:center; padding:32px 0;">
+        <p style="color:var(--gray-600); margin-bottom:20px;">No orders are linked to this LINE account yet — check your order status with your PO number and phone number, then tap "Link LINE Account" in the result to start seeing your first order here.</p>
+        <button type="button" class="btn btn-primary" data-track-modal-open>Track Your Order Status</button>
+      </div>
 
-  function showLinkMore() {
-    if (linkMoreEl) linkMoreEl.style.display = "block";
-  }
-  function hideLinkMore() {
-    if (linkMoreEl) linkMoreEl.style.display = "none";
-    if (linkMoreForm) linkMoreForm.style.display = "none";
-    if (linkMoreToggle) linkMoreToggle.style.display = "inline-flex";
-  }
-  function showLinkMoreMsg(msg) {
-    if (linkMoreMsgEl) linkMoreMsgEl.textContent = msg;
-  }
-  function hideLinkMoreMsg() {
-    if (linkMoreMsgEl) linkMoreMsgEl.textContent = "";
-  }
-  function linkMoreErrorMessage(code) {
-    if (code === "invalid_line_token") return "LINE verification failed. Please refresh the page and try again.";
-    if (code === "order_not_found") return "No order matches that PO number and phone number. Please double-check and try again.";
-    return "Something went wrong linking this order. Please try again or call +66 62-883-3880";
-  }
+      <!-- order list -->
+      <div id="mo-list" style="display:none; flex-direction:column; gap:14px;"></div>
 
-  if (linkMoreToggle) {
-    linkMoreToggle.addEventListener("click", function () {
-      if (!linkMoreForm) return;
-      var showing = linkMoreForm.style.display !== "none";
-      linkMoreForm.style.display = showing ? "none" : "block";
-      linkMoreToggle.style.display = showing ? "inline-flex" : "none";
-      if (!showing && linkMoreCodeEl) linkMoreCodeEl.focus();
-    });
-  }
+      <!-- Link another order (P2.8c-F parity) — shown only after a successful LINE login (in
+           both the list and empty states). Reuses the LIFF session that's already logged in, no
+           need to log in again — just enter the PO number and phone number of the new order and
+           it calls the same linkLineAccount() from P1.5. Once it succeeds the order appears in
+           the list above automatically via the listenMyOrders() subscription already running. -->
+      <div id="mo-link-more" style="display:none; margin-top:28px; padding-top:24px; border-top:1px solid var(--gray-100);">
+        <button type="button" id="mo-link-more-toggle" class="btn btn-secondary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Link Another Order
+        </button>
+        <form id="mo-link-more-form" autocomplete="off" style="display:none; margin-top:16px;">
+          <p style="color:var(--gray-600); font-size:14px; margin-bottom:14px;">Enter the PO number and phone number of the order you want to link to this LINE account.</p>
+          <div class="tm-field">
+            <label for="mo-link-more-code">Purchase Order (PO) Number</label>
+            <div class="tm-input-wrap">
+              <svg class="tm-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>
+              <input id="mo-link-more-code" type="text" placeholder="e.g. PO-2026-0120" required>
+            </div>
+          </div>
+          <div class="tm-field">
+            <label for="mo-link-more-phone">Phone Number</label>
+            <div class="tm-input-wrap">
+              <svg class="tm-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <input id="mo-link-more-phone" type="tel" inputmode="numeric" placeholder="e.g. 0891234567" required>
+            </div>
+            <div class="tm-field-hint">Only the last 4 digits are used to verify your identity.</div>
+          </div>
+          <button type="submit" id="mo-link-more-submit" class="btn btn-primary btn-sm">Link This Order</button>
+          <div class="tm-line-link-msg" id="mo-link-more-msg" role="alert"></div>
+        </form>
+      </div>
 
-  if (linkMoreForm) {
-    linkMoreForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (linkMoreSubmit.disabled) return;
-      hideLinkMoreMsg();
+    </div>
+  </div>
+</section>
 
-      var code = linkMoreCodeEl.value.trim();
-      var phone = linkMorePhoneEl.value.trim();
-      if (!code) { showLinkMoreMsg("Please enter the PO number"); return; }
-      if (phone.replace(/\D/g, "").length < 4) { showLinkMoreMsg("Please enter at least the last 4 digits of your phone number"); return; }
+</main>
 
-      linkMoreSubmit.disabled = true;
-      var originalLabel = linkMoreSubmit.textContent;
-      linkMoreSubmit.textContent = "Linking...";
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
 
-      // Reuse the liffInstance kept from runLiffFlow() — no liff.login() redirect needed since
-      // this form only appears after a successful login. Fall back to a silent re-init if the
-      // instance is somehow missing rather than breaking the whole form.
-      (liffInstance ? Promise.resolve(liffInstance) : loadLiffSdk().then(function (liff) {
-        return liff.init({ liffId: LIFF_ID }).then(function () { return liff; });
-      }))
-        .then(function (liff) {
-          liffInstance = liff;
-          var idToken = liff.getIDToken();
-          if (!idToken) throw Object.assign(new Error("missing id token"), { code: "missing_id_token" });
-          return linkLineAccount(idToken, code, phone);
-        })
-        .then(function () {
-          // No need to re-render the list ourselves — the listenMyOrders() subscription from
-          // afterLogin() gets a snapshot update automatically as soon as linkLineAccount() writes
-          // lineUserId onto the order.
-          linkMoreCodeEl.value = "";
-          linkMorePhoneEl.value = "";
-          linkMoreForm.style.display = "none";
-          linkMoreToggle.style.display = "inline-flex";
-        })
-        .catch(function (err) {
-          console.error("link more order error:", err);
-          showLinkMoreMsg(linkMoreErrorMessage(err && err.code));
-        })
-        .finally(function () {
-          linkMoreSubmit.disabled = false;
-          linkMoreSubmit.textContent = originalLabel;
-        });
-    });
-  }
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>CS.SIGN And Products Co., Ltd. — manufacturer of traffic and safety signs, with 20+ years of experience.</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
 
-  // Orchestrates the whole flow (same shape as handleLineLinkClick() in track-modal.js) —
-  // called both from the "Log in with LINE" button click and on first page load (in case this
-  // is a return from a liff.login() redirect that already succeeded).
-  //
-  // Remember existing session (P2.9-B) — check auth.currentUser directly before entering the
-  // LIFF flow every time (both on first page load and on the login button click — in practice
-  // the login button only shows when there's no session already, but re-checking here doesn't
-  // hurt). If an existing LINE customer session is already there (must check the "line_" uid
-  // prefix explicitly — guards against a stray admin session in the same browser being mistaken
-  // for a customer session, which must still go through the normal liff.login() flow), skip
-  // liff.init()/liff.login() entirely and go straight to afterLogin() — no need to even wait for
-  // the LIFF SDK to load, since listenMyOrders() only needs the lineUserId (uid), not the LIFF
-  // SDK itself (liffInstance stays null in this case — the "link another order" button lazily
-  // loads/inits LIFF itself when actually clicked, see handleLinkMoreSubmit above).
-  function hasExistingLineSession() {
-    var user = auth && auth.currentUser;
-    return !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
-  }
+      <div>
+        <div class="footer-h">Products</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">Safety Signs</a>
+          <a href="products.html?cat=traffic">Traffic Signs</a>
+          <a href="products.html?cat=safety">Industrial Plant Signage</a>
+          <a href="products.html?cat=equip">Traffic Equipment</a>
+        </div>
+      </div>
 
-  // Returns the raw lineUserId (with the "line_" prefix stripped off the uid) when an existing
-  // LINE customer session is present — only used on the path that shortcuts past the normal
-  // liff.login() flow (the normal path already gets a raw lineUserId straight from the
-  // loginWithLine() response, no need for this). Fixes a bug found during P2.9-D2: the code used
-  // to pass auth.currentUser.uid — which still has the "line_" prefix — straight into
-  // listenMyOrders(), which didn't match order.lineUserId (stored without the prefix), so no
-  // orders would ever match when an existing session was found (a fresh first-time login was
-  // unaffected). Same prefix-stripping pattern as existingSessionLineUserId() in
-  // js/my-account-page.js / js/my-account-page-en.js (P2.9-D2/D3) and saveLead() in js/leads.js
-  // (P2.9-D1).
-  function existingSessionLineUserId() {
-    var user = auth && auth.currentUser;
-    if (user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0) {
-      return user.uid.slice("line_".length);
-    }
-    return null;
-  }
+      <div>
+        <div class="footer-h">Company</div>
+        <div class="footer-links">
+          <a href="about.html">About Us</a>
+          <a href="index.html#services">How It Works</a>
+          <a href="portfolio.html">Our Work</a>
+          <a href="quality-policy.html">Quality Policy</a>
+          <a href="blog.html">Articles</a>
+          <a href="about.html#faq">FAQ</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+      </div>
 
-  function runLiffFlow(fromButtonClick) {
-    if (hasExistingLineSession()) {
-      afterLogin(existingSessionLineUserId());
-      return;
-    }
-    loadLiffSdk()
-      .then(function (liff) {
-        return liff.init({ liffId: LIFF_ID }).then(function () {
-          liffInstance = liff; // kept for the "link more" submit handler, avoids re-init()
-          if (!liff.isLoggedIn()) {
-            if (fromButtonClick) {
-              liff.login(); // redirects away from this page and back
-              return null;
-            }
-            // First page load, never logged in before — show the button, don't auto-redirect.
-            hideLinkMore();
-            hideLogout();
-            showOnly(loginEl);
-            return undefined;
-          }
-          var idToken = liff.getIDToken();
-          if (!idToken) throw Object.assign(new Error("missing id token"), { code: "missing_id_token" });
-          return loginWithLine(idToken);
-        });
-      })
-      .then(function (result) {
-        if (result === undefined) return; // already showing the login button
-        if (result === null) return; // redirecting to liff.login()
-        afterLogin(result.lineUserId);
-      })
-      .catch(function (err) {
-        console.error("my-orders login error:", err);
-        hideLinkMore();
-        hideLogout();
-        showOnly(loginEl);
-        showError(loginErrorMessage(err && err.code));
-      });
-  }
+      <div>
+        <div class="footer-h">Contact</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Address</div>
+          <div class="footer-contact-val">17 Soi Bang Kradi 1, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Phone / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">+66 62-883-3880, +66 63-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Fax</div>
+          <span class="footer-contact-val">+66 2-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Email</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
 
-  if (loginBtn) {
-    loginBtn.addEventListener("click", function () {
-      loginBtn.disabled = true;
-      runLiffFlow(true);
-    });
-  }
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN And Products Co., Ltd.</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">Privacy Policy</a> · <a href="terms.html" style="color:inherit;">Terms of Service</a> &middot; <a href="accessibility.html" style="color:inherit;">Accessibility Statement</a></span>
+    </div>
+  </div>
+</footer>
 
-  // Kick off the flow automatically on page load (checks whether we're already logged in — e.g.
-  // returning from a liff.login() redirect, or a LIFF session already open in this tab).
-  showOnly(loadingEl);
-  runLiffFlow(false);
-})();
+<script src="../js/tabs-overflow.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/main-effects.js"></script>
+<script src="../js/cookie-consent.js"></script>
+<script src="../js/analytics.js"></script>
+<script src="../js/site-search-index.js"></script>
+<script src="../js/site-search.js"></script>
+<script type="module" src="../js/site-settings.js"></script>
+<script type="module" src="../js/nav-menu.js"></script>
+<script type="module" src="../js/cart-global.js"></script>
+
+<script src="../js/qmodal-template.js"></script>
+<script src="../js/track-modal-template.js"></script>
+<script type="module" src="../js/track-modal.js"></script>
+<script src="../js/cart-modal-template.js"></script>
+<script src="../js/cart-modal.js"></script>
+<script src="../js/quote-form-template.js"></script>
+<script type="module" src="../js/quote-form.js"></script>
+<script type="module" src="../js/lead-quote-modal.js"></script>
+<script src="../js/chat-widget-template.js"></script>
+
+<script src="../js/qmodal.js"></script>
+<script type="module" src="../js/chat-widget.js"></script>
+<script type="module" src="../js/my-orders-page-en.js"></script>
+<script src="../js/exit-intent-cta.js"></script>
+<script src="../js/fancy-effects.js" defer></script>
+</body>
+</html>
