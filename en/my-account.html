@@ -1,404 +1,353 @@
-// ===========================
-// js/my-account-page-en.js — controls the English "My Account" page (en/my-account.html) — P2.9-C2,
-// leads panel UI mirrored in P2.9-D3, quote-request panel switched to quote_requests in P3.0
-// Phase 5 round 9
-// ===========================
-// English-text duplicate of js/my-account-page.js (P2.9-C, leads panel added in P2.9-D2, switched
-// to quote_requests in P3.0 Phase 5 round 8), following the same pattern as
-// js/my-orders-page-en.js (P2.8c-I) — the project keeps a separate `-en.js` file per bilingual
-// page instead of runtime language-detection inside one file. Logic, element ids, and flow are
-// identical to js/my-account-page.js; only user-facing strings (and comments) differ. Any future
-// logic fix to my-account-page.js should be mirrored here too.
-//
-// Central hub page (hub) showing a brief LINE profile (name/picture from liff.getProfile()) plus
-// a menu of links out to each section — "My Orders" still links straight to the existing
-// my-orders.html (not merged into one page this round, see p2.9-account-hub-plan.md "รอบ
-// P2.9-C"). "My Quote Requests" is shown inline on this page as an expand/collapse panel instead,
-// no redirect — same as the Thai page. Differs from js/my-orders-page-en.js in that this page
-// always needs a live liff instance to call liff.getProfile() — so it does not shortcut past
-// liff.init() entirely even when an existing Firebase session is present (it only shortcuts past
-// the network call to loginWithLine() in that case — see runLiffFlow() below).
-//
-// P3.0 Phase 5 round 9 — mirrors the round-8 decision made on the Thai page: this panel now
-// replaces listenMyLeads() entirely with listenMyQuoteRequests() (no side-by-side panels). See
-// the long comment at the top of js/my-account-page.js and REFACTOR-PROGRESS.md "P3.0 Phase 5
-// รอบ 8" for the full reasoning — not re-decided here, just mirrored. All `ma-leads-*` element
-// ids are kept unchanged (ids are not translated per project convention).
-import { loginWithLine } from "./db-orders.js";
-// Same signOut + auth as js/my-orders-page-en.js uses from P2.9-A2/B — copied straight over per
-// this round's prompt (not abstracted into a shared module ahead of time).
-import { logoutAdmin, auth, onAuthChange } from "./db.js";
-// Quote request history (P3.0 Phase 5 round 9) — listenMyQuoteRequests() (js/db-quote-requests.js)
-// was already wired into the Thai page in round 8; this round wires the same function into the
-// English page, replacing listenMyLeads() (js/leads.js). No `-en` version of
-// js/db-quote-requests.js exists — the data layer isn't language-split.
-import { listenMyQuoteRequests } from "./db-quote-requests.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — CS.SIGN, Full-Service Safety Sign Manufacturer</title>
+<meta name="description" content="Log in with LINE to see your account details and get to your orders and other services from one place.">
+<meta name="robots" content="noindex, follow">
 
-(function () {
-  var loadingEl   = document.getElementById("ma-loading");
-  var loginEl     = document.getElementById("ma-login");
-  var loginBtn    = document.getElementById("ma-login-btn");
-  var errorEl     = document.getElementById("ma-error");
-  var errorTextEl = document.getElementById("ma-error-text");
-  var profileEl   = document.getElementById("ma-profile");
-  var avatarEl    = document.getElementById("ma-avatar");
-  var nameEl      = document.getElementById("ma-name");
-  var logoutBtn   = document.getElementById("ma-logout-btn");
-  // "My Quote Requests" section (P2.9-D3) — all-new elements, not present on older pages/tests
-  // yet, so every use below is guarded with if (el) (same pattern as P2.9-A/B before it).
-  var leadsToggle       = document.getElementById("ma-leads-toggle");
-  var leadsPanel        = document.getElementById("ma-leads-panel");
-  var leadsChevron      = document.getElementById("ma-leads-chevron");
-  var leadsLoadingEl    = document.getElementById("ma-leads-loading");
-  var leadsEmptyEl      = document.getElementById("ma-leads-empty");
-  var leadsErrorEl      = document.getElementById("ma-leads-error");
-  var leadsErrorTextEl  = document.getElementById("ma-leads-error-text");
-  var leadsListEl       = document.getElementById("ma-leads-list");
-  if (!loadingEl || !loginEl || !profileEl) return; // not on en/my-account.html
+<!-- ══ Open Graph / Social ══ -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://cssign.co.th/en/my-account.html">
+<meta property="og:title"       content="My Account — CS.SIGN">
+<meta property="og:description" content="Log in with LINE to see your account details in one place.">
+<meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
+<meta property="og:locale"      content="en_US">
+<link rel="canonical" href="https://cssign.co.th/en/my-account.html">
 
-  // Same LIFF_ID as js/my-account-page.js / js/my-orders-page-en.js / js/track-modal.js (P1.5) —
-  // must match [vars] LIFF_ID in cloudflare-worker/wrangler.toml exactly.
-  var LIFF_ID = "2011108044-Nmgfktx5";
+<!-- hreflang -->
+<link rel="alternate" hreflang="th" href="https://cssign.co.th/my-account.html">
+<link rel="alternate" hreflang="en" href="https://cssign.co.th/en/my-account.html">
+<link rel="alternate" hreflang="x-default" href="https://cssign.co.th/my-account.html">
 
-  var liffSdkPromise = null;
-  function loadLiffSdk() {
-    if (window.liff) return Promise.resolve(window.liff);
-    if (liffSdkPromise) return liffSdkPromise;
-    liffSdkPromise = new Promise(function (resolve, reject) {
-      var script = document.createElement("script");
-      script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
-      script.onload = function () { resolve(window.liff); };
-      script.onerror = function () {
-        liffSdkPromise = null;
-        reject(new Error("Failed to load LIFF SDK"));
-      };
-      document.head.appendChild(script);
-    });
-    return liffSdkPromise;
-  }
+<link rel="icon" href="../assets/favicon.ico" sizes="any">
+<link rel="icon" href="../assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="../assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="manifest" href="../assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
 
-  var liffInstance = null;
+<link rel="stylesheet" href="../css/style.css?v=20260711a">
+<link rel="stylesheet" href="../css/shared-widgets.css">
+<link rel="stylesheet" href="../css/exit-intent-cta.css">
+<link rel="stylesheet" href="../css/track-modal.css">
+<link rel="stylesheet" href="../css/cart-modal.css">
+<link rel="stylesheet" href="../css/fancy-effects.css">
+</head>
+<body data-page="my-account">
+<a href="#top" class="skip-link">Skip to main content</a>
 
-  // Raw lineUserId (no "line_" prefix) of the customer currently logged in — kept around so
-  // toggleLeadsPanel() can call listenMyQuoteRequests() the first time the panel is expanded (see
-  // afterLogin()/handleLogout() below, which set/reset this value). Must be the raw value that
-  // matches the lead.lineUserId field in Firestore exactly (no "line_" prefix like
-  // auth.currentUser.uid has) or the query in listenMyQuoteRequests() won't match anything.
-  var currentLineUserId = null;
-  var unsubscribeLeads = null;
+<!-- ============================================================
+     STICKY NAVIGATION
+     ============================================================ -->
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-contact">
+      <a href="tel:0628833880" class="topbar-item topbar-tel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        +66 62-883-3880
+      </a>
+      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
+      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="Chat on LINE" title="Chat on LINE @cssigngroup">
+        <span class="tl-dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
+        <span>LINE @cssigngroup</span>
+      </a>
+    </div>
+    <div class="topbar-utils">
+      <button type="button" class="nav-search-trigger" aria-label="Search the site">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="nav-lang-switch" aria-label="Language switch">
+        <a href="../my-account.html">TH</a>
+        <a href="#" class="is-active">EN</a>
+      </div>
+    </div>
+  </div>
+</div>
 
-  // Tracks whether the page is currently in the "logged in" state (afterLogin() has run, no
-  // logout yet) — keeps the onAuthChange() subscription below from firing during the normal
-  // runLiffFlow() startup flow (same pattern as js/my-orders-page-en.js).
-  var sessionActive = false;
+<header class="site-header" id="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
+      <span class="brand-text">
+        <span class="brand-name">CS.SIGN</span>
+        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
+      </span>
+    </a>
 
-  function escapeHtml(s) {
-    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="products.html" class="nav-link">Products</a>
+      <a href="portfolio.html" class="nav-link">Portfolio</a>
+      <a href="about.html" class="nav-link">About Us</a>
+      <a href="blog.html" class="nav-link">Articles</a>
+      <a href="contact.html" class="nav-link">Contact</a>
+    </nav>
 
-  function showOnly(el) {
-    [loadingEl, loginEl, profileEl].forEach(function (e) {
-      if (e) e.style.display = "none";
-    });
-    hideError();
-    if (el) el.style.display = el === profileEl ? "block" : (el === loadingEl ? "flex" : "block");
-  }
-  function showError(msg) {
-    errorTextEl.textContent = msg;
-    errorEl.classList.add("show");
-  }
-  function hideError() {
-    errorEl.classList.remove("show");
-  }
+    <div class="nav-actions">
+      <a href="contact.html" class="btn btn-primary btn-sm">Request a Quote</a>
+      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="Track your order status" title="Track your order status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+      </button>
+      <button class="nav-burger" id="burger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
 
-  // Check for an existing LINE customer session (P2.9-B pattern, same as my-account-page.js /
-  // my-orders-page-en.js) — used only to "skip the network call to loginWithLine() (Cloudflare
-  // Worker)", not to skip liff.init() entirely like the orders page does, because this page
-  // always needs a live liff instance to call getProfile().
-  function hasExistingLineSession() {
-    var user = auth && auth.currentUser;
-    return !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
-  }
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-top">
+    <a href="index.html" class="brand">
+      <img src="../assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
+      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
+    </a>
+    <button class="mobile-close" id="mobile-close-btn" aria-label="Close menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-links">
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="portfolio.html">Portfolio</a>
+    <a href="about.html">About Us</a>
+    <a href="blog.html">Articles</a>
+    <a href="#" data-track-modal-open>Track your order status</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <div class="mobile-lang-switch">
+    <a href="../my-account.html">TH · ไทย</a>
+    <a href="#" class="is-active">EN · English</a>
+  </div>
+  <div class="mobile-email">
+    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
+  </div>
+  <div class="mobile-line">
+    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>Add LINE @cssigngroup</a>
+  </div>
+  <div class="mobile-cta">
+    <a href="contact.html" class="btn btn-primary btn-block">Request a Quote</a>
+    <a href="tel:0628833880" class="btn btn-secondary btn-block">Call +66 62-883-3880</a>
+  </div>
+</div>
 
-  // Returns the raw lineUserId (strips the "line_" prefix off uid) when an existing LINE
-  // customer session is present — only used on the path that shortcuts past loginWithLine()
-  // (the normal loginWithLine() path already gets the raw lineUserId straight from the response,
-  // no need for this helper there). Same prefix-stripping pattern as saveLead() in js/leads.js
-  // (P2.9-D1).
-  function existingSessionLineUserId() {
-    var user = auth && auth.currentUser;
-    if (user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0) {
-      return user.uid.slice("line_".length);
-    }
-    return null;
-  }
+<main id="top">
 
-  function renderProfile(profile) {
-    var displayName = (profile && profile.displayName) || "";
-    nameEl.textContent = displayName;
-    if (profile && profile.pictureUrl) {
-      avatarEl.src = profile.pictureUrl;
-      avatarEl.alt = displayName;
-      avatarEl.style.display = "block";
-    } else {
-      avatarEl.style.display = "none";
-    }
-  }
+<!-- ============================================================
+     MY ACCOUNT (P2.9-C2, leads panel mirrored in P2.9-D3) — English mirror of my-account.html
+     (P2.9-C / P2.9-D2). Central hub page: brief LINE profile + menu links out to each section,
+     instead of sending customers straight to the orders page like the old P2.8c-E flow. See
+     p2.9-account-hub-plan.md for the full plan — this page does not merge my-orders.html in as a
+     tab (kept as a separate page on purpose, lowest risk). Uses js/my-account-page-en.js (English
+     text variant of js/my-account-page.js), same ids, same loginWithLine() from js/db-orders.js /
+     logoutAdmin() from js/db.js / listenMyLeads() from js/leads.js.
+     ============================================================ -->
+<section class="article-hero">
+  <div class="wrap">
+    <div class="article-breadcrumb"><a href="index.html">Home</a> / My Account</div>
+    <h1>My Account</h1>
+    <div class="article-updated">Log in with LINE to see your account details and get to the sections that matter to you, all from one place.</div>
+  </div>
+</section>
 
-  function afterLogin(profile, lineUserId) {
-    sessionActive = true;
-    renderProfile(profile);
-    currentLineUserId = lineUserId || null;
-    showOnly(profileEl);
-  }
+<section class="article-body">
+  <div class="wrap">
+    <div class="article-content" id="ma-root" style="max-width:640px;">
 
-  // ===========================
-  // My Quote Requests (P3.0 Phase 5 round 9) — expand/collapse panel + lazy
-  // listenMyQuoteRequests() subscription (subscribes only the first time the panel is expanded,
-  // not right away on login — see the matching comment in en/my-account.html for why this
-  // differs from "My Orders") — enum matches js/db-quote-requests.js: new | quoted | closed
-  // (same as the Thai page — mirrors the round-8 decision, not re-decided here).
-  // ===========================
-  var QUOTE_REQUEST_STATUS_INFO = {
-    new:    { label: "Pending",      css: "received" },
-    quoted: { label: "Quote issued", css: "qc" },
-    closed: { label: "Closed",       css: "ok" }
-  };
+      <!-- Initial state — checking whether a LIFF login is already active -->
+      <div id="ma-loading" style="display:flex; align-items:center; gap:10px; justify-content:center; padding:48px 0; color:var(--gray-500); font-size:14px;">
+        <span class="tm-submit-spinner" style="display:inline-block; position:static; border-color:var(--gray-300); border-top-color:var(--primary);"></span>
+        Checking your login status...
+      </div>
 
-  function requestDateLabel(qr) {
-    var ts = qr && qr.createdAt;
-    if (!ts) return "\u2014";
-    var ms = ts.toMillis ? ts.toMillis() : (typeof ts === "number" ? ts : null);
-    if (!ms) return "\u2014";
-    return new Date(ms).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
-  }
+      <!-- Not logged in -->
+      <div id="ma-login" style="display:none; text-align:center; padding:32px 0;">
+        <p style="color:var(--gray-600); margin-bottom:20px;">Log in with your LINE account to see your account details.</p>
+        <button type="button" id="ma-login-btn" class="tm-line-link-btn" style="margin:0 auto;">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2C6.48 2 2 5.94 2 10.8c0 2.98 1.78 5.62 4.5 7.24-.15.5-.63 2.14-.72 2.47-.11.4.15.4.31.29.13-.09 2.05-1.4 2.88-1.97a13 13 0 0 0 3.03.35c5.52 0 10-3.94 10-8.8S17.52 2 12 2Z"/></svg>
+          Log In with LINE
+        </button>
+      </div>
 
-  // Summarizes a single item as one line — shape matches sanitizeItem() in
-  // js/db-quote-requests.js (productId/name/variantLabel/size/material/qty/unit/note) — a
-  // different shape from quotations.items (no unitPrice/discount/lineTotal since a customer's
-  // request doesn't have pricing yet). Mirrors formatQuoteItemLine() in js/my-account-page.js.
-  function formatQuoteItemLine(item) {
-    var descParts = [item.name, item.variantLabel, item.size, item.material].filter(Boolean);
-    var qty = (typeof item.qty === "number" && item.qty > 0) ? item.qty : 1;
-    var unit = item.unit || "pc";
-    return escapeHtml(descParts.join(" \u00b7 ")) + ' <span style="color:var(--gray-500);">\u00d7 ' + escapeHtml(String(qty)) + ' ' + escapeHtml(unit) + '</span>';
-  }
+      <!-- error (login failed / LIFF SDK failed to load / getProfile failed) -->
+      <div class="tm-error" id="ma-error" role="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="ma-error-text"></span>
+      </div>
 
-  // A single quote-request card — reuses the existing .tm-badge class from css/track-modal.css
-  // (already loaded on every page), same as js/my-orders-page-en.js does for order cards. No new
-  // CSS added this round. If quotePublicToken is present (admin has issued a real quotation from
-  // this request), shows a link to the public quotation-view.html page in a new tab (same
-  // target="_blank" rel="noopener noreferrer" pattern as the attachment links in
-  // js/track-modal.js) — quotation-view.html has no separate EN version (confirmed via `find .
-  // -iname "quotation-view*"`), so this links to the same Thai-language public page as the Thai
-  // account page does.
-  function renderQuoteRequestCard(qr) {
-    var statusInfo = QUOTE_REQUEST_STATUS_INFO[qr.status] || { label: qr.status || "\u2014", css: "received" };
-    var items = Array.isArray(qr.items) ? qr.items : [];
-    var itemsHtml = items.map(function (item) {
-      return '<div style="font-size:13px; color:var(--gray-700); padding:3px 0;">' + formatQuoteItemLine(item) + '</div>';
-    }).join("");
-    var linkHtml = qr.quotePublicToken
-      ? '<a href="quotation-view.html?token=' + encodeURIComponent(qr.quotePublicToken) + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="margin-top:10px;">View Quotation</a>'
-      : '';
-    return (
-      '<div style="border:1px solid var(--gray-100); border-radius:var(--r-lg); padding:14px 16px; background:var(--bg);">' +
-        '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px;">' +
-          '<div style="font-size:13px; color:var(--gray-500);">' + escapeHtml(requestDateLabel(qr)) + '</div>' +
-          '<span class="tm-badge ' + statusInfo.css + '">' + escapeHtml(statusInfo.label) + '</span>' +
-        '</div>' +
-        itemsHtml +
-        linkHtml +
-      '</div>'
-    );
-  }
+      <!-- login succeeded: brief profile + menu links out to each section -->
+      <div id="ma-profile" style="display:none;">
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:28px;">
+          <img id="ma-avatar" src="" alt="" width="64" height="64" style="border-radius:50%; object-fit:cover; background:var(--gray-100); display:none; flex-shrink:0;">
+          <div style="flex:1; min-width:0;">
+            <div id="ma-name" style="font-weight:700; font-size:18px; color:var(--gray-900); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+            <div style="color:var(--gray-500); font-size:13px;">Logged in with LINE</div>
+          </div>
+          <button type="button" id="ma-logout-btn" class="btn btn-secondary btn-sm" style="flex-shrink:0;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Log out
+          </button>
+        </div>
 
-  function showLeadsOnly(el) {
-    [leadsLoadingEl, leadsEmptyEl, leadsListEl].forEach(function (e) {
-      if (e) e.style.display = "none";
-    });
-    hideLeadsError();
-    if (el) el.style.display = (el === leadsListEl) ? "flex" : (el === leadsLoadingEl ? "flex" : "block");
-  }
-  function showLeadsError(msg) {
-    if (leadsErrorTextEl) leadsErrorTextEl.textContent = msg;
-    if (leadsErrorEl) leadsErrorEl.classList.add("show");
-  }
-  function hideLeadsError() {
-    if (leadsErrorEl) leadsErrorEl.classList.remove("show");
-  }
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <a href="my-orders.html" style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; border:1px solid var(--gray-100); border-radius:var(--r-lg); text-decoration:none; color:inherit; transition:border-color .15s;">
+            <span style="display:flex; align-items:center; gap:12px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="flex-shrink:0; color:var(--primary);"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>
+              <span style="font-weight:600; color:var(--gray-900);">My Orders</span>
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="flex-shrink:0; color:var(--gray-400);"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
 
-  function renderLeads(quoteRequests) {
-    if (!quoteRequests || quoteRequests.length === 0) {
-      showLeadsOnly(leadsEmptyEl);
-      return;
-    }
-    if (leadsListEl) leadsListEl.innerHTML = quoteRequests.map(renderQuoteRequestCard).join("");
-    showLeadsOnly(leadsListEl);
-  }
+          <!-- My Quote Requests — originally (P2.9-D2/D3) used listenMyLeads() from js/leads.js
+               to show general leads. P3.0 Phase 5 round 9 switches this to
+               listenMyQuoteRequests() (js/db-quote-requests.js) entirely instead (no
+               side-by-side panels — English mirror of the same decision made on the Thai page
+               in round 8; full reasoning in js/my-account-page.js's header comment +
+               REFACTOR-PROGRESS.md "P3.0 Phase 5 รอบ 8"), so it shows the actual requested
+               items (items[]) + status (new/quoted/closed) + a link to the real quotation once
+               the admin has issued one (quotePublicToken). All `ma-leads-*` ids are kept
+               unchanged (ids aren't translated, and changing them would touch more CSS/tests
+               than keeping them). Clicking this button expands/collapses this LINE user's
+               quote-request history inline on this page — no redirect, unlike "My Orders" above
+               which still links out to my-orders.html directly.
+               js/my-account-page-en.js calls listenMyQuoteRequests(lineUserId, ...) lazily: it
+               only subscribes the first time this panel is expanded, not immediately on login
+               (same reasoning as the Thai page — see the matching comment in my-account.html). -->
+          <div style="border:1px solid var(--gray-100); border-radius:var(--r-lg); overflow:hidden;">
+            <button type="button" id="ma-leads-toggle" aria-expanded="false" aria-controls="ma-leads-panel" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:18px 20px; border:0; background:none; text-align:left; font:inherit; cursor:pointer; color:inherit;">
+              <span style="display:flex; align-items:center; gap:12px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="flex-shrink:0; color:var(--primary);"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 9h1M9 13h6M9 17h6"/></svg>
+                <span style="font-weight:600; color:var(--gray-900);">My Quote Requests</span>
+              </span>
+              <svg id="ma-leads-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="flex-shrink:0; color:var(--gray-400); transition:transform .15s;"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
 
-  function onLeadsError(err) {
-    console.error("listenMyQuoteRequests error:", err);
-    showLeadsOnly(leadsListEl); // keep whatever's already on screen (if any), same as onOrdersError() in my-orders-page-en.js
-    showLeadsError("Couldn't load your quote request history. Please try again, or call +66 62-883-3880");
-  }
+            <div id="ma-leads-panel" style="display:none; padding:0 20px 18px; border-top:1px solid var(--gray-100);">
+              <div id="ma-leads-loading" style="display:flex; align-items:center; gap:10px; justify-content:center; padding:20px 0; color:var(--gray-500); font-size:14px;">
+                <span class="tm-submit-spinner" style="display:inline-block; position:static; border-color:var(--gray-300); border-top-color:var(--primary);"></span>
+                Loading your quote request history...
+              </div>
+              <div id="ma-leads-empty" style="display:none; padding:20px 0; text-align:center; color:var(--gray-500); font-size:14px;">No quote requests yet</div>
+              <div class="tm-error" id="ma-leads-error" role="alert" style="margin-top:14px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span id="ma-leads-error-text"></span>
+              </div>
+              <div id="ma-leads-list" style="display:none; flex-direction:column; gap:10px; padding-top:14px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  function resetLeadsPanel() {
-    if (unsubscribeLeads) { unsubscribeLeads(); unsubscribeLeads = null; }
-    if (leadsPanel) leadsPanel.style.display = "none";
-    if (leadsToggle) leadsToggle.setAttribute("aria-expanded", "false");
-    if (leadsChevron) leadsChevron.style.transform = "";
-    if (leadsListEl) leadsListEl.innerHTML = "";
-  }
+    </div>
+  </div>
+</section>
 
-  function toggleLeadsPanel() {
-    if (!leadsPanel) return;
-    var expanded = leadsPanel.style.display !== "none";
-    if (expanded) {
-      leadsPanel.style.display = "none";
-      if (leadsToggle) leadsToggle.setAttribute("aria-expanded", "false");
-      if (leadsChevron) leadsChevron.style.transform = "";
-      return;
-    }
-    leadsPanel.style.display = "block";
-    if (leadsToggle) leadsToggle.setAttribute("aria-expanded", "true");
-    if (leadsChevron) leadsChevron.style.transform = "rotate(180deg)";
-    if (!unsubscribeLeads && currentLineUserId) {
-      showLeadsOnly(leadsLoadingEl);
-      unsubscribeLeads = listenMyQuoteRequests(currentLineUserId, renderLeads, onLeadsError);
-    }
-  }
-  if (leadsToggle) {
-    leadsToggle.addEventListener("click", toggleLeadsPanel);
-  }
+</main>
 
-  // ===========================
-  // Log out — same pattern as js/my-account-page.js (P2.9-C, mirroring P2.9-A/B) — does not
-  // redirect away from this page.
-  // ===========================
-  function handleLogout() {
-    if (!logoutBtn || logoutBtn.disabled) return;
-    logoutBtn.disabled = true;
-    sessionActive = false; // set before logoutAdmin() so the onAuthChange() listener below doesn't also run handleSessionLost()
-    currentLineUserId = null;
-    resetLeadsPanel(); // cancels any pending listenMyQuoteRequests() subscription + collapses the panel back
-    Promise.resolve(logoutAdmin())
-      .catch(function (err) {
-        console.error("my-account logout error:", err);
-      })
-      .finally(function () {
-        try {
-          if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
-            liffInstance.logout();
-          }
-        } catch (err) {
-          console.error("liff logout error:", err);
-        }
-        nameEl.textContent = "";
-        avatarEl.src = "";
-        avatarEl.style.display = "none";
-        showOnly(loginEl);
-        logoutBtn.disabled = false;
-      });
-  }
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", handleLogout);
-  }
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
 
-  // ===========================
-  // Session lost elsewhere (2026-08 follow-up) — same pattern as js/my-orders-page-en.js: if the
-  // LINE customer session logged in on this page gets signed out from a different tab in the
-  // same browser (e.g. an admin.html tab left open that auto-signs-out any session carrying a
-  // lineUserId claim), this page previously had no idea — the profile/quote-requests panel stayed
-  // on screen as if still logged in. Fixed by subscribing to onAuthChange() separately, watched
-  // only while sessionActive=true (after afterLogin() has run), resetting gently back to the
-  // "Log in with LINE" screen if the session goes away.
-  // ===========================
-  function handleSessionLost() {
-    sessionActive = false;
-    currentLineUserId = null;
-    resetLeadsPanel();
-    try {
-      if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
-        liffInstance.logout();
-      }
-    } catch (err) {
-      console.error("liff logout error (session lost):", err);
-    }
-    nameEl.textContent = "";
-    avatarEl.src = "";
-    avatarEl.style.display = "none";
-    showOnly(loginEl);
-    showError("Your session expired or was signed out from another device/tab. Please log in again.");
-  }
+<div class="footer-road" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
+        </a>
+        <p>CS.SIGN And Products Co., Ltd. — manufacturer of traffic and safety signs, with 20+ years of experience.</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
+          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
 
-  onAuthChange(function (user) {
-    if (!sessionActive) return; // never logged in on this page yet (runLiffFlow() owns startup), or already logged out
-    var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
-    if (stillLineSession) return;
-    handleSessionLost();
-  });
+      <div>
+        <div class="footer-h">Products</div>
+        <div class="footer-links">
+          <a href="products.html?cat=safety">Safety Signs</a>
+          <a href="products.html?cat=traffic">Traffic Signs</a>
+          <a href="products.html?cat=safety">Industrial Plant Signage</a>
+          <a href="products.html?cat=equip">Traffic Equipment</a>
+        </div>
+      </div>
 
-  function loginErrorMessage(code) {
-    if (code === "invalid_line_token") return "LINE verification failed. Please try logging in again.";
-    if (code === "server_misconfigured") return "The login system is temporarily unavailable. Please try again later or call +66 62-883-3880";
-    return "Login failed. Please try again or call +66 62-883-3880";
-  }
+      <div>
+        <div class="footer-h">Company</div>
+        <div class="footer-links">
+          <a href="about.html">About Us</a>
+          <a href="index.html#services">How It Works</a>
+          <a href="portfolio.html">Our Work</a>
+          <a href="quality-policy.html">Quality Policy</a>
+          <a href="blog.html">Articles</a>
+          <a href="about.html#faq">FAQ</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+      </div>
 
-  // Orchestrates the whole flow — same shape as runLiffFlow() in js/my-account-page.js, differing
-  // from js/my-orders-page-en.js in that this page always calls liff.init() (never shortcuts past
-  // it entirely even with an existing Firebase session), because it always needs a liff instance
-  // to call liff.getProfile() to show the name/picture. The only thing that gets shortcut is the
-  // network call to loginWithLine() (Cloudflare Worker) when an existing Firebase session is
-  // already there.
-  function runLiffFlow(fromButtonClick) {
-    loadLiffSdk()
-      .then(function (liff) {
-        return liff.init({ liffId: LIFF_ID }).then(function () {
-          liffInstance = liff;
-          if (!liff.isLoggedIn()) {
-            if (fromButtonClick) {
-              liff.login(); // redirects away from this page and back
-              return null;
-            }
-            showOnly(loginEl);
-            return undefined;
-          }
-          return liff.getProfile().then(function (profile) {
-            if (hasExistingLineSession()) {
-              // An existing Firebase session for this LINE customer is already there — no need
-              // to call loginWithLine() again. Pull the raw lineUserId from the existing uid
-              // instead (used to call listenMyQuoteRequests()).
-              return { profile: profile, lineUserId: existingSessionLineUserId() };
-            }
-            var idToken = liff.getIDToken();
-            if (!idToken) throw Object.assign(new Error("missing id token"), { code: "missing_id_token" });
-            return loginWithLine(idToken).then(function (result) {
-              return { profile: profile, lineUserId: result.lineUserId };
-            });
-          });
-        });
-      })
-      .then(function (result) {
-        if (result === undefined || result === null) return; // already showing the login button, or redirecting
-        afterLogin(result.profile, result.lineUserId);
-      })
-      .catch(function (err) {
-        console.error("my-account login error:", err);
-        showOnly(loginEl);
-        showError(loginErrorMessage(err && err.code));
-      });
-  }
+      <div>
+        <div class="footer-h">Contact</div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Address</div>
+          <div class="footer-contact-val">17 Soi Bang Kradi 1, Samae Dam, Bang Khun Thian, Bangkok 10150, Thailand</div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Phone / Hotline</div>
+          <a href="tel:0628833880" class="footer-contact-val">+66 62-883-3880, +66 63-978-5670</a>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Fax</div>
+          <span class="footer-contact-val">+66 2-115-0850</span>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-label">Email</div>
+          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
+        </div>
+      </div>
+    </div>
 
-  if (loginBtn) {
-    loginBtn.addEventListener("click", function () {
-      loginBtn.disabled = true;
-      runLiffFlow(true);
-    });
-  }
+    <div class="footer-bottom">
+      <span>© 2004–2026 CS.SIGN And Products Co., Ltd.</span>
+      <span>Tax ID: 0105554109658</span>
+      <span><a href="privacy-policy.html" style="color:inherit;">Privacy Policy</a> · <a href="terms.html" style="color:inherit;">Terms of Service</a> &middot; <a href="accessibility.html" style="color:inherit;">Accessibility Statement</a></span>
+    </div>
+  </div>
+</footer>
 
-  showOnly(loadingEl);
-  runLiffFlow(false);
-})();
+<script src="../js/tabs-overflow.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/main-effects.js"></script>
+<script src="../js/cookie-consent.js"></script>
+<script src="../js/analytics.js"></script>
+<script src="../js/site-search-index.js"></script>
+<script src="../js/site-search.js"></script>
+<script type="module" src="../js/site-settings.js"></script>
+<script type="module" src="../js/nav-menu.js"></script>
+<script type="module" src="../js/cart-global.js"></script>
+
+<script src="../js/qmodal-template.js"></script>
+<script src="../js/track-modal-template.js"></script>
+<script type="module" src="../js/track-modal.js"></script>
+<script src="../js/cart-modal-template.js"></script>
+<script src="../js/cart-modal.js"></script>
+<script src="../js/quote-form-template.js"></script>
+<script type="module" src="../js/quote-form.js"></script>
+<script type="module" src="../js/lead-quote-modal.js"></script>
+<script src="../js/chat-widget-template.js"></script>
+
+<script src="../js/qmodal.js"></script>
+<script type="module" src="../js/chat-widget.js"></script>
+<script type="module" src="../js/my-account-page-en.js"></script>
+<script src="../js/exit-intent-cta.js"></script>
+<script src="../js/fancy-effects.js" defer></script>
+</body>
+</html>
