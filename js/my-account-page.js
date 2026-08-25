@@ -23,7 +23,7 @@
 import { loginWithLine } from "./db-orders.js";
 // signOut + auth เดียวกับที่ js/my-orders-page.js ใช้จาก P2.9-A/B — ก็อป pattern มาตรงๆ ตามที่ระบุ
 // ในพรอมต์รอบนี้ (ไม่ต้องคิดใหม่ ไม่ abstract เป็น shared module ก่อนเวลาอันควร)
-import { logoutAdmin, auth } from "./db.js";
+import { logoutAdmin, auth, onAuthChange } from "./db.js";
 // ประวัติคำขอใบเสนอราคา (P3.0 Phase 5 รอบ 8) — listenMyQuoteRequests() เขียนไว้แล้วตั้งแต่ P3.0
 // Phase 2 (js/db-quote-requests.js) แต่ยังไม่มี UI ไหนเรียกใช้จนถึงรอบนี้ — คืน items[]
 // (productId/name/variantLabel/size/material/qty/unit/note ต่อชิ้น) + quotePublicToken/quotationId
@@ -84,6 +84,11 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   var currentLineUserId = null;
   var unsubscribeLeads = null;
 
+  // เช็คว่าตอนนี้หน้ากำลังอยู่ใน state "login แล้ว" อยู่หรือเปล่า (afterLogin() เรียกแล้ว แต่ยังไม่
+  // logout) — ใช้กันการ subscribe onAuthChange() ด้านล่างไม่ให้ทำงานซ้อนกับ runLiffFlow() ตอนหน้า
+  // โหลดครั้งแรก (pattern เดียวกับ js/my-orders-page.js)
+  var sessionActive = false;
+
   function escapeHtml(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -138,6 +143,7 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   }
 
   function afterLogin(profile, lineUserId) {
+    sessionActive = true;
     renderProfile(profile);
     currentLineUserId = lineUserId || null;
     showOnly(profileEl);
@@ -264,6 +270,7 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   function handleLogout() {
     if (!logoutBtn || logoutBtn.disabled) return;
     logoutBtn.disabled = true;
+    sessionActive = false; // ตั้งก่อนเรียก logoutAdmin() กันไม่ให้ onAuthChange() ด้านล่างมาซ้อนทำงาน handleSessionLost() อีกรอบ
     currentLineUserId = null;
     resetLeadsPanel(); // ยกเลิก listenMyQuoteRequests() ที่ subscribe ค้างไว้ (ถ้ามี) + ยุบ panel กลับ
     Promise.resolve(logoutAdmin())
@@ -288,6 +295,40 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   if (logoutBtn) {
     logoutBtn.addEventListener("click", handleLogout);
   }
+
+  // ===========================
+  // เซสชันหลุดจากที่อื่น (2026-08 follow-up) — pattern เดียวกับ js/my-orders-page.js: ถ้า session
+  // ของบัญชี LINE ที่ login ค้างอยู่ในหน้านี้ถูก signOut(auth) จากแท็บอื่นในเบราว์เซอร์เดียวกัน
+  // (เช่น เปิด admin.html ค้างไว้อีกแท็บ แล้ว admin-page.js ตรวจเจอ custom claim lineUserId แล้ว
+  // signOut ให้อัตโนมัติ) หน้านี้จะไม่รู้ตัวเลย — โปรไฟล์/panel ใบเสนอราคายังค้างโชว์อยู่ทั้งที่
+  // session หลุดไปแล้วจริง แก้โดย subscribe onAuthChange() แยกไว้เฝ้าดูตลอดเวลาที่
+  // sessionActive=true (หลัง afterLogin() เรียกไปแล้ว) พากลับไปหน้า "เข้าสู่ระบบด้วย LINE" อย่าง
+  // นุ่มนวลถ้า session หลุด
+  // ===========================
+  function handleSessionLost() {
+    sessionActive = false;
+    currentLineUserId = null;
+    resetLeadsPanel();
+    try {
+      if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
+        liffInstance.logout();
+      }
+    } catch (err) {
+      console.error("liff logout error (session lost):", err);
+    }
+    nameEl.textContent = "";
+    avatarEl.src = "";
+    avatarEl.style.display = "none";
+    showOnly(loginEl);
+    showError("เซสชันหมดอายุหรือออกจากระบบจากอุปกรณ์/แท็บอื่น กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+  }
+
+  onAuthChange(function (user) {
+    if (!sessionActive) return; // ยังไม่เคย login สำเร็จในหน้านี้ (runLiffFlow() คุม flow เริ่มต้นเองอยู่แล้ว) หรือ logout ไปแล้ว
+    var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
+    if (stillLineSession) return;
+    handleSessionLost();
+  });
 
   function loginErrorMessage(code) {
     if (code === "invalid_line_token") return "ยืนยันตัวตนผ่าน LINE ไม่สำเร็จ กรุณาลองเข้าสู่ระบบใหม่อีกครั้ง";
