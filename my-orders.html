@@ -1,334 +1,407 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ออเดอร์ของฉัน — CS.SIGN ผู้ผลิตป้ายความปลอดภัยครบวงจร</title>
-<meta name="description" content="เข้าสู่ระบบด้วย LINE เพื่อดูสถานะคำสั่งผลิตทั้งหมดของคุณในที่เดียว ไม่ต้องจำเลขที่ PO">
-<meta name="robots" content="noindex, follow">
+// ===========================
+// js/my-orders-page.js — ควบคุมหน้า "ออเดอร์ของฉัน" (my-orders.html) — P2.8c-E
+// ===========================
+// LINE = ตัวตนลูกค้าเดียว ไม่มี password/OTP แยก (ดูแผนเต็มใน p2.8c-line-customer-plan.md) —
+// หน้านี้เป็น consumer ตัวแรกของ loginWithLine()/listenMyOrders() ที่เพิ่มไว้ใน js/db-orders.js
+// รอบ P2.8c-D — ต่างจาก js/track-modal.js (P1.5) ตรงที่ track-modal.js ต้อง "เชื่อมบัญชี" กับ
+// order เดียวก่อนด้วยเลข PO/เบอร์โทร ส่วนหน้านี้ login ด้วย LINE อย่างเดียวแล้วเห็นทุกออเดอร์ที่
+// เคยเชื่อมไว้แล้วทันที (ไม่ต้องรู้เลข PO ล่วงหน้า)
+import { loginWithLine, listenMyOrders, linkLineAccount, ORDER_STATUS } from "./db-orders.js";
+// signOut ฝั่งลูกค้า (P2.9-A) — ใช้ logoutAdmin() เดิมจาก js/db.js ตรงๆ (ครอบ signOut(auth) ตัว
+// เดียวกับที่แอดมินใช้ — ดูเหตุผลใน p2.9-account-hub-plan.md ว่าทำไมไม่เพิ่ม alias
+// signOutCustomer() ใหม่ในรอบนี้: ชื่อสื่อความหมายฝั่งแอดมินก็จริง แต่ทำงานกับ auth instance
+// เดียวกันเป๊ะ เพิ่มโค้ดซ้ำโดยไม่จำเป็นถ้าจะทำแค่ alias เฉยๆ — พิจารณาเปลี่ยนเป็น alias ทีหลังถ้า
+// เริ่มมี consumer หลายจุดที่อยากได้ชื่อสื่อความหมายกว่านี้จริงๆ)
+// เพิ่ม auth (P2.9-B) — เช็ค auth.currentUser ตรงๆ ก่อนเข้า flow liff.login() ทุกครั้ง ถ้ามี
+// session ลูกค้า LINE เดิมค้างอยู่แล้ว (uid ขึ้นต้น "line_") ข้ามไป afterLogin() ได้เลย ไม่ต้อง
+// บังคับ login ซ้ำ (ดูรายละเอียดที่หัวข้อ "P2.9-B" ใน p2.9-account-hub-plan.md)
+import { logoutAdmin, auth, onAuthChange } from "./db.js";
 
-<!-- ══ Open Graph / Social ══ -->
-<meta property="og:type"        content="website">
-<meta property="og:url"         content="https://cssign.co.th/my-orders.html">
-<meta property="og:title"       content="ออเดอร์ของฉัน — CS.SIGN">
-<meta property="og:description" content="เข้าสู่ระบบด้วย LINE เพื่อดูสถานะคำสั่งผลิตทั้งหมดของคุณในที่เดียว">
-<meta property="og:image"       content="https://cssign.co.th/assets/og-image.jpg">
-<meta property="og:locale"      content="th_TH">
-<link rel="canonical" href="https://cssign.co.th/my-orders.html">
+(function () {
+  var loadingEl        = document.getElementById("mo-loading");
+  var loginEl          = document.getElementById("mo-login");
+  var loginBtn         = document.getElementById("mo-login-btn");
+  var errorEl          = document.getElementById("mo-error");
+  var errorTextEl      = document.getElementById("mo-error-text");
+  var ordersLoadingEl  = document.getElementById("mo-orders-loading");
+  var emptyEl          = document.getElementById("mo-empty");
+  var listEl           = document.getElementById("mo-list");
+  // ปุ่มออกจากระบบ (P2.9-A) — เหมือน linkMoreEl ด้านล่าง: ต้องอยู่คู่กับ state "login แล้ว" ได้
+  // (orders-loading/empty/list) ไม่ได้อยู่ในกลุ่ม 5 state ที่ showOnly() คุมทีละอัน จึงคุม
+  // visibility แยกเองด้วย showLogout()/hideLogout()
+  var logoutEl         = document.getElementById("mo-logout");
+  var logoutBtn        = document.getElementById("mo-logout-btn");
+  // เชื่อมออเดอร์เพิ่ม (P2.8c-F) — โชว์เฉพาะหลัง login สำเร็จ ไม่ได้อยู่ในกลุ่ม state ที่
+  // showOnly() คุม (mo-link-more ต้องอยู่ "คู่กับ" ทั้ง mo-list และ mo-empty พร้อมกันได้ ต่างจาก
+  // 5 state ด้านบนที่โชว์ทีละอันเท่านั้น) จึงคุม visibility แยกเองด้วย showLinkMore()/hideLinkMore()
+  var linkMoreEl       = document.getElementById("mo-link-more");
+  var linkMoreToggle   = document.getElementById("mo-link-more-toggle");
+  var linkMoreForm     = document.getElementById("mo-link-more-form");
+  var linkMoreCodeEl   = document.getElementById("mo-link-more-code");
+  var linkMorePhoneEl  = document.getElementById("mo-link-more-phone");
+  var linkMoreSubmit   = document.getElementById("mo-link-more-submit");
+  var linkMoreMsgEl    = document.getElementById("mo-link-more-msg");
+  if (!loadingEl || !loginEl || !listEl) return; // ไม่ใช่หน้า my-orders.html
 
-<link rel="icon" href="assets/favicon.ico" sizes="any">
-<link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
-<link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<link rel="manifest" href="assets/site.webmanifest">
-<meta name="theme-color" content="#0B5A96">
-<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Chakra+Petch:wght@500;600;700&display=swap">
+  // LIFF ID เดียวกับที่ js/track-modal.js ใช้ (P1.5) — ต้องตรงกับ [vars] LIFF_ID ใน
+  // cloudflare-worker/wrangler.toml เป๊ะ (Worker ใช้ค่านี้เป็น audience ตอน verify LIFF ID
+  // token ทั้ง /link-line และ /line-login) — จงใจ "ก็อปมาตรงๆ" จาก track-modal.js แทนที่จะแยก
+  // เป็น shared module (track-modal.js ห่อทุกอย่างไว้ใน IIFE ปิด ไม่ export loadLiffSdk()/
+  // LIFF_ID ออกมาให้ import ซ้ำได้ตรงๆ อยู่แล้ว — จะแยกเป็น shared module ก็ได้ในรอบถัดไปถ้า
+  // เห็นว่าคุ้ม แต่รอบนี้ทำตามกติกา "2-3 ไฟล์ต่อรอบ" ก่อน)
+  var LIFF_ID = "2011108044-Nmgfktx5";
 
-<link rel="stylesheet" href="css/style.css?v=20260711a">
-<link rel="stylesheet" href="css/shared-widgets.css">
-<link rel="stylesheet" href="css/exit-intent-cta.css">
-<link rel="stylesheet" href="css/track-modal.css">
-<link rel="stylesheet" href="css/cart-modal.css">
-<link rel="stylesheet" href="css/fancy-effects.css">
-</head>
-<body data-page="my-orders">
-<a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
+  var liffSdkPromise = null;
+  function loadLiffSdk() {
+    if (window.liff) return Promise.resolve(window.liff);
+    if (liffSdkPromise) return liffSdkPromise;
+    liffSdkPromise = new Promise(function (resolve, reject) {
+      var script = document.createElement("script");
+      script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+      script.onload = function () { resolve(window.liff); };
+      script.onerror = function () {
+        liffSdkPromise = null;
+        reject(new Error("โหลด LIFF SDK ไม่สำเร็จ"));
+      };
+      document.head.appendChild(script);
+    });
+    return liffSdkPromise;
+  }
 
-<!-- ============================================================
-     STICKY NAVIGATION
-     ============================================================ -->
-<div class="topbar" id="topbar">
-  <div class="topbar-inner">
-    <div class="topbar-contact">
-      <a href="tel:0628833880" class="topbar-item topbar-tel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        062-883-3880
-      </a>
-      <a href="mailto:cssigngroup@gmail.com" class="topbar-item topbar-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>cssigngroup@gmail.com</span></a>
-      <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" class="topbar-item topbar-line" aria-label="แชทผ่าน LINE" title="แชทผ่าน LINE @cssigngroup">
-        <span class="tl-dot"></span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>
-        <span>แอด LINE @cssigngroup</span>
-      </a>
-    </div>
-    <div class="topbar-utils">
-      <button type="button" class="nav-search-trigger" aria-label="ค้นหาในเว็บไซต์">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </button>
-      <div class="nav-lang-switch" aria-label="Language switch">
-        <a href="#" class="is-active">TH</a>
-      </div>
-    </div>
-  </div>
-</div>
+  // เก็บ liff instance ที่ init()/login() แล้วจาก runLiffFlow() ไว้ใช้ซ้ำตอนกดปุ่ม "เชื่อมออเดอร์
+  // เพิ่ม" (P2.8c-F) — กัน liff.init() ซ้ำโดยไม่จำเป็น (liff.init() เรียกซ้ำได้แต่ไม่มีประโยชน์เพิ่ม
+  // เพราะ session เดิมยัง valid อยู่ตราบใดที่ยังไม่ปิดหน้า)
+  var liffInstance = null;
 
-<header class="site-header" id="site-header">
-  <div class="nav-inner">
-    <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
-      <span class="brand-text">
-        <span class="brand-name">CS.SIGN</span>
-        <span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
-      </span>
-    </a>
+  var unsubscribeOrders = null;
 
-    <nav class="nav-links">
-      <a href="index.html" class="nav-link">หน้าแรก</a>
-      <a href="products.html" class="nav-link">สินค้า</a>
-      <a href="portfolio.html" class="nav-link">ผลงาน</a>
-      <a href="about.html" class="nav-link">เกี่ยวกับเรา</a>
-      <a href="blog.html" class="nav-link">บทความ</a>
-      <a href="contact.html" class="nav-link">ติดต่อ</a>
-    </nav>
+  // เช็คว่าตอนนี้หน้ากำลังอยู่ใน state "login แล้ว" อยู่หรือเปล่า (afterLogin() เรียกแล้ว แต่ยังไม่
+  // logout) — ใช้กันการ subscribe onAuthChange() ด้านล่างไม่ให้ทำงานซ้อนกับ runLiffFlow() ตอนหน้า
+  // โหลดครั้งแรก (ตอนนั้น sessionActive ยังเป็น false อยู่ event onAuthStateChanged แรกที่ยิงมาพร้อม
+  // subscribe จะถูกข้ามไปเฉยๆ ปล่อยให้ runLiffFlow() คุม flow login เองตามปกติ)
+  var sessionActive = false;
 
-    <div class="nav-actions">
-      <a href="contact.html" class="btn btn-primary btn-sm">ขอใบเสนอราคา</a>
-      <button type="button" class="nav-icon-btn nav-track-trigger" data-track-modal-open aria-label="เช็คสถานะคำสั่งผลิต" title="เช็คสถานะคำสั่งผลิต">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
-      </button>
-      <button class="nav-burger" id="burger-btn" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="mobile-menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </div>
-</header>
+  function showOnly(el) {
+    [loadingEl, loginEl, ordersLoadingEl, emptyEl, listEl].forEach(function (e) {
+      if (e) e.style.display = "none";
+    });
+    hideError();
+    if (el) el.style.display = el === listEl ? "flex" : (el === loadingEl || el === ordersLoadingEl ? "flex" : "block");
+  }
+  function showError(msg) {
+    errorTextEl.textContent = msg;
+    errorEl.classList.add("show");
+  }
+  function hideError() {
+    errorEl.classList.remove("show");
+  }
 
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobile-menu">
-  <div class="mobile-menu-top">
-    <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="CS.SIGN Logo" width="48" height="48" class="brand-mark brand-mark--img">
-      <span class="brand-text"><span class="brand-name">CS.SIGN</span></span>
-    </a>
-    <button class="mobile-close" id="mobile-close-btn" aria-label="ปิดเมนู">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  <div class="mobile-links">
-    <a href="index.html">หน้าแรก</a>
-    <a href="products.html">สินค้า</a>
-    <a href="portfolio.html">ผลงาน</a>
-    <a href="about.html">เกี่ยวกับเรา</a>
-    <a href="blog.html">บทความ</a>
-    <a href="#" data-track-modal-open>เช็คสถานะคำสั่งผลิต</a>
-    <a href="contact.html">ติดต่อ</a>
-  </div>
-  <div class="mobile-email">
-    <a href="mailto:cssigngroup@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>cssigngroup@gmail.com</a>
-  </div>
-  <div class="mobile-line">
-    <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="5"/><path d="M7.5 9.5v5M16.5 9.5v5l-4-5v5"/></svg>แอด LINE @cssigngroup</a>
-  </div>
-  <div class="mobile-cta">
-    <a href="contact.html" class="btn btn-primary btn-block">ขอใบเสนอราคา</a>
-    <a href="tel:0628833880" class="btn btn-secondary btn-block">โทร 062-883-3880</a>
-  </div>
-</div>
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
 
-<main id="top">
+  // การ์ดออเดอร์เดี่ยว — ใช้ class .tm-* เดิมจาก css/track-modal.css ซ้ำ (โหลดอยู่แล้วทุกหน้า)
+  // แทนที่จะเพิ่ม CSS ใหม่ในรอบนี้ (ตามแผน P2.8c-E: เริ่มจาก html+js ก่อน เพิ่ม CSS เฉพาะทาง
+  // ในรอบ P2.8c-F ถ้าจำเป็นจริงๆ)
+  function renderOrderCard(order) {
+    var statusInfo = ORDER_STATUS[order.status] || { label: order.status, css: "received" };
+    var progress = Math.max(0, Math.min(100, order.progress || 0));
+    return (
+      '<div style="border:1px solid var(--gray-100); border-radius:var(--r-lg); padding:18px 20px; background:var(--bg);">' +
+        '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px;">' +
+          '<div>' +
+            '<div class="tm-result-code">' + escapeHtml(order.code || "\u2014") + '</div>' +
+            '<div class="tm-result-item">' + escapeHtml(order.item || "") + (order.qty ? " \u00b7 \u0e08\u0e33\u0e19\u0e27\u0e19 " + escapeHtml(String(order.qty)) : "") + '</div>' +
+          '</div>' +
+          '<span class="tm-badge ' + statusInfo.css + '">' + escapeHtml(statusInfo.label) + '</span>' +
+        '</div>' +
+        (order.status !== "cancelled" ?
+          '<div class="tm-progress-bar"><i style="width:' + progress + '%"></i></div>'
+        : "") +
+      '</div>'
+    );
+  }
 
-<!-- ============================================================
-     ออเดอร์ของฉัน (P2.8c-E) — LINE = ตัวตนลูกค้า ไม่มี password/OTP แยก
-     ดูแผนเต็มที่ p2.8c-line-customer-plan.md — หน้านี้เป็นฝั่ง frontend ตัวแรกที่ใช้
-     loginWithLine()/listenMyOrders() จาก js/db-orders.js (รอบ P2.8c-D)
-     ============================================================ -->
-<section class="article-hero">
-  <div class="wrap">
-    <div class="article-breadcrumb"><a href="index.html">หน้าแรก</a> / ออเดอร์ของฉัน</div>
-    <h1>ออเดอร์ของฉัน</h1>
-    <div class="article-updated">เข้าสู่ระบบด้วย LINE เพื่อดูสถานะคำสั่งผลิตทั้งหมดของคุณในที่เดียว ไม่ต้องจำเลขที่ PO</div>
-  </div>
-</section>
+  function renderOrders(orders) {
+    if (!orders || orders.length === 0) {
+      showOnly(emptyEl);
+      return;
+    }
+    listEl.innerHTML = orders.map(renderOrderCard).join("");
+    showOnly(listEl);
+  }
 
-<section class="article-body">
-  <div class="wrap">
-    <div class="article-content" id="mo-root" style="max-width:640px;">
+  function onOrdersError(err) {
+    console.error("listenMyOrders error:", err);
+    showOnly(listEl); // เก็บรายการเดิม (ถ้ามี) ไว้บนจอ ไม่เคลียร์ทิ้งตอน error ระหว่างทาง (เช่น เน็ตหลุดชั่วคราว)
+    showError("โหลดรายการออเดอร์ไม่สำเร็จ กรุณาลองรีเฟรชหน้าใหม่ หรือโทร 062-883-3880");
+  }
 
-      <!-- ออกจากระบบ (P2.9-A) — โชว์เฉพาะหลัง login LINE สำเร็จแล้ว (ควบคุม visibility แยกเอง
-           คู่กับ mo-link-more ไม่ได้อยู่ในกลุ่ม 5 state ที่ showOnly() คุม) กดแล้ว signOut(auth)
-           ฝั่ง Firebase + liff.logout() (ถ้า LIFF login ค้างอยู่) แล้ว reset กลับไปหน้า
-           "เข้าสู่ระบบด้วย LINE" เดิม ไม่ redirect ออกจากหน้านี้ -->
-      <div id="mo-logout" style="display:none; text-align:right; margin-bottom:14px;">
-        <button type="button" id="mo-logout-btn" class="btn btn-secondary btn-sm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          ออกจากระบบ
-        </button>
-      </div>
+  function afterLogin(lineUserId) {
+    sessionActive = true;
+    showOnly(ordersLoadingEl);
+    showLinkMore(); // login สำเร็จแล้ว โชว์ปุ่ม "เชื่อมออเดอร์เพิ่ม" ไว้เลย ไม่ต้องรอออเดอร์โหลดเสร็จ
+    showLogout();   // เช่นเดียวกัน โชว์ปุ่ม "ออกจากระบบ" ทันทีที่ login สำเร็จ (P2.9-A)
+    if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
+    unsubscribeOrders = listenMyOrders(lineUserId, renderOrders, onOrdersError);
+  }
 
-      <!-- สถานะเริ่มต้น — กำลังตรวจสอบว่า LIFF login อยู่แล้วหรือยัง (auto-detect ตอนกลับมาจาก
-           liff.login() redirect) -->
-      <div id="mo-loading" style="display:flex; align-items:center; gap:10px; justify-content:center; padding:48px 0; color:var(--gray-500); font-size:14px;">
-        <span class="tm-submit-spinner" style="display:inline-block; position:static; border-color:var(--gray-300); border-top-color:var(--primary);"></span>
-        กำลังตรวจสอบสถานะเข้าสู่ระบบ...
-      </div>
+  // ===========================
+  // ออกจากระบบ (P2.9-A)
+  // ===========================
+  // signOut(auth) ฝั่ง Firebase ผ่าน logoutAdmin() เดิม + liff.logout() ถ้า LIFF session ยังค้าง
+  // login อยู่ (กันกรณีที่ liff ยัง isLoggedIn()=true อยู่ แล้ว runLiffFlow() รอบหน้าจะ auto
+  // login กลับเข้าไปทันทีโดยไม่ทันได้เห็นปุ่ม login เลย — round B ค่อยจัดการเรื่อง "จำ session"
+  // แบบเต็มรูปแบบ รอบนี้แค่ทำให้ปุ่ม logout ทำงานจริงตามชื่อก่อน) ไม่ redirect ออกจากหน้านี้ —
+  // reset UI state กลับไปหน้า "เข้าสู่ระบบด้วย LINE" เดิมตรงๆ
+  function handleLogout() {
+    if (!logoutBtn || logoutBtn.disabled) return;
+    logoutBtn.disabled = true;
+    sessionActive = false; // ตั้งก่อนเรียก logoutAdmin() กันไม่ให้ onAuthChange() ด้านล่างมาซ้อนทำงาน handleSessionLost() อีกรอบ
+    if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
+    Promise.resolve(logoutAdmin())
+      .catch(function (err) {
+        console.error("my-orders logout error:", err);
+      })
+      .finally(function () {
+        try {
+          if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
+            liffInstance.logout();
+          }
+        } catch (err) {
+          console.error("liff logout error:", err);
+        }
+        listEl.innerHTML = "";
+        hideLinkMore();
+        hideLogout();
+        showOnly(loginEl);
+        logoutBtn.disabled = false;
+      });
+  }
 
-      <!-- ยังไม่ login -->
-      <div id="mo-login" style="display:none; text-align:center; padding:32px 0;">
-        <p style="color:var(--gray-600); margin-bottom:20px;">เข้าสู่ระบบด้วยบัญชี LINE เดียวกับที่คุณใช้ (หรือเคยเชื่อม) กับคำสั่งผลิต เพื่อดูออเดอร์ทั้งหมดของคุณโดยอัตโนมัติ</p>
-        <button type="button" id="mo-login-btn" class="tm-line-link-btn" style="margin:0 auto;">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2C6.48 2 2 5.94 2 10.8c0 2.98 1.78 5.62 4.5 7.24-.15.5-.63 2.14-.72 2.47-.11.4.15.4.31.29.13-.09 2.05-1.4 2.88-1.97a13 13 0 0 0 3.03.35c5.52 0 10-3.94 10-8.8S17.52 2 12 2Z"/></svg>
-          เข้าสู่ระบบด้วย LINE
-        </button>
-      </div>
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", handleLogout);
+  }
 
-      <!-- error (login ไม่สำเร็จ / โหลด LIFF SDK ไม่สำเร็จ / listenMyOrders error) -->
-      <div class="tm-error" id="mo-error" role="alert">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span id="mo-error-text"></span>
-      </div>
+  // ===========================
+  // เซสชันหลุดจากที่อื่น (2026-08 follow-up) — เดิมถ้า session ของบัญชี LINE ที่ login ค้างอยู่ในหน้า
+  // นี้ถูก signOut(auth) จากแท็บอื่นในเบราว์เซอร์เดียวกัน (เช่น เผลอเปิด admin.html ค้างไว้คนละแท็บ
+  // แล้ว admin-page.js ตรวจเจอ custom claim lineUserId แล้ว signOut ให้อัตโนมัติตาม BUGFIX
+  // 2026-08 ใน js/admin-page.js — signOut(auth) กระทบทุกแท็บของเว็บเดียวกันเพราะใช้ auth instance
+  // เดียวกัน) หน้านี้จะไม่รู้ตัวเลยว่า session หลุดไปแล้ว ปล่อยให้ listener เดิม (listenMyOrders())
+  // ยังพยายามทำงานต่อด้วย auth.currentUser ที่เป็น null ไปแล้ว เกิด error ที่ทำนายไม่ได้กลางทาง —
+  // แก้โดย subscribe onAuthChange() แยกไว้เฝ้าดูตลอดเวลาที่ sessionActive=true (คือหลัง afterLogin()
+  // เรียกไปแล้ว) ถ้าเจอ user เปลี่ยนไปเป็น null หรือกลายเป็นบัญชีที่ไม่ใช่ลูกค้า LINE (ไม่มี "line_"
+  // prefix ที่ uid — เผื่อเคสสลับไปเป็น session แอดมินในแท็บนี้เอง) ระหว่างทาง ให้พากลับไปหน้า
+  // "เข้าสู่ระบบด้วย LINE" อย่างนุ่มนวลแทนที่จะปล่อยให้ค้าง error ไว้ — ไม่ต้อง guard เพิ่มเรื่อง
+  // token refresh เพราะ onAuthStateChanged (ต่างจาก onIdTokenChanged) ยิงเฉพาะตอน user
+  // เปลี่ยน (sign-in/out) จริงๆ เท่านั้น ไม่ยิงซ้ำตอน refresh token เฉยๆ
+  function handleSessionLost() {
+    sessionActive = false;
+    if (unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
+    try {
+      if (liffInstance && liffInstance.isLoggedIn && liffInstance.isLoggedIn()) {
+        liffInstance.logout();
+      }
+    } catch (err) {
+      console.error("liff logout error (session lost):", err);
+    }
+    listEl.innerHTML = "";
+    hideLinkMore();
+    hideLogout();
+    showOnly(loginEl);
+    showError("เซสชันหมดอายุหรือออกจากระบบจากอุปกรณ์/แท็บอื่น กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+  }
 
-      <!-- login สำเร็จแล้ว: กำลังโหลดออเดอร์ -->
-      <div id="mo-orders-loading" style="display:none; align-items:center; gap:10px; justify-content:center; padding:48px 0; color:var(--gray-500); font-size:14px;">
-        <span class="tm-submit-spinner" style="display:inline-block; position:static; border-color:var(--gray-300); border-top-color:var(--primary);"></span>
-        กำลังโหลดออเดอร์ของคุณ...
-      </div>
+  onAuthChange(function (user) {
+    if (!sessionActive) return; // ยังไม่เคย login สำเร็จในหน้านี้ (runLiffFlow() คุม flow เริ่มต้นเองอยู่แล้ว) หรือ logout ไปแล้ว
+    var stillLineSession = !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
+    if (stillLineSession) return; // session ลูกค้า LINE เดิมยังอยู่ปกติ ไม่ต้องทำอะไร
+    handleSessionLost();
+  });
 
-      <!-- login สำเร็จ แต่ยังไม่มีออเดอร์ผูกกับบัญชี LINE นี้เลย -->
-      <div id="mo-empty" style="display:none; text-align:center; padding:32px 0;">
-        <p style="color:var(--gray-600); margin-bottom:20px;">ยังไม่มีคำสั่งผลิตที่เชื่อมกับบัญชี LINE นี้ — เช็คสถานะด้วยเลขที่ PO และเบอร์โทร แล้วกดปุ่ม "เชื่อมบัญชี LINE" ในผลลัพธ์เพื่อเริ่มดูออเดอร์แรกของคุณที่นี่</p>
-        <button type="button" class="btn btn-primary" data-track-modal-open>เช็คสถานะคำสั่งผลิต</button>
-      </div>
+  function loginErrorMessage(code) {
+    if (code === "invalid_line_token") return "ยืนยันตัวตนผ่าน LINE ไม่สำเร็จ กรุณาลองเข้าสู่ระบบใหม่อีกครั้ง";
+    if (code === "server_misconfigured") return "ระบบเข้าสู่ระบบขัดข้องชั่วคราว กรุณาลองใหม่ภายหลัง หรือโทร 062-883-3880";
+    return "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง หรือโทร 062-883-3880";
+  }
 
-      <!-- รายการออเดอร์ -->
-      <div id="mo-list" style="display:none; flex-direction:column; gap:14px;"></div>
+  // ===========================
+  // เชื่อมออเดอร์เพิ่ม (P2.8c-F)
+  // ===========================
+  // ปุ่ม "เชื่อมออเดอร์เพิ่ม" + ฟอร์ม PO/เบอร์โทร ที่โผล่หลัง login LINE สำเร็จแล้ว (ดู
+  // showLinkMore()/hideLinkMore() ที่เรียกจาก afterLogin()/runLiffFlow() ด้านล่าง) — ใช้ liff
+  // session เดิม (เก็บ instance ไว้ที่ liffInstance ตอน runLiffFlow() สำเร็จ) เรียก
+  // linkLineAccount() เดิมจาก js/db-orders.js (P1.5) ซ้ำตรงๆ เหมือน handleLineLinkClick() ใน
+  // js/track-modal.js — ต่างกันแค่ไม่ต้อง liff.login()/redirect ใหม่เพราะ login ค้างอยู่แล้วแน่นอน
+  // (ฟอร์มนี้โผล่หลัง login สำเร็จเท่านั้น)
+  function showLogout() {
+    if (logoutEl) logoutEl.style.display = "block";
+  }
+  function hideLogout() {
+    if (logoutEl) logoutEl.style.display = "none";
+  }
 
-      <!-- เชื่อมออเดอร์เพิ่ม (P2.8c-F) — โชว์เฉพาะหลัง login LINE สำเร็จแล้ว (ทั้ง state มีรายการ/
-           ว่างเปล่า) ใช้ liff session เดิมที่ล็อกอินอยู่แล้ว ไม่ต้อง login ซ้ำ กรอกแค่เลข PO+เบอร์โทร
-           ของออเดอร์ใหม่ที่ยังไม่เคยเชื่อม แล้วเรียก linkLineAccount() เดิมจาก P1.5 ซ้ำ (ไม่เขียนใหม่)
-           — สำเร็จแล้วออเดอร์จะโผล่ในลิสต์ด้านบนเองอัตโนมัติผ่าน listenMyOrders() ที่ subscribe อยู่แล้ว -->
-      <div id="mo-link-more" style="display:none; margin-top:28px; padding-top:24px; border-top:1px solid var(--gray-100);">
-        <button type="button" id="mo-link-more-toggle" class="btn btn-secondary btn-sm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          เชื่อมออเดอร์เพิ่ม
-        </button>
-        <form id="mo-link-more-form" autocomplete="off" style="display:none; margin-top:16px;">
-          <p style="color:var(--gray-600); font-size:14px; margin-bottom:14px;">กรอกเลขที่ PO และเบอร์โทรของออเดอร์ที่ต้องการเชื่อมกับบัญชี LINE นี้เพิ่ม</p>
-          <div class="tm-field">
-            <label for="mo-link-more-code">เลขที่คำสั่งผลิต (PO)</label>
-            <div class="tm-input-wrap">
-              <svg class="tm-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>
-              <input id="mo-link-more-code" type="text" placeholder="เช่น PO-2026-0120" required>
-            </div>
-          </div>
-          <div class="tm-field">
-            <label for="mo-link-more-phone">เบอร์โทรศัพท์</label>
-            <div class="tm-input-wrap">
-              <svg class="tm-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              <input id="mo-link-more-phone" type="tel" inputmode="numeric" placeholder="เช่น 0891234567" required>
-            </div>
-            <div class="tm-field-hint">ใช้แค่เบอร์ 4 ตัวท้ายในการยืนยันตัวตน</div>
-          </div>
-          <button type="submit" id="mo-link-more-submit" class="btn btn-primary btn-sm">เชื่อมออเดอร์นี้</button>
-          <div class="tm-line-link-msg" id="mo-link-more-msg" role="alert"></div>
-        </form>
-      </div>
+  function showLinkMore() {
+    if (linkMoreEl) linkMoreEl.style.display = "block";
+  }
+  function hideLinkMore() {
+    if (linkMoreEl) linkMoreEl.style.display = "none";
+    if (linkMoreForm) linkMoreForm.style.display = "none";
+    if (linkMoreToggle) linkMoreToggle.style.display = "inline-flex";
+  }
+  function showLinkMoreMsg(msg) {
+    if (linkMoreMsgEl) linkMoreMsgEl.textContent = msg;
+  }
+  function hideLinkMoreMsg() {
+    if (linkMoreMsgEl) linkMoreMsgEl.textContent = "";
+  }
+  function linkMoreErrorMessage(code) {
+    if (code === "invalid_line_token") return "ยืนยันตัวตนผ่าน LINE ไม่สำเร็จ กรุณาลองรีเฟรชหน้าใหม่แล้วลองอีกครั้ง";
+    if (code === "order_not_found") return "ข้อมูลเลขที่ PO หรือเบอร์โทรไม่ตรงกับคำสั่งผลิตใดเลย กรุณาลองตรวจสอบอีกครั้ง";
+    return "เกิดข้อผิดพลาดในการเชื่อมออเดอร์ กรุณาลองใหม่อีกครั้ง หรือโทร 062-883-3880";
+  }
 
-    </div>
-  </div>
-</section>
+  if (linkMoreToggle) {
+    linkMoreToggle.addEventListener("click", function () {
+      if (!linkMoreForm) return;
+      var showing = linkMoreForm.style.display !== "none";
+      linkMoreForm.style.display = showing ? "none" : "block";
+      linkMoreToggle.style.display = showing ? "inline-flex" : "none";
+      if (!showing && linkMoreCodeEl) linkMoreCodeEl.focus();
+    });
+  }
 
-</main>
+  if (linkMoreForm) {
+    linkMoreForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (linkMoreSubmit.disabled) return;
+      hideLinkMoreMsg();
 
-<!-- ============================================================
-     FOOTER
-     ============================================================ -->
+      var code = linkMoreCodeEl.value.trim();
+      var phone = linkMorePhoneEl.value.trim();
+      if (!code) { showLinkMoreMsg("กรุณากรอกเลขที่คำสั่งผลิต (PO)"); return; }
+      if (phone.replace(/\D/g, "").length < 4) { showLinkMoreMsg("กรุณากรอกเบอร์โทรอย่างน้อย 4 หลักสุดท้าย"); return; }
 
-<div class="footer-road" aria-hidden="true"></div>
-<footer class="site-footer">
-  <div class="wrap">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="index.html" class="brand">
-          <span class="brand-text"><span class="brand-name">CS.SIGN</span><span class="brand-sub">บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span></span>
-        </a>
-        <p>บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด ผู้ผลิตป้ายจราจรและป้ายความปลอดภัยครบวงจร ประสบการณ์มากกว่า 20 ปี</p>
-        <div class="footer-social">
-          <a href="https://www.facebook.com/cssignonline/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
-          <a href="https://line.me/ti/p/@cssigngroup" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9v6M17 9v6l-4-6v6"/></svg></a>
-          <a href="mailto:cssigngroup@gmail.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
-        </div>
-      </div>
+      linkMoreSubmit.disabled = true;
+      var originalLabel = linkMoreSubmit.textContent;
+      linkMoreSubmit.textContent = "กำลังเชื่อม...";
 
-      <div>
-        <div class="footer-h">ผลิตภัณฑ์</div>
-        <div class="footer-links">
-          <a href="products.html?cat=safety">ป้ายความปลอดภัย</a>
-          <a href="products.html?cat=traffic">ป้ายจราจร</a>
-          <a href="products.html?cat=safety">ป้ายโรงงานอุตสาหกรรม</a>
-          <a href="products.html?cat=equip">อุปกรณ์จราจร</a>
-        </div>
-      </div>
+      // ใช้ liffInstance ที่ login ค้างไว้แล้วจาก runLiffFlow() — ไม่เรียก liff.login() ซ้ำเพราะ
+      // ฟอร์มนี้โผล่หลัง login สำเร็จเท่านั้น (ถ้า liffInstance หายไปด้วยเหตุผลใดก็ตาม โหลด/init
+      // ใหม่เงียบๆ แทนที่จะพังทั้งฟอร์ม)
+      (liffInstance ? Promise.resolve(liffInstance) : loadLiffSdk().then(function (liff) {
+        return liff.init({ liffId: LIFF_ID }).then(function () { return liff; });
+      }))
+        .then(function (liff) {
+          liffInstance = liff;
+          var idToken = liff.getIDToken();
+          if (!idToken) throw Object.assign(new Error("missing id token"), { code: "missing_id_token" });
+          return linkLineAccount(idToken, code, phone);
+        })
+        .then(function () {
+          // ไม่ต้อง re-render ลิสต์เอง — listenMyOrders() ที่ subscribe อยู่แล้วจาก afterLogin()
+          // จะได้ snapshot update อัตโนมัติทันทีที่ linkLineAccount() เขียน lineUserId ลง order
+          linkMoreCodeEl.value = "";
+          linkMorePhoneEl.value = "";
+          linkMoreForm.style.display = "none";
+          linkMoreToggle.style.display = "inline-flex";
+        })
+        .catch(function (err) {
+          console.error("link more order error:", err);
+          showLinkMoreMsg(linkMoreErrorMessage(err && err.code));
+        })
+        .finally(function () {
+          linkMoreSubmit.disabled = false;
+          linkMoreSubmit.textContent = originalLabel;
+        });
+    });
+  }
 
-      <div>
-        <div class="footer-h">บริษัท</div>
-        <div class="footer-links">
-          <a href="about.html">เกี่ยวกับเรา</a>
-          <a href="index.html#services">ขั้นตอนการทำงาน</a>
-          <a href="portfolio.html">ผลงานของเรา</a>
-          <a href="quality-policy.html">นโยบายคุณภาพ</a>
-          <a href="blog.html">บทความ</a>
-          <a href="about.html#faq">คำถามที่พบบ่อย</a>
-          <a href="contact.html">ติดต่อเรา</a>
-        </div>
-      </div>
+  // จุดเดียวที่ orchestrate ทั้ง flow (เหมือน handleLineLinkClick() ใน track-modal.js) — เรียก
+  // ทั้งตอนกดปุ่ม "เข้าสู่ระบบด้วย LINE" และตอนหน้าโหลดครั้งแรก (เผื่อเป็นการกลับมาจาก
+  // liff.login() redirect ที่ login สำเร็จแล้ว — จะได้ไม่ต้องให้ลูกค้ากดปุ่มซ้ำอีกรอบ)
+  //
+  // จำ session เดิม (P2.9-B) — เช็ค auth.currentUser ตรงๆ ก่อนเข้า flow LIFF ทุกครั้ง (ทั้งตอนโหลด
+  // หน้าครั้งแรกและตอนกดปุ่ม login เอง — ในทางปฏิบัติปุ่ม login จะโชว์เฉพาะตอนยังไม่มี session
+  // อยู่แล้ว แต่เช็คซ้ำไว้ให้ชัวร์ไม่มีผลเสีย) ถ้ามี session ลูกค้า LINE เดิมค้างอยู่แล้ว (ต้องเช็ค
+  // prefix "line_" ที่ uid ให้ชัดเจนก่อน — กันเคสที่บังเอิญเป็น session แอดมินค้างอยู่ในเบราว์เซอร์
+  // เดียวกัน ซึ่งต้องไม่ถูกนับเป็น session ลูกค้า ต้องไป flow liff.login() ตามปกติ) ให้ข้าม
+  // liff.init()/liff.login() ทั้งหมดไป afterLogin() ตรงๆ เลย ไม่ต้องรอโหลด LIFF SDK ด้วยซ้ำ เพราะ
+  // listenMyOrders() ทำงานได้จาก lineUserId (uid) อย่างเดียวไม่ต้องพึ่ง LIFF SDK เลย (liffInstance
+  // จะยังเป็น null ในเคสนี้ — ปุ่ม "เชื่อมออเดอร์เพิ่ม" จะ lazy-load/init LIFF เองตอนกดใช้งานจริง
+  // อยู่แล้ว ดู handleLinkMoreSubmit ด้านบน)
+  function hasExistingLineSession() {
+    var user = auth && auth.currentUser;
+    return !!(user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0);
+  }
 
-      <div>
-        <div class="footer-h">ติดต่อเรา</div>
-        <div class="footer-contact-item">
-          <div class="footer-contact-label">ที่อยู่</div>
-          <div class="footer-contact-val">17 ซอยบางกระดี่ 1 แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150</div>
-        </div>
-        <div class="footer-contact-item">
-          <div class="footer-contact-label">โทรศัพท์ / Hotline</div>
-          <a href="tel:0628833880" class="footer-contact-val">062-883-3880, 063-978-5670</a>
-        </div>
-        <div class="footer-contact-item">
-          <div class="footer-contact-label">โทรสาร (Fax)</div>
-          <span class="footer-contact-val">02-115-0850</span>
-        </div>
-        <div class="footer-contact-item">
-          <div class="footer-contact-label">อีเมล</div>
-          <a href="mailto:cssigngroup@gmail.com" class="footer-contact-val">cssigngroup@gmail.com</a>
-        </div>
-      </div>
-    </div>
+  // คืน lineUserId ดิบ (ตัด prefix "line_" ออกจาก uid) เมื่อมี session ลูกค้า LINE เดิมค้างอยู่ —
+  // ใช้เฉพาะ path ที่ shortcut ข้าม flow liff.login() ปกติไป (path ปกติได้ lineUserId ดิบตรงๆ จาก
+  // response ของ loginWithLine() อยู่แล้ว ไม่ต้องพึ่งฟังก์ชันนี้) — แก้บั๊กที่พบระหว่าง P2.9-D2:
+  // เดิมโค้ดส่ง auth.currentUser.uid ที่มี prefix "line_" ติดไปด้วยเข้า listenMyOrders() ตรงๆ ซึ่งไม่
+  // ตรงกับ order.lineUserId ที่เก็บแบบไม่มี prefix ทำให้ query ไม่ match ออเดอร์เลยสักรายการตอนมี
+  // session เดิมค้างอยู่ (เคส login ครั้งแรกสดๆ ไม่กระทบ) — pattern ตัด prefix เดียวกับ
+  // existingSessionLineUserId() ใน js/my-account-page.js (P2.9-D2/D3) และ saveLead() ใน
+  // js/leads.js (P2.9-D1)
+  function existingSessionLineUserId() {
+    var user = auth && auth.currentUser;
+    if (user && typeof user.uid === "string" && user.uid.indexOf("line_") === 0) {
+      return user.uid.slice("line_".length);
+    }
+    return null;
+  }
 
-    <div class="footer-bottom">
-      <span>© 2004–2026 CS.SIGN — บริษัท ซีเอส.ไซน์ แอนด์ โปรดักส์ จำกัด</span>
-      <span>Tax ID: 0105554109658</span>
-      <span><a href="privacy-policy.html" style="color:inherit;">นโยบายความเป็นส่วนตัว</a> · <a href="terms.html" style="color:inherit;">ข้อกำหนดการใช้บริการ</a> &middot; <a href="accessibility.html" style="color:inherit;">การเข้าถึงเว็บไซต์ (WCAG)</a></span>
-    </div>
-  </div>
-</footer>
+  function runLiffFlow(fromButtonClick) {
+    if (hasExistingLineSession()) {
+      afterLogin(existingSessionLineUserId());
+      return;
+    }
+    loadLiffSdk()
+      .then(function (liff) {
+        return liff.init({ liffId: LIFF_ID }).then(function () {
+          liffInstance = liff; // เก็บไว้ให้ handleLinkMoreSubmit ใช้ซ้ำ ไม่ต้อง init() ใหม่
+          if (!liff.isLoggedIn()) {
+            if (fromButtonClick) {
+              liff.login(); // redirect ออกจากหน้านี้แล้วกลับมาเอง
+              return null;
+            }
+            // เช็คตอนหน้าโหลดครั้งแรก ยังไม่เคย login มาก่อน — โชว์ปุ่มให้กดเอง ไม่ redirect เอง
+            hideLinkMore();
+            hideLogout();
+            showOnly(loginEl);
+            return undefined;
+          }
+          var idToken = liff.getIDToken();
+          if (!idToken) throw Object.assign(new Error("missing id token"), { code: "missing_id_token" });
+          return loginWithLine(idToken);
+        });
+      })
+      .then(function (result) {
+        if (result === undefined) return; // แสดงปุ่ม login ไปแล้ว ไม่ต้องทำอะไรต่อ
+        if (result === null) return; // กำลัง redirect ไป liff.login()
+        afterLogin(result.lineUserId);
+      })
+      .catch(function (err) {
+        console.error("my-orders login error:", err);
+        hideLinkMore();
+        hideLogout();
+        showOnly(loginEl);
+        showError(loginErrorMessage(err && err.code));
+      });
+  }
 
-<script src="js/tabs-overflow.js"></script>
-<script src="js/main.js"></script>
-<script src="js/main-effects.js"></script>
-<script src="js/cookie-consent.js"></script>
-<script src="js/analytics.js"></script>
-<script src="js/site-search-index.js"></script>
-<script src="js/site-search.js"></script>
-<script type="module" src="js/site-settings.js"></script>
-<script type="module" src="js/nav-menu.js"></script>
-<script type="module" src="js/cart-global.js"></script>
+  if (loginBtn) {
+    loginBtn.addEventListener("click", function () {
+      loginBtn.disabled = true;
+      runLiffFlow(true);
+    });
+  }
 
-<script src="js/qmodal-template.js"></script>
-<script src="js/track-modal-template.js"></script>
-<script type="module" src="js/track-modal.js"></script>
-<script src="js/cart-modal-template.js"></script>
-<script src="js/cart-modal.js"></script>
-<script src="js/quote-form-template.js"></script>
-<script type="module" src="js/quote-form.js"></script>
-<script type="module" src="js/lead-quote-modal.js"></script>
-<script src="js/chat-widget-template.js"></script>
-
-<script src="js/qmodal.js"></script>
-<script type="module" src="js/chat-widget.js"></script>
-<script type="module" src="js/my-orders-page.js"></script>
-<script src="js/exit-intent-cta.js"></script>
-<script src="js/fancy-effects.js" defer></script>
-</body>
-</html>
+  // เริ่ม flow อัตโนมัติตอนหน้าโหลด (เช็คว่า login ค้างอยู่แล้วหรือยัง — เผื่อกลับมาจาก
+  // liff.login() redirect หรือเคยเปิด LIFF ผ่านมาก่อนหน้านี้ในเซสชันเดียวกัน)
+  showOnly(loadingEl);
+  runLiffFlow(false);
+})();
