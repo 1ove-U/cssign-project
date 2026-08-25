@@ -166,6 +166,7 @@ const orderCancelBtn  = document.getElementById("cp-order-cancel");
 attachInlineValidation(orderForm);
 const productSelect     = document.getElementById("cp-o-product");
 const productChecklist  = document.getElementById("cp-o-product-checklist");
+const productSearchInput = document.getElementById("cp-o-product-search");
 const lineUserDatalist  = document.getElementById("cp-o-line-user-datalist");
 const unitPriceRow      = document.getElementById("cp-o-unit-price-row");
 const unitPriceDisplay  = document.getElementById("cp-o-unit-price-display");
@@ -207,16 +208,35 @@ function renderProductChecklist() {
     productChecklist.innerHTML = '<div class="cp-product-checklist-empty">ยังไม่มีสินค้าในแคตตาล็อก</div>';
     return;
   }
-  productChecklist.innerHTML = allProducts.map(p => {
+  const rowsHtml = allProducts.map(p => {
     const priceLabel = p.price ? `฿${Number(p.price).toLocaleString("th-TH")}` : "";
     return `
-      <label class="cp-product-check-row" data-product-id="${p.id}">
+      <label class="cp-product-check-row" data-product-id="${p.id}" data-product-name="${escapeHtml((p.name || "สินค้า").toLowerCase())}">
         <input type="checkbox" value="${p.id}">
         <span class="cp-product-check-row-name">${escapeHtml(p.name || "สินค้า")}</span>
         <span class="cp-product-check-row-price">${escapeHtml(priceLabel)}</span>
       </label>`;
   }).join("");
+  productChecklist.innerHTML = rowsHtml +
+    '<div class="cp-product-checklist-empty cp-product-search-empty" style="display:none;">ไม่พบสินค้าที่ตรงกับคำค้นหา</div>';
+  filterProductChecklist();
 }
+
+// ── ช่องค้นหาสินค้า (พิมพ์กรองรายชื่อในแชคลิสต์แบบ realtime) — ไม่กระทบสถานะติ๊ก/ไม่ติ๊กของสินค้า
+// ที่ซ่อนอยู่ระหว่างค้นหา (แค่ซ่อนแถวด้วย CSS, ไม่ได้ unselect) ── */
+function filterProductChecklist() {
+  const q = productSearchInput.value.trim().toLowerCase();
+  const rows = productChecklist.querySelectorAll(".cp-product-check-row");
+  let visibleCount = 0;
+  rows.forEach(row => {
+    const matches = !q || (row.dataset.productName || "").includes(q);
+    row.classList.toggle("cp-hidden-by-search", !matches);
+    if (matches) visibleCount++;
+  });
+  const emptyMsg = productChecklist.querySelector(".cp-product-search-empty");
+  if (emptyMsg) emptyMsg.style.display = (rows.length && !visibleCount) ? "" : "none";
+}
+productSearchInput.addEventListener("input", filterProductChecklist);
 
 // อ่านสถานะ .selected ปัจจุบันของ select ที่ซ่อนไว้ (แหล่งความจริงเดียว) มาอัปเดต checkbox/active
 // class ของ UI ให้ตรงกัน — ต้องเรียกทุกครั้งที่มีอะไรไปเปลี่ยน productSelect.options[].selected
@@ -409,6 +429,8 @@ export function openOrderModal(order) {
   orderModalTitle.textContent = order ? "แก้ไขคำสั่งผลิต" : "เพิ่มคำสั่งผลิต";
   orderHeadCode.textContent = order ? (order.code || "") : "";
   switchOdTab("info");
+  productSearchInput.value = "";
+  filterProductChecklist();
 
   document.getElementById("cp-o-id").value         = order ? order.id : "";
   document.getElementById("cp-o-code").value       = order ? order.code || "" : "";
