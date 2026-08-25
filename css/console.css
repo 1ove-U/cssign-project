@@ -752,82 +752,28 @@ body.cp-scroll-locked{ overflow:hidden; }
 .cp-assignee-chip svg{ width:11px; height:11px; }
 
 /* ── ป๊อปอัพรายละเอียดกว้างขึ้น (เนื้อหาแบ่งเป็นหมวด/แท็บ อ่านง่ายกว่าฟอร์มยาวเดียว) ── */
-.cp-order-detail.cp-modal{ max-width:640px; }
+.cp-order-detail.cp-modal{ max-width:600px; }
 
 /* ===========================================================
-   Order detail popup redesign — all-visible grid (ตามคำขอ: เห็นทุกหมวดพร้อม
-   กันโดยไม่ต้องสลับแท็บ/เลื่อนอ่าน) — ใช้เฉพาะป๊อปอัพ "เพิ่ม/แก้ไขคำสั่งผลิต"
-   (.cp-order-detail) เท่านั้น ไม่กระทบ .cp-od-tabs/.cp-od-panel ของฟอร์มอื่น
-   (สินค้า/บทความ) ที่ยังใช้แบบแท็บสลับทีละหมวดตามเดิม
+   Order detail popup — กลับไปใช้แท็บสลับทีละหมวด (2026-08 แก้ตามคำขอ)
+   เดิมเคยลองทำ "all-visible grid" ให้เห็นทุกหมวดพร้อมกันในโมดัลกว้างสุดจอ แต่ผลจริงกลับดูรก/
+   เรียงมั่ว (คอลัมน์สูงไม่เท่ากัน ตากระโดดไปมา) และพนักงานที่ไม่ถนัด IT ใช้งานยากขึ้น จึงกลับมาใช้
+   รูปแบบแท็บทีละหมวดแบบเดิม (คุม 1 คอลัมน์ อ่านจากบนลงล่างเป็นลำดับเดียว ไม่ต้องกวาดตาไปทั่วจอ) —
+   .cp-o-grid ไม่ได้ใช้เป็น CSS grid หลายคอลัมน์อีกต่อไป (เหลือแค่ wrapper ธรรมดา) .cp-od-tabs/
+   .cp-od-panel กลับไปใช้พฤติกรรม default จาก selector เดิมด้านล่างของไฟล์นี้ (แสดงเฉพาะ
+   .cp-od-panel.active) — ไม่กระทบ .ad-q-grid/.ad-q-form-modal (ป๊อปอัพใบเสนอราคา) ซึ่งยังตั้งใจ
+   ใช้แบบเห็นทุกหมวดพร้อมกันต่อไปตามเดิม เพราะโครงสร้างเล็กกว่า (แค่ 3 หมวด ไม่ใช่ 6) ยังไม่รก
    =========================================================== */
-.cp-order-detail.cp-modal{
-  /* ขยายให้กว้างเกือบเต็มจอ เพื่อวางหลายคอลัมน์ให้ครบทุกหมวดพร้อมกันโดยไม่บีบจนอ่านยาก */
-  max-width:min(1400px, 96vw);
-  overflow-x:hidden; /* กันไม่ให้เนื้อหาข้างในดันความกว้างของป๊อปอัพจนล้นออกนอกจอ (ดู min-width:0 ด้านล่าง) */
-}
-.cp-order-detail .cp-od-tabs{ display:none; } /* ไม่ต้องสลับแท็บอีกต่อไป — ทุกหมวดแสดงพร้อมกัน */
-.cp-order-detail .cp-od-panel{
-  display:flex !important; /* ยกเลิกการซ่อนพาแนลตาม .active เดิม ให้แสดงทุกหมวดพร้อมกันเสมอ */
-}
-.cp-o-grid{
-  display:grid;
-  grid-template-columns: 1.35fr 1fr 1fr;
-  grid-template-areas:
-    "info    finance  attach"
-    "info    shipping design"
-    "info    shipping history";
-  gap:16px;
-  align-items:start;
-  min-width:0; /* บั๊กที่เจอ: grid track ค่าเริ่มต้น min-width:auto จะยึดตาม max-content ของลูก
-                  (เช่น <select> ตัวเลือกยาวๆ) ทำให้คอลัมน์กว้างเกิน 1fr จนทั้งป๊อปอัพล้นขวา/ซ้าย
-                  ต้องเลื่อนดู — ใส่ min-width:0 ทั้งเส้นทาง (grid, panel, row, input) เพื่อให้ทุก
-                  อย่างหดตามพื้นที่จริงแทน */
-}
-.cp-o-grid .cp-od-panel{ min-width:0; }
-.cp-o-grid .cp-modal-row{ min-width:0; }
-.cp-o-grid .cp-modal-row > *{ min-width:0; }
-.cp-o-grid select.cl-input{
-  min-width:0; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;
-}
-.cp-o-panel-info{ grid-area:info; }
-.cp-o-panel-finance{ grid-area:finance; }
-.cp-o-panel-shipping{ grid-area:shipping; }
-.cp-o-panel-attach{ grid-area:attach; }
-.cp-o-panel-design{ grid-area:design; }
-.cp-o-panel-history{ grid-area:history; }
+.cp-od-panel-heading{ display:none; } /* ซ้ำกับชื่อแท็บที่กดอยู่แล้ว ไม่ต้องมีหัวข้อซ้ำอีกชั้นในโหมดแท็บ */
 
-.cp-o-grid .cp-od-panel{
-  background:var(--gray-25, #fafafa); border:1px solid var(--gray-100); border-radius:var(--r-lg);
-  padding:14px 16px; gap:10px;
-}
-.cp-od-panel-heading{
-  font-family:var(--font-display); font-weight:700; font-size:13px; color:var(--secondary);
-  padding-bottom:6px; margin-bottom:2px; border-bottom:1px solid var(--gray-100);
-}
-/* รายการที่อาจยาวได้ไม่จำกัด (ประวัติ/อนุมัติแบบ/QC/ไฟล์แนบ) — ให้เลื่อนเฉพาะกล่องเล็กๆ นั้น
-   แทนที่จะทำให้ทั้งป๊อปอัพต้องเลื่อน คงเห็นหมวดอื่นครบเสมอ */
+/* รายการที่อาจยาวได้ไม่จำกัด (ประวัติ/อนุมัติแบบ/QC/ไฟล์แนบ) — จำกัดความสูงให้เลื่อนเฉพาะกล่องเล็กๆ
+   นั้น กันไม่ให้ทั้งป๊อปอัพสูงเกินจอเวลารายการเยอะ */
 .cp-o-panel-design .cp-history-list,
-.cp-o-panel-history .cp-history-list{ max-height:220px; overflow-y:auto; }
-.cp-o-panel-info .cp-qc-list{ max-height:160px; overflow-y:auto; }
-.cp-o-panel-attach .cp-attach-grid{ max-height:180px; overflow-y:auto; }
+.cp-o-panel-history .cp-history-list{ max-height:320px; overflow-y:auto; }
+.cp-o-panel-attach .cp-attach-grid{ max-height:260px; overflow-y:auto; }
 
-@media (max-width:1200px){
-  .cp-o-grid{
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "info    info"
-      "finance shipping"
-      "attach  design"
-      "history history";
-  }
-}
-@media (max-width:800px){
+@media (max-width:640px){
   .cp-order-detail.cp-modal{ max-width:100%; padding:18px; }
-  .cp-o-grid{
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "info" "finance" "shipping" "attach" "design" "history";
-  }
 }
 
 /* ── โมดัลเลือกคำขอใบเสนอราคา (ad-qr-picker-modal, ปุ่ม "สร้างจากคำขอ") — เดิมใช้
@@ -1004,11 +950,21 @@ body.cp-scroll-locked{ overflow:hidden; }
 
 /* ── รายการสินค้าเลือกได้หลายรายการแบบ checkbox (แทน native <select multiple> เดิมที่ต้องกด
    Ctrl/Cmd ค้างไว้ ซึ่งพนักงานที่ไม่ถนัด IT มักไม่รู้ — ดู admin.html #cp-o-product-checklist) ── */
+/* ── ช่องค้นหาสินค้าเหนือรายการ checklist — พิมพ์กรองชื่อสินค้าได้ทันที (ไม่ต้องเลื่อนหาเองในลิสต์
+   ยาวๆ) ดูการกรองจริงใน renderProductChecklist()/filterProductChecklist() ที่
+   js/orders-tab-modal.js ── */
+.cp-product-search-box{ position:relative; margin-bottom:8px; }
+.cp-product-search-box svg{
+  position:absolute; left:11px; top:50%; transform:translateY(-50%); width:15px; height:15px;
+  color:var(--gray-400); pointer-events:none;
+}
+.cp-product-search-box .cl-input{ padding-left:34px; }
 .cp-product-checklist{
   display:flex; flex-direction:column; gap:0; max-height:190px; overflow-y:auto;
   border:1.5px solid var(--gray-200); border-radius:var(--r-md); background:#fff;
 }
 .cp-product-checklist-empty{ padding:14px 12px; font-size:12.5px; color:var(--gray-400); text-align:center; }
+.cp-product-check-row.cp-hidden-by-search{ display:none; }
 .cp-product-check-row{
   display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer; user-select:none;
   border-bottom:1px solid var(--gray-100); transition:background .15s var(--ease);
