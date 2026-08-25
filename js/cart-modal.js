@@ -166,13 +166,20 @@
       priceHtml = '<div class="cm-item-price-hint"><strong>' + escapeHtml(formatPriceHint(item.unitPriceHint)) + '</strong>' + priceSuffix + '</div>';
     }
 
-    // รูปสินค้า: ใช้ class "real-photo" เดิม (ดู js/img-error-fallback.js — โหลดอยู่แล้วทุกหน้า
-    // ผ่าน document-level 'error' listener ที่ capture ทุก <img class="real-photo">) แทนการเขียน
-    // fallback ใหม่ซ้ำ — ถ้ารูปโหลดไม่สำเร็จ element จะถูกลบออกเอง เหลือพื้นหลังสีเทาของ
-    // .cm-item-img (กำหนดไว้ใน css/cart-modal.css) ให้เห็นแทน ไม่มีไอคอนรูปหักของเบราว์เซอร์
-    var imgHtml = item.image
-      ? '<img class="cm-item-img real-photo" src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.name || "") + '">'
-      : '<div class="cm-item-img" aria-hidden="true"></div>';
+    // รูปสินค้า: ห่อ <img class="real-photo"> ไว้ใน .cm-item-img เสมอ พร้อมไอคอน placeholder
+    // (.cm-item-img-ph) วางซ้อนอยู่ข้างหลัง — เดิมปล่อยให้ js/img-error-fallback.js สั่ง
+    // this.remove() ตรงๆ กับ <img class="cm-item-img"> ทำให้กล่องรูปทั้งกล่องหายไปเมื่อโหลด
+    // รูปไม่สำเร็จ (เหลือช่องว่างแปลกๆ หน้าชื่อสินค้า) ตอนนี้ .cm-item-img เป็นกล่องคงที่เสมอ
+    // (ขนาด/พื้นหลังกำหนดใน css/cart-modal.css) ส่วน <img> เป็นแค่ชั้นซ้อนทับด้านบน ถ้าโหลด
+    //ไม่สำเร็จ ตัว <img> จะถูกลบออกเอง เหลือไอคอน placeholder ให้เห็นแทน สอดคล้องกับแพทเทิร์น
+    // .img-ph-inner ที่ใช้ทั่วเว็บ (ดูคอมเมนต์หัวไฟล์ js/img-error-fallback.js) แค่ปรับให้เล็กลง
+    // ให้พอดีกับรูปสินค้าขนาด 56×56 ในแถวตะกร้า
+    var imgHtml = '<div class="cm-item-img">' +
+      '<span class="cm-item-img-ph" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.8"/><path d="M21 15l-5.5-5.5L5 20"/></svg>' +
+      '</span>' +
+      (item.image ? '<img class="real-photo" src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.name || "") + '">' : '') +
+      '</div>';
 
     var removeLabel = isEn ? "Remove item" : "\u0e25\u0e1a\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e19\u0e35\u0e49";
     var minusLabel   = isEn ? "Decrease quantity" : "\u0e25\u0e14\u0e08\u0e33\u0e19\u0e27\u0e19";
