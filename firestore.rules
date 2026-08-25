@@ -123,11 +123,19 @@ service cloud.firestore {
       // P2.9-D1: เพิ่ม !isLineCustomerToken() — ปิดช่องเดียวกับที่แก้ตอน read ด้านบน (staff
       // เท่านั้นที่แก้ status/notes/assignee ได้ ลูกค้า LINE อ่านได้อย่างเดียวไม่ว่าจะเป็น lead
       // ของตัวเองหรือไม่ก็ตาม)
+      // [แก้บั๊ก] เพิ่ม statusUpdatedAt/notesUpdatedAt/wonAt เข้า whitelist — updateLeadStatus()/
+      // updateLeadNotes() ใน js/db-orders.js เขียนฟิลด์เวลาพวกนี้แนบไปด้วยทุกครั้งอยู่แล้ว
+      // (statusUpdatedAt ทุกครั้งที่เปลี่ยนสถานะ, wonAt ตอน status === "won", notesUpdatedAt
+      // ตอนบันทึกโน้ต) แต่ rule เดิมไม่มี 3 ฟิลด์นี้ใน hasOnly() เลยโดน permission-denied ทุกครั้ง
+      // ที่กดเปลี่ยนสถานะ (แก้แล้วเด้งกลับสถานะเดิม ขึ้น toast "อัปเดตสถานะไม่สำเร็จ")
       allow update: if isAuthenticated() && !isLineCustomerToken()
-                    && incomingData().diff(resource.data).affectedKeys().hasOnly(['status', 'notes', 'assignee'])
+                    && incomingData().diff(resource.data).affectedKeys().hasOnly(['status', 'notes', 'assignee', 'statusUpdatedAt', 'notesUpdatedAt', 'wonAt'])
                     && (!('status' in incomingData()) || incomingData().status in ['new', 'read', 'replied', 'won', 'lost'])
                     && (!('notes' in incomingData())  || (incomingData().notes is string && incomingData().notes.size() < 5000))
-                    && (!('assignee' in incomingData()) || (incomingData().assignee is string && incomingData().assignee.size() < 200));
+                    && (!('assignee' in incomingData()) || (incomingData().assignee is string && incomingData().assignee.size() < 200))
+                    && (!('statusUpdatedAt' in incomingData()) || isTimestampField(incomingData().statusUpdatedAt))
+                    && (!('notesUpdatedAt' in incomingData())  || isTimestampField(incomingData().notesUpdatedAt))
+                    && (!('wonAt' in incomingData()) || isTimestampField(incomingData().wonAt));
     }
 
     // ── quote_requests: คำขอใบเสนอราคาจากตะกร้าสินค้า (P3.0 Phase 2) — คอลเลกชันใหม่ ──
