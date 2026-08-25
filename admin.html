@@ -1596,12 +1596,11 @@
       <button type="button" class="cp-od-tab" data-od-tab="history" role="tab" aria-selected="false">ประวัติ</button>
     </div>
 
-    <!-- หมายเหตุ (redesign): เดิม 6 หมวดนี้เป็นแท็บที่เห็นได้ทีละหมวด ต้องกดสลับแท็บไปมา ผู้ใช้ให้แก้
-         ให้เห็นทุกหมวดพร้อมกันในหน้าเดียวโดยไม่ต้องเลื่อน/สลับแท็บอ่าน — ปุ่มแท็บด้านบน (.cp-od-tabs)
-         เก็บ markup ไว้เผื่อโค้ด JS เดิมอ้างอิง data-od-tab แต่ซ่อนด้วย CSS (.cp-order-detail .cp-od-tabs
-         {display:none} ใน console.css) ส่วน .cp-od-panel ทุกหมวดถูกบังคับ display:flex ตลอดด้วย CSS
-         เดียวกัน แล้วจัดเป็นกริด 3 คอลัมน์ผ่าน .cp-o-grid ด้านล่าง (ดูหัวข้อ "Order detail popup redesign
-         — all-visible grid" ใน console.css) -->
+    <!-- หมายเหตุ (2026-08, กลับมาใช้แท็บทีละหมวดตามคำขอ): เคยลองทำให้ 6 หมวดนี้แสดงพร้อมกันทั้งหมด
+         ในกริด 3 คอลัมน์มาก่อน แต่ผลจริงกลับดูรก/เรียงมั่ว (คอลัมน์สูงไม่เท่ากัน อ่านยาก) จึงกลับมาใช้
+         ปุ่มแท็บด้านบน (.cp-od-tabs) สลับดูทีละหมวดตามเดิม — เห็นแค่หมวดเดียวต่อครั้ง อ่านจากบนลงล่าง
+         เป็นลำดับเดียว ไม่ต้องกวาดตาไปทั่วจอ (ดูรายละเอียด CSS ที่หัวข้อ "Order detail popup" ใน
+         console.css) .cp-o-grid ด้านล่างเหลือแค่ wrapper เฉยๆ ไม่ได้เป็น CSS grid หลายคอลัมน์แล้ว -->
     <div class="cp-o-grid">
     <!-- ── หมวด 1: ข้อมูลงาน ── -->
     <div class="cp-od-panel cp-o-panel-info" data-od-panel="info">
@@ -1618,19 +1617,25 @@
         <input class="cl-input" id="cp-o-line-user-id" list="cp-o-line-user-datalist" aria-label="LINE user ID ลูกค้า (เลือกจากรายชื่อผู้เคยขอใบเสนอราคา หรือพิมพ์เอง — ไม่บังคับ — ใส่แล้วระบบจะส่งข้อความ LINE แจ้งเตือนอัตโนมัติทุกครั้งที่สถานะคำสั่งผลิตเปลี่ยน)" type="text" placeholder="LINE user ID ลูกค้า — พิมพ์ชื่อเพื่อเลือกจากผู้ขอใบเสนอราคา (ไม่บังคับ)" autocomplete="off">
         <datalist id="cp-o-line-user-datalist"></datalist>
       </div>
-      <div class="cp-modal-row">
-        <!-- select จริงซ่อนไว้ — เป็นแหล่งความจริงเดียวของ "สินค้าที่เลือก" (selectedOptions) ที่
-             js/orders-tab-modal.js อ่าน/เขียนอยู่เดิม (selectedProducts()/applyProductSelection()/
-             submit payload/openOrderModal restore) — ไม่ต้องแก้ logic เหล่านั้นเลย แค่เพิ่ม UI
-             checkbox ด้านล่างมาคลิกแทน "select multiple" เดิมที่ต้องกด Ctrl/Cmd ค้างไว้ ซึ่งไม่ค่อย
-             เป็นมิตรกับพนักงานที่ไม่ถนัด IT — checkbox ทำหน้าที่แค่ toggle .selected ของ option คู่กัน
-             แล้วยิง "change" event ต่อให้ select เดิมเหมือนผู้ใช้คลิกเอง (ดู renderProductChecklist()/
-             syncProductChecklistFromSelect() ใน js/orders-tab-modal.js) -->
-        <select id="cp-o-product" multiple style="display:none;" aria-hidden="true" tabindex="-1"></select>
-        <div class="cp-product-checklist" id="cp-o-product-checklist" role="group" aria-label="สินค้าจากแคตตาล็อก (เลือกได้หลายรายการ — แตะเพื่อเลือก/ยกเลิกทีละรายการ)">
-          <div class="cp-product-checklist-empty">กำลังโหลดรายการสินค้า…</div>
-        </div>
-        <div class="ad-img-label" style="margin-top:2px;font-weight:400;">แตะเพื่อเลือกสินค้าได้หลายรายการ (ไม่บังคับ แต่จำเป็นถ้าต้องการนับยอดขาย)</div>
+      <!-- หมายเหตุแก้ผังหน้า (2026-08): เดิมกล่องนี้ทั้งก้อนถูกครอบด้วย .cp-modal-row (grid 2 คอลัมน์
+           สำหรับจับคู่ 2 ช่องข้างกัน) ทั้งที่มีแค่ก้อนเดียวไม่ได้จับคู่กับอะไร ผลคือรายการสินค้า/
+           ป้ายคำอธิบายถูกบีบเหลือครึ่งความกว้างจอ อ่าน/กดยาก — เอา .cp-modal-row ออก ให้เป็น full
+           width เต็มแนวเหมือนช่องอื่นๆ ที่ไม่ได้จับคู่ (เช่น textarea หมายเหตุด้านล่าง) -->
+      <div class="ad-img-label" style="margin-bottom:-2px;">เลือกสินค้าจากแคตตาล็อก (ไม่บังคับ แต่จำเป็นถ้าต้องการนับยอดขาย)</div>
+      <!-- select จริงซ่อนไว้ — เป็นแหล่งความจริงเดียวของ "สินค้าที่เลือก" (selectedOptions) ที่
+           js/orders-tab-modal.js อ่าน/เขียนอยู่เดิม (selectedProducts()/applyProductSelection()/
+           submit payload/openOrderModal restore) — ไม่ต้องแก้ logic เหล่านั้นเลย แค่เพิ่ม UI
+           checkbox ด้านล่างมาคลิกแทน "select multiple" เดิมที่ต้องกด Ctrl/Cmd ค้างไว้ ซึ่งไม่ค่อย
+           เป็นมิตรกับพนักงานที่ไม่ถนัด IT — checkbox ทำหน้าที่แค่ toggle .selected ของ option คู่กัน
+           แล้วยิง "change" event ต่อให้ select เดิมเหมือนผู้ใช้คลิกเอง (ดู renderProductChecklist()/
+           syncProductChecklistFromSelect() ใน js/orders-tab-modal.js) -->
+      <select id="cp-o-product" multiple style="display:none;" aria-hidden="true" tabindex="-1"></select>
+      <div class="cp-product-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="cl-input" id="cp-o-product-search" type="text" placeholder="พิมพ์ค้นหาสินค้า…" autocomplete="off">
+      </div>
+      <div class="cp-product-checklist" id="cp-o-product-checklist" role="group" aria-label="สินค้าจากแคตตาล็อก (เลือกได้หลายรายการ — แตะเพื่อเลือก/ยกเลิกทีละรายการ)">
+        <div class="cp-product-checklist-empty">กำลังโหลดรายการสินค้า…</div>
       </div>
       <div class="cp-modal-row">
         <input class="cl-input" id="cp-o-item" aria-label="ชื่อรายการ / ป้าย" placeholder="ชื่อรายการ / ป้าย" required>
