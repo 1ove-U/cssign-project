@@ -19,7 +19,11 @@ import assert from "node:assert/strict";
 import { generateKeyPair, exportJWK, SignJWT, decodeJwt } from "jose";
 import { generateKeyPairSync } from "node:crypto";
 
-const LIFF_ID = "test-liff-id-1234567890";
+// รูปแบบเดียวกับของจริง "{channelId}-{suffix}" (เช่น "2011108044-Nmgfktx5") — ตั้งใจใส่ขีด
+// ไว้ในเทสเพื่อจับบั๊กแบบที่เจอจริงใน production: aud ของ ID token คือ channel ID ล้วนๆ
+// ก่อนขีดเท่านั้น ไม่ใช่ LIFF_ID เต็มทั้งสตริง (ดูคอมเมนต์ channelIdFromLiffId() ใน src/index.js)
+const LIFF_ID = "1234567890-testSuffix1";
+const LINE_CHANNEL_ID = LIFF_ID.split("-")[0]; // ค่าที่ควรอยู่ใน aud จริง
 const LINE_CERTS_URL = "https://api.line.me/oauth2/v2.1/certs";
 const LINE_KID = "test-line-kid-1";
 
@@ -52,7 +56,7 @@ function baseEnv(overrides) {
   };
 }
 
-async function makeLineIdToken({ sub = "U_line_user_123", aud = LIFF_ID, iss = "https://access.line.me", expiresIn = "10m" } = {}) {
+async function makeLineIdToken({ sub = "U_line_user_123", aud = LINE_CHANNEL_ID, iss = "https://access.line.me", expiresIn = "10m" } = {}) {
   return new SignJWT({})
     .setProtectedHeader({ alg: "RS256", kid: LINE_KID })
     .setIssuedAt()
