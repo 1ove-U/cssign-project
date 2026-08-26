@@ -39,6 +39,13 @@ const MO_HTML = `
       <div id="mo-link-more-msg"></div>
     </form>
   </div>
+  <div id="mo-detail-overlay" style="display:none;">
+    <button type="button" id="mo-detail-close"></button>
+    <span id="mo-detail-code"></span>
+    <h2 id="mo-detail-title"></h2>
+    <p id="mo-detail-sub"></p>
+    <div id="mo-detail-body"></div>
+  </div>
 `;
 
 function makeDom() {
@@ -51,6 +58,10 @@ async function loadMyOrdersPage(dom) {
   Object.defineProperty(globalThis, "navigator", { value: dom.window.navigator, configurable: true });
   globalThis.HTMLElement = dom.window.HTMLElement;
   globalThis.MouseEvent = dom.window.MouseEvent;
+  // openOrderDetail() เรียก requestAnimationFrame() เพื่อโฟกัส #mo-detail-close หลังเปิดป๊อปอัพ —
+  // jsdom ไม่มี requestAnimationFrame ที่ยิงจริงใน Node test runner context นี้ (ต่างจาก browser)
+  // จึง stub เป็น setTimeout เหมือน pattern เดียวกับ test/track-modal-focus-trap.test.mjs ทุกประการ
+  globalThis.requestAnimationFrame = (cb) => setTimeout(cb, 0);
   await import(`../js/my-orders-page.js?t=${Date.now()}-${Math.random()}`);
 }
 
@@ -464,5 +475,87 @@ describe("my-orders-page.js — เชื่อมออเดอร์เพิ
     );
     assert.equal(dom.window.document.getElementById("mo-link-more-form").style.display, "block");
     assert.equal(dom.window.document.getElementById("mo-link-more-submit").disabled, false);
+  });
+});
+
+// ป๊อปอัพรายละเอียดออเดอร์เต็ม — กดที่การ์ดในลิสต์เปิดขึ้นมา (ดูคอมเมนต์เต็มที่จุด
+// openOrderDetail()/handleCardActivate() ใน js/my-orders-page.js)
+describe("my-orders-page.js — ป๊อปอัพรายละเอียดออเดอร์", () => {
+  async function loginAndListOrders(dom, order) {
+    mockLiff(dom, { loggedIn: false });
+    auth.currentUser = { uid: "line_U9999" };
+    stubFetch(() => { throw new Error("ไม่ควรถูกเรียก — มี session เดิมอยู่แล้ว"); });
+
+    await loadMyOrdersPage(dom);
+    // จำลอง event แรกจาก onAuthStateChanged() ที่ Firebase ยิงมาจริงตอน resolve auth state เสร็จ —
+    // stub เดิม (test/helpers/firebase-stub-loader.mjs) เก็บ callback ไว้ที่
+    // globalThis.__AUTH_STATE_CALLBACK__ เฉยๆ ไม่ยิงเอง (pattern เดียวกับ authCallback() ใน
+    // test/admin-page.test.mjs) — my-orders-page.js รอ event นี้ก่อนถึงจะเริ่ม runLiffFlow()
+    // (ดูคอมเมนต์ "เซสชันหลุดจากที่อื่น + auth ยังไม่ resolve ตอนหน้าโหลด" ในไฟล์จริง)
+    if (typeof globalThis.__AUTH_STATE_CALLBACK__ === "function") {
+      globalThis.__AUTH_STATE_CALLBACK__(auth.currentUser);
+    }
+    await nextTick(3);
+
+    globalThis.__SNAPSHOT_LISTENERS__["orders"]({
+      docs: [{ id: "o1", data: () => order }],
+    });
+  }
+
+  test("กดที่การ์ดออเดอร์ → เปิดป๊อปอัพ พร้อมข้อมูลครบ (สเปก/การเงิน/จัดส่ง/หมายเหตุ)", async () => {
+    const dom = makeDom();
+    await loginAndListOrders(dom, {
+      code: "PO-159", item: "ป้ายเตือนอันตราย", qty: 60, status: "production", progress: 45,
+      specs: { size: "60x40 ซม.", material: "อะลูมิเนียม", color: "เหลือง-ดำ", finish: "สะท้อนแสง" },
+      unit_price: 300, discount: 500, vatIncluded: false, shippingCost: 200,
+      deposit: 5000, paymentStatus: "deposit_paid",
+      shippingMethod: "courier", recipient: "คุณสมชาย", shippingAddress: "123 ถ.สุขุมวิท",
+      notes: "ลูกค้าขอให้ติดต่อก่อนส่ง",
+    });
+
+    const card = dom.window.document.querySelector(".ap-item-card");
+    assert.ok(card, "ต้องมีการ์ดออเดอร์ในลิสต์");
+    click(dom, card);
+
+    assert.equal(dom.window.document.getElementById("mo-detail-overlay").style.display, "flex");
+    assert.equal(dom.window.document.getElementById("mo-detail-code").textContent, "PO-159");
+    const bodyHtml = dom.window.document.getElementById("mo-detail-body").innerHTML;
+    assert.match(bodyHtml, /อะลูมิเนียม/);
+    assert.match(bodyHtml, /เหลือง-ดำ/);
+    assert.match(bodyHtml, /คุณสมชาย/);
+    assert.match(bodyHtml, /123 ถ\.สุขุมวิท/);
+    assert.match(bodyHtml, /ลูกค้าขอให้ติดต่อก่อนส่ง/);
+  });
+
+  test("กดปุ่มปิด → ป๊อปอัพซ่อนกลับ", async () => {
+    const dom = makeDom();
+    await loginAndListOrders(dom, { code: "PO-1", item: "ป้าย", qty: 1, status: "received", progress: 0 });
+
+    click(dom, dom.window.document.querySelector(".ap-item-card"));
+    assert.equal(dom.window.document.getElementById("mo-detail-overlay").style.display, "flex");
+
+    click(dom, dom.window.document.getElementById("mo-detail-close"));
+    assert.equal(dom.window.document.getElementById("mo-detail-overlay").style.display, "none");
+  });
+
+  test("กดที่ <summary> ขั้นตอนงานในการ์ด (การ์ดสรุป) → ไม่เปิดป๊อปอัพซ้อน", async () => {
+    const dom = makeDom();
+    await loginAndListOrders(dom, { code: "PO-1", item: "ป้าย", qty: 1, status: "design", progress: 20 });
+
+    const summary = dom.window.document.querySelector(".ap-item-card summary");
+    assert.ok(summary, "ต้องมี <summary> ของแถบขั้นตอนงานในการ์ด");
+    click(dom, summary);
+
+    assert.equal(dom.window.document.getElementById("mo-detail-overlay").style.display, "none");
+  });
+
+  test("order ไม่มีข้อมูลเสริมเลย (แค่ code/item/qty/status/progress) → ยังเปิดป๊อปอัพได้ปกติ ไม่พัง", async () => {
+    const dom = makeDom();
+    await loginAndListOrders(dom, { code: "PO-2", item: "ป้ายจราจร", qty: 5, status: "received", progress: 0 });
+
+    click(dom, dom.window.document.querySelector(".ap-item-card"));
+
+    assert.equal(dom.window.document.getElementById("mo-detail-overlay").style.display, "flex");
+    assert.match(dom.window.document.getElementById("mo-detail-body").innerHTML, /PO-2/);
   });
 });
