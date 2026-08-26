@@ -45,6 +45,15 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
   var linkMorePhoneEl  = document.getElementById("mo-link-more-phone");
   var linkMoreSubmit   = document.getElementById("mo-link-more-submit");
   var linkMoreMsgEl    = document.getElementById("mo-link-more-msg");
+  // ป๊อปอัพรายละเอียดออเดอร์แบบเต็ม (กดที่การ์ดในลิสต์ #mo-list เปิด) — element เหล่านี้ไม่บังคับ
+  // อยู่ในเงื่อนไข guard ด้านล่าง (ต่างจาก loadingEl/loginEl/listEl) เพราะเทสเก่า/markup เก่าที่ยัง
+  // ไม่มีป๊อปอัพนี้ต้องยังทำงานได้ปกติ ทุกจุดที่ใช้ element กลุ่มนี้จึงเช็ค null ก่อนเสมอ
+  var detailOverlay    = document.getElementById("mo-detail-overlay");
+  var detailClose      = document.getElementById("mo-detail-close");
+  var detailBody       = document.getElementById("mo-detail-body");
+  var detailTitleEl    = document.getElementById("mo-detail-title");
+  var detailSubEl      = document.getElementById("mo-detail-sub");
+  var detailCodeEl     = document.getElementById("mo-detail-code");
   if (!loadingEl || !loginEl || !listEl) return; // ไม่ใช่หน้า my-orders.html
 
   // LIFF ID เดียวกับที่ js/track-modal.js ใช้ (P1.5) — ต้องตรงกับ [vars] LIFF_ID ใน
@@ -121,12 +130,17 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
   // จาก string เข้า .innerHTML ล้วนๆ อยู่แล้ว การ toggle ด้วย addEventListener ทีละใบจะต้องรื้อ
   // โครงสร้างการ subscribe/re-render ใหม่ทั้งหมด — <details> ทำงานได้ทันทีจากเบราว์เซอร์เอง)
 
-  function orderDateLabel(order) {
-    var ts = order && order.createdAt;
+  // แปลง Firestore Timestamp (หรือ number ms ดิบ) เป็นวันที่แบบไทยอ่านง่าย — ใช้ร่วมกันทั้ง
+  // วันที่สั่ง (createdAt) และวันที่อื่นๆ ที่โผล่เฉพาะในป๊อปอัพรายละเอียด (shippedAt/completedAt)
+  function tsLabel(ts) {
     if (!ts) return "";
     var ms = ts.toMillis ? ts.toMillis() : (typeof ts === "number" ? ts : null);
     if (!ms) return "";
     return new Date(ms).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function orderDateLabel(order) {
+    return tsLabel(order && order.createdAt);
   }
 
   function dueDateLabel(order) {
@@ -211,9 +225,13 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
   // renderCancelledNote() ด้านล่างแทน)
   var STAGE_ICON_DONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>';
 
-  function renderFlowTracker(order) {
+  // สร้าง HTML ของแถบขั้นตอนงาน 8 stage เฉยๆ (ไม่ห่อ <details>) — แยกออกมาจาก renderFlowTracker()
+  // เดิม เพื่อให้ป๊อปอัพรายละเอียดออเดอร์เต็ม (renderDetailFlowSection ด้านล่าง) เอาไปโชว์แบบ
+  // "เปิดอยู่เสมอ" ได้โดยไม่ต้องพึ่ง <details>/<summary> ซ้ำ (การ์ดสรุปยังใช้ renderFlowTracker()
+  // เดิมที่ห่อ <details> ตามปกติ ไม่เปลี่ยนพฤติกรรม/ลุคของการ์ดสรุปเลย)
+  function buildFlowStepsHtml(order) {
     var currentIdx = ORDER_STATUS_FLOW.indexOf(order.status);
-    var stepsHtml = ORDER_STATUS_FLOW.map(function (key, idx) {
+    return ORDER_STATUS_FLOW.map(function (key, idx) {
       var info = ORDER_STATUS[key] || { label: key };
       var stepClass = idx < currentIdx ? "done" : (idx === currentIdx ? "current" : "");
       return (
@@ -227,6 +245,10 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
         '</div>'
       );
     }).join("");
+  }
+
+  function renderFlowTracker(order) {
+    var stepsHtml = buildFlowStepsHtml(order);
     return (
       '<details class="ap-details">' +
         '<summary>ดูขั้นตอนงานทั้งหมด' +
@@ -256,7 +278,7 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
     var isCompleted = order.status === "completed";
 
     return (
-      '<div class="ap-item-card">' +
+      '<div class="ap-item-card" data-order-id="' + escapeHtml(order.id || "") + '" tabindex="0" role="button" aria-haspopup="dialog">' +
         '<div class="ap-item-top">' +
           '<div>' +
             '<div class="ap-item-code">' + escapeHtml(order.code || "\u2014") + '</div>' +
@@ -277,7 +299,19 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
     );
   }
 
+  // เก็บลิสต์ order ล่าสุดที่ listenMyOrders() ส่งมา ไว้ให้ handleCardClick() ด้านล่างหา order
+  // เต็มๆ จาก data-order-id ตอนกดเปิดป๊อปอัพรายละเอียด (การ์ดสรุปมีแค่ id ไม่ได้ inline JSON
+  // ทั้ง object ลงไปใน DOM — กันข้อมูลอ่อนไหว เช่น notes/ที่อยู่ ไปโผล่ใน view-source โดยไม่จำเป็น)
+  var currentOrders = [];
+  function findOrderById(id) {
+    for (var i = 0; i < currentOrders.length; i++) {
+      if (currentOrders[i].id === id) return currentOrders[i];
+    }
+    return null;
+  }
+
   function renderOrders(orders) {
+    currentOrders = orders || [];
     if (!orders || orders.length === 0) {
       showOnly(emptyEl);
       return;
@@ -291,6 +325,255 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
     showOnly(listEl); // เก็บรายการเดิม (ถ้ามี) ไว้บนจอ ไม่เคลียร์ทิ้งตอน error ระหว่างทาง (เช่น เน็ตหลุดชั่วคราว)
     showError("โหลดรายการออเดอร์ไม่สำเร็จ กรุณาลองรีเฟรชหน้าใหม่ หรือโทร 062-883-3880");
   }
+
+  // ===========================
+  // ป๊อปอัพรายละเอียดออเดอร์แบบเต็ม — กดที่การ์ดในลิสต์เปิดขึ้นมา
+  // ===========================
+  // แสดงข้อมูลทุกอย่างที่มีอยู่แล้วใน order object จาก listenMyOrders() แต่การ์ดสรุปในลิสต์ไม่ได้
+  // โชว์ (สเปกงาน/รายละเอียดการเงิน/ที่อยู่จัดส่งเต็ม/ไฟล์แบบ/QC checklist/หมายเหตุ) — ทุก section
+  // เป็น optional เหมือน renderChipRow() เดิม: ถ้า order ไม่มีข้อมูลกลุ่มนั้นเลย section จะไม่ถูก
+  // เรนเดอร์ (คืน "" แล้ว filter(Boolean) ทิ้งตอนประกอบ body รวม)
+  var CHECK_ICON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>';
+  var CIRCLE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>';
+  var FILE_ICON   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>';
+
+  function detailRow(label, value, opts) {
+    opts = opts || {};
+    if (value === "" || value == null) return "";
+    return (
+      '<div class="ap-detail-row' + (opts.full ? " full" : "") + '">' +
+        '<span class="ap-detail-label">' + escapeHtml(label) + '</span>' +
+        '<span class="ap-detail-value' + (opts.cls ? " " + opts.cls : "") + '">' + escapeHtml(String(value)) + '</span>' +
+      '</div>'
+    );
+  }
+
+  function detailSection(title, iconSvg, innerHtml) {
+    if (!innerHtml) return "";
+    return (
+      '<div class="ap-detail-section">' +
+        '<div class="ap-detail-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + iconSvg + '</svg>' + escapeHtml(title) + '</div>' +
+        innerHtml +
+      '</div>'
+    );
+  }
+
+  function renderDetailInfoSection(order) {
+    var rows = [];
+    rows.push(detailRow("เลขที่คำสั่งผลิต", order.code || "\u2014"));
+    if (order.qty) rows.push(detailRow("จำนวน", order.qty + " ชิ้น"));
+    if (order.category) rows.push(detailRow("หมวดป้าย", order.category));
+    var dateLabel = orderDateLabel(order);
+    if (dateLabel) rows.push(detailRow("วันที่สั่ง", dateLabel));
+    var dueLabel = dueDateLabel(order);
+    if (dueLabel) {
+      var urgency = orderUrgency(order);
+      rows.push(detailRow("กำหนดส่ง", dueLabel, { cls: urgency === "overdue" ? "warn" : "" }));
+    }
+    var shippedLabel = tsLabel(order.shippedAt);
+    if (shippedLabel) rows.push(detailRow("วันที่จัดส่ง", shippedLabel));
+    var completedLabel = tsLabel(order.completedAt);
+    if (completedLabel) rows.push(detailRow("วันที่เสร็จงาน", completedLabel));
+    if (!rows.length) return "";
+    return detailSection(
+      "ข้อมูลคำสั่งผลิต",
+      '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+      '<div class="ap-detail-grid">' + rows.join("") + '</div>'
+    );
+  }
+
+  function renderDetailFlowSection(order) {
+    if (order.status === "cancelled") return renderCancelledNote();
+    var progress = Math.max(0, Math.min(100, order.progress || 0));
+    var progressHtml = order.status === "completed" ? "" : (
+      '<div class="ap-item-progress" style="padding:0 0 16px;">' +
+        '<div class="ap-item-progress-top"><span>ความคืบหน้า</span><span>' + progress + '%</span></div>' +
+        '<div class="tm-progress-bar"><i style="width:' + progress + '%"></i></div>' +
+      '</div>'
+    );
+    return detailSection(
+      "ความคืบหน้า",
+      '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1.6"/><circle cx="4" cy="12" r="1.6"/><circle cx="4" cy="18" r="1.6"/>',
+      progressHtml + '<div class="ap-flow">' + buildFlowStepsHtml(order) + '</div>'
+    );
+  }
+
+  function renderDetailSpecsSection(order) {
+    var s = order.specs || {};
+    var rows = [];
+    if (s.size) rows.push(detailRow("ขนาด", s.size));
+    if (s.material) rows.push(detailRow("วัสดุ", s.material));
+    if (s.color) rows.push(detailRow("สี", s.color));
+    if (s.finish) rows.push(detailRow("การเคลือบ/ผิว", s.finish));
+    if (!rows.length) return "";
+    return detailSection(
+      "สเปกงาน",
+      '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z"/>',
+      '<div class="ap-detail-grid">' + rows.join("") + '</div>'
+    );
+  }
+
+  function renderDetailFinanceSection(order) {
+    var hasFinance = Number(order.unit_price) || Number(order.deposit) || Number(order.discount) ||
+      Number(order.shippingCost) || order.paymentStatus || order.invoiceAddress;
+    if (!hasFinance) return "";
+    var rows = [];
+    if (Number(order.unit_price)) {
+      rows.push(detailRow("ราคาต่อหน่วย", formatBaht(order.unit_price)));
+      if (order.qty) rows.push(detailRow("ยอดสินค้า", formatBaht(Number(order.unit_price) * Number(order.qty))));
+    }
+    if (Number(order.discount)) rows.push(detailRow("ส่วนลด", "-" + formatBaht(order.discount)));
+    if (Number(order.shippingCost)) rows.push(detailRow("ค่าขนส่ง", formatBaht(order.shippingCost)));
+    rows.push(detailRow("VAT", order.vatIncluded ? "รวมในราคาแล้ว" : "บวกเพิ่ม 7%"));
+    rows.push(detailRow("ยอดรวมทั้งหมด", formatBaht(orderGrandTotal(order)), { cls: "accent", full: true }));
+    if (Number(order.deposit)) rows.push(detailRow("ชำระแล้ว (มัดจำ)", formatBaht(order.deposit)));
+    if (order.paymentStatus) {
+      var payInfo = PAYMENT_STATUS[order.paymentStatus];
+      if (order.paymentStatus === "paid_full") {
+        rows.push(detailRow("สถานะการชำระ", (payInfo && payInfo.label) || "ชำระครบแล้ว", { cls: "ok" }));
+      } else {
+        var balance = orderBalance(order);
+        rows.push(detailRow("สถานะการชำระ", (payInfo && payInfo.label) || ""));
+        if (balance > 0) rows.push(detailRow("ยอดคงเหลือ", formatBaht(balance), { cls: "warn" }));
+      }
+    }
+    if (order.invoiceAddress) rows.push(detailRow("ที่อยู่ออกใบกำกับภาษี", order.invoiceAddress, { full: true }));
+    return detailSection(
+      "การเงิน",
+      '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+      '<div class="ap-detail-grid">' + rows.join("") + '</div>'
+    );
+  }
+
+  function renderDetailShippingSection(order) {
+    var methodInfo = SHIPPING_METHOD[order.shippingMethod];
+    var rows = [];
+    if (methodInfo) rows.push(detailRow("ช่องทางจัดส่ง", methodInfo.label));
+    if (order.recipient) rows.push(detailRow("ผู้รับปลายทาง", order.recipient));
+    if (order.shippingAddress) rows.push(detailRow("ที่อยู่จัดส่ง", order.shippingAddress, { full: true }));
+    if (order.shippingTrackingId) rows.push(detailRow("เลขพัสดุ", order.shippingTrackingId));
+    if (!rows.length) return "";
+    return detailSection(
+      "การจัดส่ง",
+      '<rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8Z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+      '<div class="ap-detail-grid">' + rows.join("") + '</div>'
+    );
+  }
+
+  function renderDetailFilesSection(order) {
+    var files = Array.isArray(order.designFiles) ? order.designFiles.filter(function (f) { return f && f.url; }) : [];
+    if (!files.length) return "";
+    var links = files.map(function (f) {
+      return (
+        '<a class="ap-detail-file-link" href="' + escapeHtml(f.url) + '" target="_blank" rel="noopener">' +
+          FILE_ICON + '<span>' + escapeHtml(f.label || "ไฟล์แบบ") + '</span>' +
+        '</a>'
+      );
+    }).join("");
+    return detailSection(
+      "ไฟล์แบบ",
+      '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/>',
+      '<div class="ap-detail-files">' + links + '</div>'
+    );
+  }
+
+  function renderDetailQcSection(order) {
+    var list = Array.isArray(order.qcChecklist) ? order.qcChecklist : [];
+    if (!list.length) return "";
+    var items = list.map(function (item) {
+      var checked = !!item.checked;
+      return (
+        '<div class="ap-detail-list-item' + (checked ? " checked" : " unchecked") + '">' +
+          (checked ? CHECK_ICON : CIRCLE_ICON) + '<span>' + escapeHtml(item.label || "") + '</span>' +
+        '</div>'
+      );
+    }).join("");
+    return detailSection(
+      "ตรวจสอบคุณภาพ (QC)",
+      '<path d="M20 6 9 17l-5-5"/>',
+      '<div class="ap-detail-list">' + items + '</div>'
+    );
+  }
+
+  function renderDetailNotesSection(order) {
+    if (!order.notes) return "";
+    return detailSection(
+      "หมายเหตุ",
+      '<path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/>',
+      '<div class="ap-detail-note">' + escapeHtml(order.notes) + '</div>'
+    );
+  }
+
+  function renderOrderDetailBody(order) {
+    return [
+      renderDetailInfoSection(order),
+      renderDetailFlowSection(order),
+      renderDetailSpecsSection(order),
+      renderDetailFinanceSection(order),
+      renderDetailShippingSection(order),
+      renderDetailFilesSection(order),
+      renderDetailQcSection(order),
+      renderDetailNotesSection(order)
+    ].filter(Boolean).join("");
+  }
+
+  var detailLastFocused = null;
+  function openOrderDetail(order) {
+    if (!detailOverlay || !detailBody || !order) return;
+    var statusInfo = ORDER_STATUS[order.status] || { label: order.status };
+    if (detailCodeEl) detailCodeEl.textContent = order.code || "\u2014";
+    if (detailTitleEl) detailTitleEl.textContent = order.item || "รายละเอียดคำสั่งผลิต";
+    if (detailSubEl) {
+      var subParts = [];
+      if (order.qty) subParts.push("จำนวน " + order.qty + " ชิ้น");
+      subParts.push(statusInfo.label);
+      detailSubEl.textContent = subParts.join(" \u00b7 ");
+    }
+    detailBody.innerHTML = renderOrderDetailBody(order);
+    detailLastFocused = document.activeElement;
+    detailOverlay.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    if (detailClose) requestAnimationFrame(function () { detailClose.focus(); });
+  }
+  function closeOrderDetail() {
+    if (!detailOverlay) return;
+    detailOverlay.style.display = "none";
+    document.body.style.overflow = "";
+    if (detailLastFocused && typeof detailLastFocused.focus === "function") detailLastFocused.focus();
+    detailLastFocused = null;
+  }
+
+  // การ์ดกดเปิดป๊อปอัพได้ทั้งใบ (คลิกเมาส์ + Enter/Space ตอนโฟกัสด้วยคีย์บอร์ด — การ์ดมี
+  // tabindex="0" role="button" จาก renderOrderCard()) ยกเว้นส่วน .ap-details/<summary> เดิม
+  // (ปล่อยให้ toggle ของตัวเองทำงานตามปกติ ไม่เปิดป๊อปอัพซ้อนทับ)
+  function handleCardActivate(target) {
+    var card = target.closest ? target.closest(".ap-item-card") : null;
+    if (!card) return;
+    var order = findOrderById(card.getAttribute("data-order-id"));
+    if (order) openOrderDetail(order);
+  }
+  if (listEl) {
+    listEl.addEventListener("click", function (e) {
+      if (e.target.closest(".ap-details")) return;
+      handleCardActivate(e.target);
+    });
+    listEl.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      if (e.target.closest(".ap-details")) return;
+      if (!e.target.closest || !e.target.closest(".ap-item-card")) return;
+      e.preventDefault();
+      handleCardActivate(e.target);
+    });
+  }
+  if (detailClose) detailClose.addEventListener("click", closeOrderDetail);
+  if (detailOverlay) {
+    detailOverlay.addEventListener("click", function (e) {
+      if (e.target === detailOverlay) closeOrderDetail();
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && detailOverlay && detailOverlay.style.display === "flex") closeOrderDetail();
+  });
 
   // ตัวบ่งชี้ "เข้าสู่ระบบด้วย LINE อยู่" ข้ามหน้า (2026-08 follow-up) — pattern เดียวกับ
   // js/my-account-page.js ทุกประการ ดูคอมเมนต์เต็มที่นั่น
