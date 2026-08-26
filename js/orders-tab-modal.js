@@ -425,10 +425,10 @@ function updateFinanceSummary() {
 });
 document.getElementById("cp-o-vat-included").addEventListener("change", updateFinanceSummary);
 
-export function openOrderModal(order) {
+export function openOrderModal(order, initialTab = "info") {
   orderModalTitle.textContent = order ? "แก้ไขคำสั่งผลิต" : "เพิ่มคำสั่งผลิต";
   orderHeadCode.textContent = order ? (order.code || "") : "";
-  switchOdTab("info");
+  switchOdTab(initialTab);
   productSearchInput.value = "";
   filterProductChecklist();
 
