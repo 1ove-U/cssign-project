@@ -30,6 +30,7 @@ import { allLeads } from "./admin-leads.js";
 import { openProductModal } from "./admin-products.js";
 import { switchTab } from "./admin-page.js";
 import { renderLeadFunnel, renderLeadSourceConversion, renderSlaWarning, renderOverviewActivity } from "./admin-overview-detail-cards.js";
+import { renderOverviewCalendar } from "./admin-overview-calendar.js";
 import "./admin-overview-export.js";
 
 
@@ -168,6 +169,20 @@ export function renderOverview() {
     ovOrdersViewAll.addEventListener("click", () => switchTab("orders"));
   }
 
+  // "ดูมุมมองปฏิทินเต็ม →" — เชื่อมไปแท็บคำสั่งผลิต แล้วสลับเป็นมุมมองปฏิทิน (เหมือนกดปุ่ม
+  // "มุมมองปฏิทิน" ในแถบสลับมุมมองเดิมของแท็บนั้น)
+  const ovCalViewAll = document.getElementById("ov-cal-viewall");
+  if (ovCalViewAll && !ovCalViewAll.dataset.wired) {
+    ovCalViewAll.dataset.wired = "1";
+    ovCalViewAll.addEventListener("click", () => {
+      switchTab("orders");
+      const calBtn = document.querySelector('#cp-view-toggle [data-view="calendar"]');
+      if (calBtn) calBtn.click();
+    });
+  }
+
+  try { renderOverviewCalendar(); } catch (err) { console.error("[admin-page] renderOverviewCalendar ล้มเหลว", err); }
+
   try { renderRevenueLineChart(); } catch (err) { console.error("[admin-page] renderRevenueLineChart ล้มเหลว", err); }
 
   // หมายเหตุ: กล่อง "สินค้าแยกตามหมวดหมู่" ถูกตัดออกแล้ว เพราะซ้ำ concept กับกล่อง
@@ -255,4 +270,3 @@ export function renderNotifBell() {
     });
   });
 }
-
