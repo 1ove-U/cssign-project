@@ -215,3 +215,52 @@
   .ap-logout-btn{ width:100%; justify-content:center; }
   .ap-flow-step{ width:64px; }
 }
+
+/* ── การ์ดออเดอร์กดดูรายละเอียดได้ (my-orders.html) — ทั้งการ์ดคลิกได้ ยกเว้นส่วน
+   .ap-details/summary เดิม (ปล่อยให้ toggle ของตัวเองทำงานตามปกติ ไม่เปิดป๊อปอัพซ้อน) ── */
+.ap-item-card{ cursor:pointer; }
+.ap-item-card:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+.ap-item-card .ap-details{ cursor:default; }
+
+/* ── เนื้อหาป๊อปอัพรายละเอียดออเดอร์เต็ม (#mo-detail-body, reuse .tm-body/.tm-overlay เดิม) ── */
+.ap-detail-section{ margin-bottom:22px; }
+.ap-detail-section:last-child{ margin-bottom:0; }
+.ap-detail-section-title{
+  display:flex; align-items:center; gap:6px;
+  font-size:11.5px; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
+  color:var(--gray-500); margin-bottom:12px;
+}
+.ap-detail-section-title svg{ width:13px; height:13px; color:var(--gray-400); flex-shrink:0; }
+.ap-detail-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
+.ap-detail-row{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+.ap-detail-row.full{ grid-column:1 / -1; }
+.ap-detail-label{ font-size:11px; color:var(--gray-500); }
+.ap-detail-value{ font-size:14px; font-weight:700; color:var(--gray-900); overflow-wrap:break-word; }
+.ap-detail-value.accent{ color:var(--primary); }
+.ap-detail-value.warn{ color:#B3261E; }
+.ap-detail-value.ok{ color:#1F7A3E; }
+.ap-detail-divider{ border:none; border-top:1px solid var(--gray-100); margin:18px 0; }
+.ap-detail-note{
+  font-size:13.5px; color:var(--gray-700); line-height:1.65;
+  background:var(--gray-25); border:1px solid var(--gray-100); border-radius:var(--r-md);
+  padding:12px 14px; white-space:pre-wrap;
+}
+.ap-detail-list{ display:flex; flex-direction:column; gap:9px; }
+.ap-detail-list-item{ display:flex; align-items:flex-start; gap:9px; font-size:13.5px; color:var(--gray-500); line-height:1.5; }
+.ap-detail-list-item svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; }
+.ap-detail-list-item.checked{ color:var(--gray-900); }
+.ap-detail-list-item.checked svg{ color:#1F7A3E; }
+.ap-detail-list-item.unchecked svg{ color:var(--gray-300); }
+.ap-detail-files{ display:flex; flex-direction:column; gap:8px; }
+.ap-detail-file-link{
+  display:flex; align-items:center; gap:9px; padding:10px 12px;
+  border:1px solid var(--gray-100); border-radius:var(--r-md);
+  font-size:13px; font-weight:600; color:var(--secondary); text-decoration:none;
+  transition:all .15s var(--ease);
+}
+.ap-detail-file-link:hover{ border-color:var(--primary); background:var(--gray-25); }
+.ap-detail-file-link svg{ width:15px; height:15px; flex-shrink:0; color:var(--gray-400); }
+
+@media (max-width:420px){
+  .ap-detail-grid{ grid-template-columns:1fr; }
+}
