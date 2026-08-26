@@ -1053,23 +1053,41 @@ body.cp-scroll-locked{ overflow:hidden; }
 .cp-od-gridview .cp-modal-row > *{ min-width:0; }
 .cp-od-gridview select.cl-input{ min-width:0; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; }
 
-/* ── ทั้งสองป๊อปอัพ: multi-column แบบ balance อัตโนมัติ (ไม่ใช้ grid-area จับคู่ตายตัวอีกต่อไป) ── */
-#cp-order-form.cp-od-gridview .cp-o-grid,
-#ad-p-form.cp-od-gridview .ad-p-modal-grid{
+/* ── ป๊อปอัพคำสั่งผลิต (#cp-order-form): multi-column แบบ balance อัตโนมัติเหมือนเดิม ── */
+#cp-order-form.cp-od-gridview .cp-o-grid{
   column-count:2; column-gap:16px; column-fill:balance;
 }
 
-/* หมวด "ราคา & ตัวเลือก" มีตารางราคาที่กว้างได้ไม่จำกัด (คอลัมน์ #/รหัสตัวเลือก/แต่ละหมวดตัวเลือก/
-   ราคา) ถ้าถูกบีบให้เหลือแค่ครึ่งเดียวของ 2 คอลัมน์แบบหมวดอื่นๆ (~370px) ตัวหนังสือในตารางจะถูกบีบ
-   จนขึ้นบรรทัดใหม่กลางคำ อ่านไม่ออก จึงให้หมวดนี้ข้ามพ้นเลย์เอาต์ 2 คอลัมน์ กางเต็มความกว้างป๊อปอัพ
-   เสมอ (หมวดอื่นที่เนื้อหาสั้นกว่ายังคงอยู่ในเลย์เอาต์ 2 คอลัมน์ตามเดิม) */
-#ad-p-form.cp-od-gridview .ad-p-panel-pricing{ column-span:all; }
+/* ── ป๊อปอัพเพิ่ม/แก้ไขสินค้า (#ad-p-form): เปลี่ยนมาใช้ CSS Grid แทน multi-column แบบหมวดคำสั่งผลิต
+   ด้านบน เพราะหมวด "ราคา & ตัวเลือก" มีตารางราคาที่กว้างได้ไม่จำกัด (คอลัมน์ #/รหัสตัวเลือก/แต่ละ
+   หมวดตัวเลือก/ราคา) ถ้าถูกบีบให้เหลือแค่ครึ่งเดียวของ 2 คอลัมน์ (~370px) ตัวหนังสือในตารางจะถูกบีบ
+   จนขึ้นบรรทัดใหม่กลางคำ อ่านไม่ออก — ลองใช้ column-span:all กับหมวดนี้มาก่อน (เหมือนแพทเทิร์น
+   multi-column ด้านบน) แต่ column-span ใช้ไม่ได้จริงกับ .cp-od-panel เพราะบรรทัดด้านบนบังคับ
+   display:flex !important ไว้ (หลายเบราว์เซอร์มีบั๊กรู้จักกันดี: column-span:all ไม่ทำงานกับ
+   flex/grid container) ผลคือทั้งหมวด "ข้อมูลพื้นฐาน" และ "ราคา & ตัวเลือก" ไปติดอยู่ในคอลัมน์ซ้าย
+   คอลัมน์เดียว เหลือครึ่งขวาว่างเปล่าทั้งแถบแทน — จึงเปลี่ยนมาใช้ CSS Grid ธรรมดาซึ่งกำหนด
+   grid-column ตายตัวให้แต่ละหมวดได้ตรงๆ ไม่ต้องพึ่งพฤติกรรม auto-balance ที่ไม่เสถียรข้ามเบราว์เซอร์:
+     - "ข้อมูลพื้นฐาน" และ "ราคา & ตัวเลือก" กางเต็มความกว้างป๊อปอัพเสมอ (grid-column:1/-1)
+     - "รูปภาพ" กับ "SEO ขั้นสูง" เนื้อหาสั้นกว่า ปล่อยให้วางเรียงข้างกันตามปกติ (auto-placement
+       เข้าคอลัมน์ 1 และ 2 ตามลำดับ) */
+#ad-p-form.cp-od-gridview .ad-p-modal-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;
+}
+#ad-p-form.cp-od-gridview .ad-p-panel-basic,
+#ad-p-form.cp-od-gridview .ad-p-panel-pricing{
+  grid-column:1 / -1;
+}
+/* grid ใช้ gap:16px จัดระยะห่างระหว่างหมวดให้แล้ว — เอา margin-bottom เดิม (ไว้ใช้กับ multi-column
+   ที่ไม่มี concept ของ row-gap) ออกเฉพาะป๊อปอัพสินค้า กันไม่ให้ระยะห่างซ้อนกันเป็น 32px */
+#ad-p-form.cp-od-gridview .ad-p-modal-grid .cp-od-panel{ margin-bottom:0; }
 
 @media (max-width:900px){
   .cp-od-gridview.cp-modal,
   #ad-p-form.cp-od-gridview.cp-modal{ max-width:100%; padding:18px; }
-  #cp-order-form.cp-od-gridview .cp-o-grid,
-  #ad-p-form.cp-od-gridview .ad-p-modal-grid{
+  #cp-order-form.cp-od-gridview .cp-o-grid{
     column-count:1;
+  }
+  #ad-p-form.cp-od-gridview .ad-p-modal-grid{
+    grid-template-columns:1fr;
   }
 }
