@@ -206,19 +206,36 @@
         </button>
       </section>
 
-      <!-- ============ SLA warning — รายการคำสั่งผลิตที่ใกล้/เกินกำหนดส่ง แสดงเด่นบนหน้าภาพรวม
-           (ต่างจากแถบ "วันนี้ต้องทำอะไร" ด้านบนที่โชว์แค่ตัวเลขสรุป กล่องนี้แสดงรายชื่อคำสั่งผลิต
-           แต่ละรายการ กดแล้วกระโดดไปแท็บคำสั่งผลิตพร้อมตัวกรองได้ทันที — ดู renderSlaWarning() ใน
-           js/admin-overview-dashboard.js, ซ่อนอัตโนมัติถ้าไม่มีรายการเกิน/ใกล้กำหนด) ============ -->
-      <section class="cp-breakdown-box cp-sla-box" id="ov-sla-warning" style="display:none;">
-        <div class="cp-breakdown-head">
-          <div class="cp-breakdown-title">⚠️ คำสั่งผลิตที่ต้องรีบดำเนินการ</div>
-          <button type="button" class="cp-viewall-btn" id="ov-sla-viewall">ไปที่คำสั่งผลิต →</button>
+      <!-- ============ ปฏิทินงาน + คำสั่งผลิตที่ต้องรีบดำเนินการ — สองกล่องนี้พูดเรื่อง
+           "กำหนดส่ง" เหมือนกัน จึงวางคู่กันเป็นแถวเดียว (แทนที่จะกระจายอยู่คนละที่ในหน้าเดิม)
+           ปฏิทิน: js/admin-overview-calendar.js (renderOverviewCalendar → #ov-calendar-view)
+           SLA warning: js/admin-overview-dashboard.js → renderSlaWarning() ใน
+           js/admin-overview-detail-cards.js — ซ่อนอัตโนมัติถ้าไม่มีรายการเกิน/ใกล้กำหนด ============ -->
+      <div class="cp-ov-section-head cp-ov-section-head--first">
+        <div>
+          <div class="cp-ov-section-title">ปฏิทินงาน &amp; กำหนดส่ง</div>
+          <div class="cp-ov-section-sub">คำสั่งผลิตที่ยังไม่เสร็จ เรียงตามวันที่ต้องส่งมอบ</div>
         </div>
-        <div class="cp-notif-list" id="ov-sla-list"></div>
+      </div>
+      <section class="cp-breakdown-grid cp-ov-cal-row">
+        <div class="cp-breakdown-box cp-ov-cal-box">
+          <div class="cp-breakdown-head">
+            <div class="cp-breakdown-title">ปฏิทินกำหนดส่งงาน</div>
+            <button type="button" class="cp-viewall-btn" id="ov-cal-viewall">ดูมุมมองปฏิทินเต็ม →</button>
+          </div>
+          <div id="ov-calendar-view"></div>
+        </div>
+
+        <section class="cp-breakdown-box cp-sla-box" id="ov-sla-warning" style="display:none;">
+          <div class="cp-breakdown-head">
+            <div class="cp-breakdown-title">⚠️ คำสั่งผลิตที่ต้องรีบดำเนินการ</div>
+            <button type="button" class="cp-viewall-btn" id="ov-sla-viewall">ไปที่คำสั่งผลิต →</button>
+          </div>
+          <div class="cp-notif-list" id="ov-sla-list"></div>
+        </section>
       </section>
 
-      <div class="cp-ov-section-head cp-ov-section-head--first">
+      <div class="cp-ov-section-head">
         <div>
           <div class="cp-ov-section-title">ภาพรวมเนื้อหาเว็บไซต์</div>
           <div class="cp-ov-section-sub">จำนวนสินค้า หมวดหมู่ ผลงาน และข้อมูลอื่นๆ ที่แสดงอยู่บนเว็บไซต์ตอนนี้</div>
@@ -310,15 +327,6 @@
           <svg class="cp-stat-spark is-empty" id="cp-spark-completed" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
           <span class="cp-stat-trend na" id="cp-trend-completed" title="งานที่เสร็จต่อเดือน"></span>
         </div>
-        <div class="cp-stat-card warn" id="cp-stat-card-duesoon" data-jump="duesoon">
-          <div class="cp-stat-top">
-            <span class="cp-stat-icon cp-stat-icon--warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
-            <span class="cp-stat-label">งานใกล้กำหนดส่ง (≤2 วัน)</span>
-          </div>
-          <span class="cp-stat-num" id="cp-stat-duesoon">0</span>
-          <svg class="cp-stat-spark is-empty" id="cp-spark-duesoon" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
-          <span class="cp-stat-trend na" id="cp-trend-duesoon" title="อัตราส่งงานตรงเวลารายเดือน"></span>
-        </div>
         <div class="cp-stat-card danger" id="cp-stat-card-overdue" data-jump="overdue">
           <div class="cp-stat-top">
             <span class="cp-stat-icon cp-stat-icon--danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></span>
@@ -333,14 +341,6 @@
           </div>
           <span class="cp-stat-num cp-stat-num--sales" id="cp-stat-sales">฿0 <small>วันนี้</small> / ฿0 <small>เดือนนี้</small></span>
           <span class="cp-stat-trend na" id="cp-stat-sales-trend" title="เทียบยอดขายเดือนนี้กับเดือนก่อน"></span>
-        </div>
-        <div class="cp-stat-card">
-          <span class="cp-stat-num" id="cp-stat-total">0</span>
-          <span class="cp-stat-label">คำสั่งผลิตทั้งหมด</span>
-        </div>
-        <div class="cp-stat-card" id="cp-stat-card-balance" data-jump="orders" title="ยอดค้างชำระรวมจากคำสั่งผลิตทั้งหมดที่ยังไม่ถูกยกเลิก (ยอดรวม - มัดจำที่รับแล้ว)">
-          <span class="cp-stat-num" id="cp-stat-balance">฿0</span>
-          <span class="cp-stat-label">ยอดค้างชำระรวม</span>
         </div>
       </section>
 
@@ -403,6 +403,29 @@
         </button>
       </div>
       <div class="cp-ov-collapsible" id="ov-more-wrap">
+        <!-- ตัวเลขรองของคำสั่งผลิต (ใกล้กำหนดส่ง/รวมทั้งหมด/ยอดค้างชำระ) — ย้ายมาจากกริดหลัก
+             ด้านบน ยังเป็น DOM element จริง (ไม่ใช่ template) เพราะ js/admin-overview-today.js
+             และ js/orders-tab-stats.js อ่าน/เขียนค่าที่ id เหล่านี้โดยตรง (MutationObserver +
+             renderTrendBadge/renderSparkline) — แค่ย้ายตำแหน่งที่แสดงผล ไม่ตัดออกจาก DOM -->
+        <section class="cp-stats" id="ov-stats-grid-secondary" style="margin-bottom:18px;">
+          <div class="cp-stat-card warn" id="cp-stat-card-duesoon" data-jump="duesoon">
+            <div class="cp-stat-top">
+              <span class="cp-stat-icon cp-stat-icon--warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+              <span class="cp-stat-label">งานใกล้กำหนดส่ง (≤2 วัน)</span>
+            </div>
+            <span class="cp-stat-num" id="cp-stat-duesoon">0</span>
+            <svg class="cp-stat-spark is-empty" id="cp-spark-duesoon" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <span class="cp-stat-trend na" id="cp-trend-duesoon" title="อัตราส่งงานตรงเวลารายเดือน"></span>
+          </div>
+          <div class="cp-stat-card">
+            <span class="cp-stat-num" id="cp-stat-total">0</span>
+            <span class="cp-stat-label">คำสั่งผลิตทั้งหมด</span>
+          </div>
+          <div class="cp-stat-card" id="cp-stat-card-balance" data-jump="orders" title="ยอดค้างชำระรวมจากคำสั่งผลิตทั้งหมดที่ยังไม่ถูกยกเลิก (ยอดรวม - มัดจำที่รับแล้ว)">
+            <span class="cp-stat-num" id="cp-stat-balance">฿0</span>
+            <span class="cp-stat-label">ยอดค้างชำระรวม</span>
+          </div>
+        </section>
         <section class="cp-breakdown-grid">
           <div class="cp-breakdown-box">
             <div class="cp-breakdown-title">แยกตามหมวดป้าย</div>
