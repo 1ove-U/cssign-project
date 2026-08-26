@@ -509,9 +509,23 @@
     // my-orders-page.js เรียกอัปเดตจุดเขียวได้ทันทีตอน login/logout สำเร็จในหน้าเดียวกันด้วย
     // (ไม่ต้องรอ reload หน้าถึงจะเห็น)
     var LINE_SESSION_STORAGE_KEY = 'cssignLineSessionActive';
+    // เก็บ pictureUrl จากโปรไฟล์ LINE คู่กับ flag login เดิม (2026-08 follow-up) — เขียน/ลบ
+    // พร้อมกันเสมอใน CSSignSetAccountLoggedIn() ด้านล่าง ใช้ pattern cache เดียวกันทุกอย่าง
+    // (ไม่ authoritative 100%, แค่ UI hint) เพื่อเอาไปโชว์เป็นรูปโปรไฟล์บนไอคอน "บัญชีของฉัน"
+    // แทน SVG คนทั่วไปตอน login ด้วย LINE อยู่
+    var LINE_PICTURE_STORAGE_KEY = 'cssignLinePictureUrl';
     function readLineSessionActive() {
       try { return window.localStorage && window.localStorage.getItem(LINE_SESSION_STORAGE_KEY) === '1'; }
       catch (e) { return false; }
+    }
+    function readLinePictureUrl() {
+      try { return (window.localStorage && window.localStorage.getItem(LINE_PICTURE_STORAGE_KEY)) || null; }
+      catch (e) { return null; }
+    }
+
+    var DEFAULT_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-login-dot" aria-hidden="true"></span>';
+    function avatarIconHTML(pictureUrl) {
+      return '<img src="' + pictureUrl + '" alt="" class="nav-user-avatar" referrerpolicy="no-referrer" aria-hidden="true"><span class="nav-login-dot" aria-hidden="true"></span>';
     }
 
     var iconLink = null;
@@ -523,6 +537,9 @@
         var iconTitle = isActive ? (label + loggedInSuffix) : label;
         iconLink.setAttribute('aria-label', iconTitle);
         iconLink.setAttribute('title', iconTitle);
+        // login ด้วย LINE อยู่ + มีรูปโปรไฟล์ cache ไว้ → โชว์รูปจริงแทนไอคอนคนทั่วไป
+        var picUrl = isActive ? readLinePictureUrl() : null;
+        iconLink.innerHTML = picUrl ? avatarIconHTML(picUrl) : DEFAULT_ICON_SVG;
       }
       if (mobileTextLink) {
         mobileTextLink.classList.toggle('mobile-my-orders-link--logged-in', !!isActive);
@@ -530,10 +547,12 @@
       }
     }
 
-    window.CSSignSetAccountLoggedIn = function (isActive) {
+    window.CSSignSetAccountLoggedIn = function (isActive, pictureUrl) {
       try {
         if (isActive) window.localStorage && window.localStorage.setItem(LINE_SESSION_STORAGE_KEY, '1');
         else window.localStorage && window.localStorage.removeItem(LINE_SESSION_STORAGE_KEY);
+        if (isActive && pictureUrl) window.localStorage && window.localStorage.setItem(LINE_PICTURE_STORAGE_KEY, pictureUrl);
+        else window.localStorage && window.localStorage.removeItem(LINE_PICTURE_STORAGE_KEY);
       } catch (e) { /* private mode / localStorage ไม่พร้อมใช้งาน — แค่ข้าม cache ไป ไม่ throw */ }
       applyIndicator(isActive);
     };
@@ -548,7 +567,7 @@
         iconLink.className = 'nav-icon-btn nav-my-orders-trigger';
         iconLink.setAttribute('aria-label', label);
         iconLink.setAttribute('title', label);
-        iconLink.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-login-dot" aria-hidden="true"></span>';
+        iconLink.innerHTML = DEFAULT_ICON_SVG; // applyIndicator() ท้ายฟังก์ชันนี้จะสลับเป็นรูปโปรไฟล์ LINE ให้ทันทีถ้ามี cache
         navActions.insertBefore(iconLink, navTrackTrigger);
       } else {
         iconLink = navActions && navActions.querySelector('.nav-my-orders-trigger');
