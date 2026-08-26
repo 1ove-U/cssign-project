@@ -497,12 +497,14 @@ button.cp-ov-today-item:focus-visible{ outline:2px solid var(--primary); outline
 }
 
 .ad-variant-table-wrap{ overflow:auto; max-height:360px; border:1px solid var(--gray-200); border-radius:var(--r-sm); margin-top:4px; }
-.ad-variant-table{ width:100%; border-collapse:collapse; font-size:13px; }
+/* min-width กันตารางถูกบีบแคบจนตัวหนังสือขึ้นบรรทัดใหม่กลางคำ อ่านไม่ออก — ถ้าคอลัมน์รวมกว้างกว่า
+   กล่อง .ad-variant-table-wrap (overflow:auto ด้านบน) จะโชว์สโครลแนวนอนแทนการบีบตัวหนังสือ */
+.ad-variant-table{ width:100%; min-width:560px; border-collapse:collapse; font-size:13px; }
 .ad-variant-table th{ position:sticky; top:0; z-index:1; background:var(--gray-50); color:var(--gray-500); text-align:left; padding:10px 12px; font-weight:700; white-space:nowrap; }
 .ad-variant-table th.ad-variant-th-num, .ad-variant-table td.ad-variant-td-num{ text-align:center; width:36px; color:var(--gray-400); font-size:12px; }
 .ad-variant-table th.ad-variant-th-price{ text-align:right; }
 .ad-variant-table th.ad-variant-th-del{ width:32px; }
-.ad-variant-table td{ padding:8px 12px; border-top:1px solid var(--gray-100); vertical-align:middle; }
+.ad-variant-table td{ padding:8px 12px; border-top:1px solid var(--gray-100); vertical-align:middle; white-space:nowrap; }
 .ad-variant-table tbody tr:nth-child(even) td{ background:var(--gray-25); }
 .ad-variant-table tr:hover td{ background:rgba(var(--primary-rgb),0.05); }
 .ad-variant-sku{ font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--primary); font-size:12px; background:rgba(var(--primary-rgb),0.07); padding:2px 6px; border-radius:6px; white-space:nowrap; }
