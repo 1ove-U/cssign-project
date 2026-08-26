@@ -295,6 +295,16 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
         : '') +
         renderChipRow(order) +
         (isCancelled ? renderCancelledNote() : (isCompleted ? '' : renderFlowTracker(order))) +
+        // ปุ่ม "ดูรายละเอียด" (2026-08 follow-up) — เดิมทั้งการ์ดกดเปิดป๊อปอัพได้อยู่แล้ว
+        // (role="button" ด้านบน) แต่ไม่มี affordance ที่มองเห็นได้ว่ากดตรงไหนได้ — ปุ่มนี้แค่ทำให้
+        // เห็นชัดเจนขึ้น ไม่ได้ผูก event listener เพิ่มเอง (คลิกแล้ว bubble ขึ้นไปโดน listEl click
+        // handler เดิมที่ handleCardActivate() หา .ap-item-card แม่ผ่าน closest() อยู่แล้ว)
+        '<div style="padding:2px 18px 16px;">' +
+          '<button type="button" class="btn btn-secondary btn-sm ap-item-detail-btn">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="margin-right:5px; vertical-align:-2px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>' +
+            'ดูรายละเอียด' +
+          '</button>' +
+        '</div>' +
       '</div>'
     );
   }
