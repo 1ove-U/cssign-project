@@ -486,6 +486,10 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
                 '<div class="tm-info-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.4 14.5 16 10 4 20"/><path d="m21 3-9 9-4-4-6 6"/></svg></div>' +
                 '<div><div class="tm-info-item-label">\u0e2b\u0e21\u0e27\u0e14\u0e1b\u0e49\u0e32\u0e22</div><div class="tm-info-item-val">' + escapeHtml(order.category || "\u2014") + '</div></div>' +
               '</div>' +
+              '<div class="tm-info-item tm-info-item-full">' +
+                '<div class="tm-info-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg></div>' +
+                '<div><div class="tm-info-item-label">\u0e2d\u0e31\u0e1b\u0e40\u0e14\u0e15\u0e25\u0e48\u0e32\u0e2a\u0e38\u0e14</div><div class="tm-info-item-val">' + formatUpdatedAt(order.updatedAt) + '</div></div>' +
+              '</div>' +
             '</div>' +
           '</div>' +
           '<div class="tm-tabpanel" id="tm-tabpanel-steps">' + renderStages(order.status) + '</div>' +
@@ -537,14 +541,32 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
   // designFiles อย่างน้อย 1 ไฟล์ (คัดลอกมาจาก order_tracking public copy โดย
   // upsertOrderTracking() ใน js/db-orders.js) — คืน "" เฉยๆ ถ้าไม่เข้าเงื่อนไข (ไม่แสดง section
   // นี้เลย ไม่ใช่แสดง section ว่าง)
+  function isImageFileUrl(url) {
+    return /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(String(url || ""));
+  }
+
+  // ป้องกันเคส admin ตั้งสถานะ "รออนุมัติแบบ" ไปแล้วแต่ลืมติ๊ก "ลูกค้าเห็น" ที่ไฟล์ไหนเลย (ควรถูก
+  // กันไว้แล้วตั้งแต่ฟอร์มแอดมิน — ดู guard ใน js/orders-tab-modal.js submit handler — แต่เผื่อ
+  // order เก่าที่บันทึกไว้ก่อนมี guard นั้น) — โชว์การ์ดแจ้งว่ากำลังรอไฟล์แทนที่จะปล่อยแท็บ
+  // "ดำเนินการ" ว่างเปล่าเฉยๆ ทั้งที่แท็บ "สรุป" เพิ่งบอกลูกค้าไปว่ามีไฟล์ให้ดูแล้ว
   function renderDesignApprovalSection(order) {
-    var showApproval = (order.status === "design" || order.status === "approval") &&
-      Array.isArray(order.designFiles) && order.designFiles.length > 0;
+    var hasFiles = Array.isArray(order.designFiles) && order.designFiles.length > 0;
+    if (order.status === "approval" && !hasFiles) {
+      return '<div class="tm-approval-waiting" id="tm-approval-waiting">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' +
+        '<span>\u0e17\u0e35\u0e21\u0e07\u0e32\u0e19\u0e01\u0e33\u0e25\u0e31\u0e07\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e44\u0e1f\u0e25\u0e4c\u0e14\u0e35\u0e44\u0e0b\u0e19\u0e4c\u0e43\u0e2b\u0e49\u0e04\u0e38\u0e13\u0e14\u0e39 \u0e08\u0e30\u0e02\u0e36\u0e49\u0e19\u0e17\u0e35\u0e48\u0e19\u0e35\u0e48\u0e17\u0e31\u0e19\u0e17\u0e35\u0e17\u0e35\u0e48\u0e1e\u0e23\u0e49\u0e2d\u0e21</span>' +
+      '</div>';
+    }
+    var showApproval = (order.status === "design" || order.status === "approval") && hasFiles;
     if (!showApproval) return "";
 
     var filesHtml = order.designFiles.map(function (f) {
-      return '<a class="tm-design-file" href="' + escapeHtml(f.url || "") + '" target="_blank" rel="noopener noreferrer">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>' +
+      var isImg = isImageFileUrl(f.url);
+      var thumb = isImg
+        ? '<img class="tm-design-file-thumb" src="' + escapeHtml(f.url || "") + '" alt="" loading="lazy">'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>';
+      return '<a class="tm-design-file' + (isImg ? ' has-thumb' : '') + '" href="' + escapeHtml(f.url || "") + '" target="_blank" rel="noopener noreferrer">' +
+        thumb +
         '<span>' + escapeHtml(f.label || "\u0e44\u0e1f\u0e25\u0e4c\u0e14\u0e35\u0e44\u0e0b\u0e19\u0e4c") + '</span>' +
       '</a>';
     }).join("");
@@ -612,6 +634,17 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
     if (days < 0) return { text: formatted + " (\u0e40\u0e01\u0e34\u0e19\u0e01\u0e33\u0e2b\u0e19\u0e14 " + Math.abs(days) + " \u0e27\u0e31\u0e19)", cls: "overdue" };
     if (days <= 2) return { text: formatted + " (\u0e2d\u0e35\u0e01 " + days + " \u0e27\u0e31\u0e19)", cls: "duesoon" };
     return { text: formatted, cls: "" };
+  }
+
+  // "อัปเดตล่าสุด" ในแท็บ "สรุป" (2026 refactor) — order.updatedAt เป็น Firestore Timestamp
+  // (คืนจาก getDoc()) ในโปรดักชัน แต่เป็น plain value ธรรมดาในเทส/สภาพแวดล้อมอื่นๆ — เช็ค
+  // .toMillis() ก่อนเสมอ (แพทเทิร์นเดียวกับ js/orders-tab-modal-design-approvals.js) กัน throw
+  function formatUpdatedAt(updatedAt) {
+    if (!updatedAt) return "\u2014";
+    var d = (updatedAt && typeof updatedAt.toMillis === "function") ? new Date(updatedAt.toMillis()) : new Date(updatedAt);
+    if (isNaN(d.getTime())) return "\u2014";
+    return d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" }) +
+      " \u0e19. " + d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
   }
 
   function escapeHtml(s) {
