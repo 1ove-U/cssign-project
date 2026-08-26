@@ -51,6 +51,9 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   var leadsErrorEl      = document.getElementById("ma-leads-error");
   var leadsErrorTextEl  = document.getElementById("ma-leads-error-text");
   var leadsListEl       = document.getElementById("ma-leads-list");
+  // ตัวเลขนับจำนวนคำขอใบเสนอราคาบนหัวเมนู (P.redesign) — อัปเดตเฉพาะตอน renderLeads() ทำงานจริง
+  // (คือหลังกดขยาย panel ครั้งแรกแล้วเท่านั้น) ไม่ query/subscribe เพิ่มเพื่อคงหลัก lazy-load เดิม
+  var leadsCountEl      = document.getElementById("ma-leads-count");
   if (!loadingEl || !loginEl || !profileEl) return; // ไม่ใช่หน้า my-account.html
 
   // LIFF ID เดียวกับ js/my-orders-page.js/js/track-modal.js (P1.5) — ก็อปมาตรงๆ ด้วยเหตุผล
@@ -198,18 +201,26 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
     var statusInfo = QUOTE_REQUEST_STATUS_INFO[qr.status] || { label: qr.status || "\u2014", css: "received" };
     var items = Array.isArray(qr.items) ? qr.items : [];
     var itemsHtml = items.map(function (item) {
-      return '<div style="font-size:13px; color:var(--gray-700); padding:3px 0;">' + formatQuoteItemLine(item) + '</div>';
+      return '<div style="font-size:13px; color:var(--gray-700); padding:3px 0;">\u00b7 ' + formatQuoteItemLine(item) + '</div>';
     }).join("");
+    var itemCountLabel = items.length
+      ? (items.length + ' รายการ')
+      : "";
     var linkHtml = qr.quotePublicToken
-      ? '<a href="quotation-view.html?token=' + encodeURIComponent(qr.quotePublicToken) + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="margin-top:10px;">ดูใบเสนอราคา</a>'
+      ? '<div style="padding:2px 18px 16px;"><a href="quotation-view.html?token=' + encodeURIComponent(qr.quotePublicToken) + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="margin-right:5px; vertical-align:-2px;"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>' +
+          'ดูใบเสนอราคา</a></div>'
       : '';
     return (
-      '<div style="border:1px solid var(--gray-100); border-radius:var(--r-lg); padding:14px 16px; background:var(--bg);">' +
-        '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px;">' +
-          '<div style="font-size:13px; color:var(--gray-500);">' + escapeHtml(requestDateLabel(qr)) + '</div>' +
+      '<div class="ap-item-card">' +
+        '<div class="ap-item-top">' +
+          '<div>' +
+            '<div class="ap-item-code">คำขอใบเสนอราคา' + (itemCountLabel ? ' \u00b7 ' + escapeHtml(itemCountLabel) : '') + '</div>' +
+            '<div class="ap-item-date">' + escapeHtml(requestDateLabel(qr)) + '</div>' +
+          '</div>' +
           '<span class="tm-badge ' + statusInfo.css + '">' + escapeHtml(statusInfo.label) + '</span>' +
         '</div>' +
-        itemsHtml +
+        '<div style="padding:6px 18px 4px;">' + (itemsHtml || '<div style="font-size:13px; color:var(--gray-400); padding:3px 0;">\u2014 ไม่มีรายละเอียดสินค้า \u2014</div>') + '</div>' +
         linkHtml +
       '</div>'
     );
@@ -230,7 +241,15 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
     if (leadsErrorEl) leadsErrorEl.classList.remove("show");
   }
 
+  function updateLeadsCount(n) {
+    if (!leadsCountEl) return;
+    leadsCountEl.textContent = String(n);
+    leadsCountEl.style.display = "inline-flex";
+    leadsCountEl.classList.toggle("has-items", n > 0);
+  }
+
   function renderLeads(quoteRequests) {
+    updateLeadsCount(quoteRequests ? quoteRequests.length : 0);
     if (!quoteRequests || quoteRequests.length === 0) {
       showLeadsOnly(leadsEmptyEl);
       return;
@@ -251,6 +270,7 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
     if (leadsToggle) leadsToggle.setAttribute("aria-expanded", "false");
     if (leadsChevron) leadsChevron.style.transform = "";
     if (leadsListEl) leadsListEl.innerHTML = "";
+    if (leadsCountEl) { leadsCountEl.style.display = "none"; leadsCountEl.classList.remove("has-items"); }
   }
 
   function toggleLeadsPanel() {
