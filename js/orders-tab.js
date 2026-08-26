@@ -69,7 +69,7 @@
 //      พึ่ง jsdom/fake-DOM stub เลย ต่างจากไฟล์นี้ (orders-tab.js) ที่ยังผูก DOM ทั้งไฟล์เหมือนเดิม
 // ===========================
 import { logAudit, auth } from "./db.js";
-import { listenOrders, updateOrder, deleteOrder } from "./db-orders.js";
+import { listenOrders, updateOrder, deleteOrder, listenDesignApprovalsSummary } from "./db-orders.js";
 import { computeOrderStats, orderUrgency } from "./db-orders-stats.js";
 import { confirmDialog, showUndoToast, errorStateHTML } from "./ui-helpers.js";
 import { filterOrders } from "./orders-tab-filters.js";
@@ -114,6 +114,12 @@ let activeView = "table"; // "table" | "kanban" | "calendar"
 export let chartRange = 7; // 7 | 30 (export: orders-tab-stats.js อ่านอย่างเดียว)
 export let chartMetric = "count"; // "count" | "revenue" (export: orders-tab-stats.js อ่านอย่างเดียว)
 let unsubscribe = null;
+// P0.2-fix: { [trackingId]: { action, createdAt } } ของ log อนุมัติ/ขอแก้ไขแบบล่าสุด — ฟังแบบ
+// เรียลไทม์คู่กับ listenOrders() ด้านบน ใช้โชว์จุดแดงในตาราง (ดู renderOrderRow() ใน
+// js/orders-tab-row.js) แยก unsubscribe คนละตัวกับ listener คำสั่งผลิตเดิม เพราะเป็น collection
+// คนละตัว (design_approvals ไม่ใช่ orders) และต้องเลิกฟังพร้อมกันตอน stopOrdersTab()
+let approvalSummary = {};
+let unsubscribeApprovals = null;
 let started = false;
 export let statusFilterValue = ""; // "" = ทุกสถานะ, else key ของ ORDER_STATUS (export: orders-tab-export.js อ่านอย่างเดียว)
 export let jumpFilter = null; // "duesoon" | "overdue" | null (export: orders-tab-export.js อ่านอย่างเดียว)
@@ -162,12 +168,21 @@ function startOrdersListener() {
   }, err => {
     tableBody.innerHTML = `<tr><td colspan="7">${errorStateHTML(`โหลดข้อมูลไม่สำเร็จ: ${err.message || ""}`, startOrdersListener, { wrapTag: "span" })}</td></tr>`;
   });
+  // P0.2-fix: ฟัง design_approvals คู่กันไปเลยตั้งแต่เปิดแท็บ — ไม่ต้อง fail ทั้งแท็บถ้าพลาด
+  // (แค่จุดแดงจะไม่ขึ้น ตารางคำสั่งผลิตหลักยังใช้งานได้ปกติ)
+  if (unsubscribeApprovals) { unsubscribeApprovals(); unsubscribeApprovals = null; }
+  unsubscribeApprovals = listenDesignApprovalsSummary(summary => {
+    approvalSummary = summary;
+    render();
+  }, err => console.error("[orders-tab] listenDesignApprovalsSummary error:", err));
 }
 
 export function stopOrdersTab() {
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  if (unsubscribeApprovals) { unsubscribeApprovals(); unsubscribeApprovals = null; }
   started = false;
   allOrders = [];
+  approvalSummary = {};
 }
 
 // ── ใช้จาก admin-page.js เพื่อรวมคำสั่งผลิตที่เกินกำหนด/ใกล้ครบกำหนดเข้ากับ notification bell ──
@@ -401,7 +416,7 @@ function renderTable(rows) {
 
   tableBody.innerHTML = rows.map(o => {
     try {
-      return renderOrderRow(o, selectedOrderIds);
+      return renderOrderRow(o, selectedOrderIds, approvalSummary);
     } catch (err) {
       console.error("[orders-tab] renderTable(): แสดงแถวคำสั่งผลิตล้มเหลว", o && o.id, err);
       return `<tr data-id="${o && o.id || ""}"><td colspan="7" class="cp-empty">แสดงรายการนี้ไม่สำเร็จ (เลขที่: ${escapeHtml((o && o.code) || (o && o.id) || "-")})</td></tr>`;
