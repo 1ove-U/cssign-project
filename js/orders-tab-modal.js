@@ -294,6 +294,44 @@ export function loadQuoteRequestPicker() {
   );
 }
 
+// ── สร้างคำสั่งผลิตตรงจากคำขอใบเสนอราคา (ช่องโหว่ที่ 1 — แก้ปัญหา lineUserId ไม่ถูกคัดลอก) ──
+// เดิม: ปุ่ม "เพิ่มคำสั่งผลิต" เปิดฟอร์มเปล่าเสมอ ช่อง "LINE user ID ลูกค้า" ต้องพิมพ์/เลือกเอง
+// จาก <datalist> ที่รวมชื่อจากคำขอใบเสนอราคา "ทุกใบ" ในระบบ (ดู loadQuoteRequestPicker()
+// ด้านบน) — เป็นแค่ตัวช่วยเดา ไม่ได้ผูกกับคำขอที่เป็นต้นทางจริงของคำสั่งผลิตใบนั้นเลย ถ้าแอดมิน
+// ลืมเลือกหรือเลือกผิดคน (ชื่อซ้ำ/สะกดคล้ายกัน) ลูกค้าจะไม่ได้รับแจ้งเตือนทาง LINE เลยแม้โค้ด
+// แจ้งเตือน (js/line-notify.js) จะสมบูรณ์ 100% ก็ตาม
+//
+// เรียกจากปุ่ม "สร้างคำสั่งผลิต" (data-action="to-order") ในโมดัลเลือกคำขอใบเสนอราคาของแท็บ
+// "ใบเสนอราคา" (ดู js/admin-quotations.js) — รับ request object ทั้งก้อนที่แอดมินเพิ่งเลือกจริง
+// (ไม่ใช่ค่าที่พิมพ์/เลือกเดาเอง) แล้วคัดลอก lineUserId ตรงจาก field ของเอกสารนั้นเข้าฟอร์ม
+// คำสั่งผลิตใหม่ทันที การันตีว่าตรงกับคำขอต้นทางเสมอ 100% พร้อมข้อมูลลูกค้าที่มีอยู่แล้วอื่นๆ
+// (ชื่อ/เบอร์/อีเมล/ที่อยู่/รายการสินค้า) เพื่อลดการพิมพ์ซ้ำที่อาจพลาดได้อีกชั้นด้วย — ยังเปิด
+// เป็นฟอร์ม "เพิ่ม" ใหม่ล้วนๆ (ไม่ใช่แก้ไข) เหมือนเดิมทุกอย่าง แอดมินยังต้องกรอกรายละเอียดงาน/
+// ราคา/กำหนดส่งเองตามปกติ ฟังก์ชันนี้แค่การันตีว่าช่อง LINE user ID ถูกต้องตั้งแต่ต้นเท่านั้น
+export function openOrderModalFromQuoteRequest(request) {
+  if (!request) return;
+  const itemNames = Array.isArray(request.items)
+    ? request.items.map(it => (it && it.name) || "").filter(Boolean).join(", ")
+    : "";
+  openOrderModal({
+    id: null,
+    code: "",
+    customer: request.billingName || request.contactPerson || "",
+    phone: request.phone || "",
+    email: request.email || "",
+    lineUserId: request.lineUserId || "",
+    item: itemNames,
+    shippingAddress: request.shippingAddress || "",
+    invoiceAddress: request.billingAddress || "",
+  });
+  // openOrderModal() ตัดสินใจข้อความหัวป๊อปอัพ ("เพิ่ม"/"แก้ไข") จากว่า argument เป็น object
+  // หรือ null เท่านั้น — ที่นี่ส่ง object เข้าไปเพื่อ prefill ค่า จึงต้องบังคับข้อความ/รหัสหัว
+  // ป๊อปอัพกลับเป็นสถานะ "เพิ่มคำสั่งผลิตใหม่" ทับอีกที (เหมือน openOrderModalClone() ด้านล่าง
+  // ที่เคลียร์ cp-o-id/cp-o-code ทับหลังเรียก openOrderModal(order) เดิมเช่นกัน)
+  orderModalTitle.textContent = "เพิ่มคำสั่งผลิต";
+  orderHeadCode.textContent = "";
+}
+
 // รายการสินค้าที่ถูกเลือกอยู่ตอนนี้ใน cp-o-product (multi-select) — คืนเป็น object สินค้าเต็ม
 // (จับคู่กับ allProducts) ไม่ใช่แค่ id เฉยๆ เพราะต้องใช้ name/price/unit/cat_id ต่อ
 function selectedProducts() {
