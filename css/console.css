@@ -111,6 +111,16 @@
 .cp-ov-collapsible > *{ min-height:0; overflow:hidden; margin-bottom:0 !important; }
 .cp-ov-collapsible.is-open{ grid-template-rows:1fr; opacity:1; margin-bottom:22px; }
 
+/* ── Overview: mini calendar widget (คู่กับกล่อง SLA warning ในแถวเดียวกัน) ──
+   ใช้คลาส .cp-cal-* เดิมจาก orders-tab-calendar.js ทุกจุด แค่ลดขนาดให้พอดีกับกล่องที่แคบกว่า
+   มุมมองปฏิทินเต็มของแท็บคำสั่งผลิต */
+.cp-ov-cal-row{ margin-bottom:22px; }
+.cp-ov-cal-box .cp-cal-cell{ min-height:44px; padding:5px; gap:2px; }
+.cp-ov-cal-box .cp-cal-cell-daynum{ font-size:11px; }
+.cp-ov-cal-box .cp-cal-cell-count{ font-size:9.5px; }
+.cp-ov-cal-box .cp-cal-head{ padding:0 0 10px; }
+.cp-ov-cal-box .cp-cal-head-label{ font-size:13px; min-width:120px; }
+
 .cp-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
 .cp-stat-card{
   position:relative; background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-lg); padding:20px 20px 18px;
