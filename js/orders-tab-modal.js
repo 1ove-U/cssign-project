@@ -541,6 +541,21 @@ export function openOrderModalClone(order) {
 orderForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!validateFormInline(orderForm)) return;
+
+  // P0.2 guard (2026 refactor) — กันเคสสถานะ "รออนุมัติแบบ" ที่ไม่มีไฟล์ดีไซน์ติ๊ก "ลูกค้าเห็น"
+  // เลยสักไฟล์เดียว: หน้าเช็คสถานะ public (js/track-modal.js) จะบอกลูกค้าให้ไปดู/กดอนุมัติที่
+  // แท็บ "ดำเนินการ" ทันทีที่ status เป็น approval แต่ renderDesignApprovalSection() จะไม่แสดง
+  // อะไรเลยถ้า designFiles ว่าง — ลูกค้าจึงเจอแท็บว่างเปล่าที่สวนทางกับสิ่งที่บอกไว้ ก่อนหน้านี้ไม่มี
+  // อะไรกันไม่ให้แอดมินเผลอตั้งสถานะนี้ได้โดยไม่มีไฟล์ จึงเพิ่ม guard ไว้ตรงนี้ (ไม่ใช่ที่
+  // db-orders.js เพราะเป็นกฎ UX ของฟอร์มนี้ล้วนๆ ไม่ใช่กฎข้อมูลระดับ schema)
+  const statusSelect = document.getElementById("cp-o-status");
+  if (statusSelect.value === "approval" && !currentAttachments.some(a => a.showToCustomer)) {
+    showToast("ก่อนตั้งสถานะเป็น \"รออนุมัติแบบ\" ต้องติ๊ก \"ลูกค้าเห็น\" ที่ไฟล์แนบอย่างน้อย 1 ไฟล์ก่อน ไม่งั้นลูกค้าจะเข้าไปเช็คสถานะแล้วเจอแท็บ \"ดำเนินการ\" ว่างเปล่า", "error");
+    const attachGrid = document.getElementById("cp-o-attach-grid");
+    if (attachGrid) attachGrid.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   const id = document.getElementById("cp-o-id").value;
   const assigneeUid = assigneeSelect.value;
   const assigneeStaff = allStaff.find(s => s.uid === assigneeUid);
