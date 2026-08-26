@@ -238,6 +238,33 @@
   </div>
 </section>
 
+<!-- ============================================================
+     รายละเอียดออเดอร์แบบเต็ม — เปิดเมื่อกดที่การ์ดออเดอร์ในลิสต์ด้านบน (js/my-orders-page.js)
+     แสดงข้อมูลทุกด้านที่มีอยู่แล้วใน order object จาก listenMyOrders() แต่การ์ดสรุปด้านบนไม่ได้
+     โชว์ทั้งหมด (สเปก/การเงิน/จัดส่ง/ไฟล์แบบ/QC/หมายเหตุ) — reuse .tm-overlay/.tm-modal เดิมจาก
+     css/track-modal.css ตรงๆ (แค่ inject เป็น static markup ในหน้านี้ ไม่ทำ template.js แยกแบบ
+     track-modal เพราะหน้านี้หน้าเดียวที่ใช้) เนื้อหาใน #mo-detail-body เติมด้วย JS ทั้งหมด
+     ============================================================ -->
+<div class="tm-overlay" id="mo-detail-overlay" role="dialog" aria-modal="true" aria-labelledby="mo-detail-title" style="display:none;">
+  <div class="tm-modal">
+    <button type="button" class="tm-close" id="mo-detail-close" aria-label="ปิด">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="tm-head">
+      <div class="tm-head-deco" aria-hidden="true">
+        <svg viewBox="0 0 200 200" fill="none"><circle cx="100" cy="100" r="86" stroke="rgba(255,255,255,0.14)" stroke-width="1.5" stroke-dasharray="3 7"/><circle cx="100" cy="100" r="60" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/></svg>
+      </div>
+      <span class="tm-eyebrow" id="mo-detail-eyebrow">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>
+        <span id="mo-detail-code"></span>
+      </span>
+      <h2 id="mo-detail-title"></h2>
+      <p id="mo-detail-sub"></p>
+    </div>
+    <div class="tm-body" id="mo-detail-body"></div>
+  </div>
+</div>
+
 </main>
 
 <!-- ============================================================
