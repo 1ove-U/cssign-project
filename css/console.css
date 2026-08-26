@@ -983,3 +983,80 @@ body.cp-scroll-locked{ overflow:hidden; }
   .cp-order-detail.cp-modal{ max-width:100%; }
   .cp-chip-btn{ min-width:100px; }
 }
+
+/* ===========================================================
+   Order/Product popup — ให้เห็นทุกหมวดพร้อมกันในจอกว้าง (2026-08, ตามคำขอ)
+   ใช้กับ 3 ป๊อปอัพเท่านั้น: เพิ่ม/แก้ไขคำสั่งผลิต (#cp-order-form) และเพิ่ม/แก้ไขสินค้า (#ad-p-form)
+   — ทั้งคู่ใส่คลาส .cp-od-gridview เพิ่มเข้ามา ไม่กระทบป๊อปอัพอื่นที่ยังใช้ .cp-od-tabs/.cp-od-panel
+   แบบสลับทีละหมวดตามเดิม (เช่น #ad-b-form บทความ)
+
+   แนวคิด: เดิมเคยลองทำกริดคอลัมน์เท่ากันทุกคอลัมน์มาก่อนแล้วเลิกใช้ (ดูหมายเหตุใน admin.html) เพราะ
+   ความสูงแต่ละคอลัมน์ต่างกันมากจนดูรก รอบนี้แก้ด้วยการจับกลุ่มหมวดที่เนื้อหา "สั้น" ไว้คอลัมน์เดียวกัน
+   สลับกับหมวดที่เนื้อหา "ยาว" อีกคอลัมน์ ให้ผลรวมความสูงของแต่ละคอลัมน์ใกล้เคียงกันแทน — ป๊อปอัพ
+   คำสั่งผลิต: คอลัมน์ซ้าย = ข้อมูลงาน (ยาวสุด, ครอบทุกแถว) คอลัมน์ขวา = การเงิน/การจัดส่ง/แนบไฟล์/
+   อนุมัติแบบ/ประวัติ เรียงต่อกัน (แต่ละหมวดสั้น รวมกันแล้วสูงพอๆ กับคอลัมน์ซ้าย) — ป๊อปอัพสินค้า:
+   คอลัมน์ซ้าย = ข้อมูลพื้นฐาน + ราคา&ตัวเลือก, คอลัมน์ขวา = รูปภาพ + SEO ขั้นสูง
+
+   รายการที่อาจยาวได้ไม่จำกัด (รายการสินค้าให้เลือก/QC/ไฟล์แนบ/ตารางราคา/ประวัติ) ยังคงเลื่อนเฉพาะ
+   กล่องเล็กๆ ของตัวเองตามเดิม (ดู .cp-product-checklist, .cp-o-panel-design/.cp-o-panel-history
+   .cp-history-list, .cp-o-panel-attach .cp-attach-grid, .ad-variant-table-wrap ด้านบน) ไม่ใช่ทั้ง
+   ป๊อปอัพ — ผลคือป๊อปอัพทั้งก้อนไม่สูงเกินจอ แทบไม่ต้องเลื่อนดูทั้งหน้าเลยบนจอคอมพิวเตอร์ทั่วไป
+   =========================================================== */
+.cp-od-gridview.cp-modal{ max-width:1100px; overflow-x:hidden; }
+#ad-p-form.cp-od-gridview.cp-modal{ max-width:900px; }
+.cp-od-gridview .cp-od-tabs{ display:none; } /* ไม่ต้องสลับแท็บอีกต่อไปบนจอกว้าง — ทุกหมวดเห็นพร้อมกัน */
+.cp-od-gridview .cp-od-panel{ display:flex !important; } /* บังคับให้ทุกหมวดแสดงพร้อมกันเสมอ ไม่ผูกกับ .active */
+.cp-od-gridview .cp-od-panel-heading{
+  display:block; font-family:var(--font-display); font-weight:800; font-size:13.5px;
+  color:var(--secondary); padding-bottom:8px; margin-bottom:2px; border-bottom:1px solid var(--gray-100);
+}
+.cp-od-gridview .cp-od-panel{
+  background:var(--gray-25,#fafafa); border:1px solid var(--gray-100); border-radius:var(--r-lg);
+  padding:16px 18px 18px; gap:12px; min-width:0;
+}
+.cp-od-gridview .cp-modal-row{ min-width:0; }
+.cp-od-gridview .cp-modal-row > *{ min-width:0; }
+.cp-od-gridview select.cl-input{ min-width:0; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; }
+
+/* ── ป๊อปอัพคำสั่งผลิต: กริด 2 คอลัมน์ไม่เท่ากัน (ซ้ายกว้างกว่า ครอบทุกแถวของขวา) ── */
+#cp-order-form.cp-od-gridview .cp-o-grid{
+  display:grid; grid-template-columns:1.2fr 1fr; gap:16px; align-items:start;
+  grid-template-areas:
+    "info finance"
+    "info shipping"
+    "info attach"
+    "info design"
+    "info history";
+}
+#cp-order-form .cp-o-panel-info{ grid-area:info; }
+#cp-order-form .cp-o-panel-finance{ grid-area:finance; }
+#cp-order-form .cp-o-panel-shipping{ grid-area:shipping; }
+#cp-order-form .cp-o-panel-attach{ grid-area:attach; }
+#cp-order-form .cp-o-panel-design{ grid-area:design; }
+#cp-order-form .cp-o-panel-history{ grid-area:history; }
+
+/* ── ป๊อปอัพสินค้า: กริด 2 คอลัมน์ (ข้อมูลพื้นฐาน+ราคา ซ้าย, รูปภาพ+SEO ขวา) ── */
+#ad-p-form.cp-od-gridview .ad-p-modal-grid{
+  display:grid; grid-template-columns:1.2fr 1fr; gap:16px; align-items:start;
+  grid-template-areas:
+    "basic images"
+    "pricing images"
+    "pricing seo";
+}
+#ad-p-form .ad-p-panel-basic{ grid-area:basic; }
+#ad-p-form .ad-p-panel-pricing{ grid-area:pricing; }
+#ad-p-form .ad-p-panel-images{ grid-area:images; }
+#ad-p-form .ad-p-panel-seo{ grid-area:seo; }
+
+@media (max-width:980px){
+  .cp-od-gridview.cp-modal,
+  #ad-p-form.cp-od-gridview.cp-modal{ max-width:100%; padding:18px; }
+  #cp-order-form.cp-od-gridview .cp-o-grid{
+    grid-template-columns:1fr;
+    grid-template-areas:"info" "finance" "shipping" "attach" "design" "history";
+  }
+  #ad-p-form.cp-od-gridview .ad-p-modal-grid{
+    grid-template-columns:1fr;
+    grid-template-areas:"basic" "images" "pricing" "seo";
+  }
+}
