@@ -1,1008 +1,1823 @@
-/* ===========================================================
-   admin.html — จัดการเนื้อหาเว็บไซต์ (Products / Categories)
-   =========================================================== */
-
-/* ===========================================================
-   Admin dashboard — grouped sidebar navigation
-   Restructures the flat 10-tab row into labeled groups so staff
-   can scan by task ("แคตตาล็อกสินค้า", "การตลาด & ลูกค้า", "ระบบ")
-   instead of hunting through one long scrolling pill bar.
-   Markup/IDs/data-tab attributes are unchanged — admin-page.js
-   keeps working exactly as before; this is layout/CSS only.
-   =========================================================== */
-.cp-main--wide{ max-width:1360px; }
-
-@media (min-width: 900px){
-  .cp-shell{ display:flex; align-items:flex-start; gap:28px; }
-
-  .cp-tabs.cp-tabs--grouped{
-    display:flex; flex-direction:column; gap:20px;
-    flex:0 0 236px; width:236px; max-width:236px;
-    background:#fff; padding:18px 16px; border-radius:var(--r-xl); overflow:visible;
-    border:1px solid var(--gray-200); box-shadow:var(--shadow-sm);
-    position:sticky; top:88px;
-  }
-  .cp-sidebar-group{ display:flex; flex-direction:column; gap:3px; }
-  .cp-sidebar-group-label{
-    font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em;
-    color:var(--text-meta); padding:0 12px 7px;
-  }
-  .cp-tabs--grouped .cp-tab{
-    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
-    padding:10px 12px; border-radius:var(--r-md); white-space:normal;
-    font-weight:600; color:var(--gray-600);
-  }
-  .cp-tabs--grouped .cp-tab:hover{ background:var(--gray-50); }
-  .cp-tabs--grouped .cp-tab.active{
-    background:rgba(var(--primary-rgb),0.09); color:var(--primary-dark); box-shadow:none; font-weight:700;
-  }
-  .cp-tab-ic{ width:17px; height:17px; flex:none; opacity:.75; }
-  .cp-tabs--grouped .cp-tab.active .cp-tab-ic{ opacity:1; }
-
-  .cp-content{ flex:1; min-width:0; }
-}
-
-/* Mobile: fall back to a horizontal scrolling group of pills, grouped
-   visually with slightly larger gaps so it still reads as sections. */
-@media (max-width:899px){
-  .cp-tabs.cp-tabs--grouped{
-    display:flex; flex-direction:row; flex-wrap:nowrap; gap:16px;
-    background:transparent; padding:2px 2px 10px; width:100%; max-width:100%;
-    overflow-x:auto; -webkit-overflow-scrolling:touch;
-  }
-  .cp-sidebar-group{ display:flex; flex-direction:column; gap:6px; flex:none; }
-  .cp-sidebar-group-label{
-    font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em;
-    color:var(--text-meta); padding:0 2px; white-space:nowrap;
-  }
-  .cp-tabs--grouped .cp-tab{
-    display:flex; align-items:center; gap:6px; white-space:nowrap;
-    background:var(--gray-100); border-radius:var(--r-pill); padding:8px 14px;
-  }
-  .cp-tabs--grouped .cp-tab.active{ background:#fff; color:var(--primary-dark); box-shadow:var(--shadow-sm); }
-  .cp-tab-ic{ width:15px; height:15px; flex:none; }
-}
-
-/* Focus-visible: ให้เห็นชัดตอนไล่เมนูด้วยคีย์บอร์ด (Tab / ลูกศร) */
-.cp-tabs--grouped .cp-tab:focus-visible{
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* ── Sidebar quick-filter: กรอง/ไฮไลต์เมนูตามคำค้น เผื่อเมนูยาวขึ้นในอนาคต ──
-   ทำงานเฉพาะจอกว้าง (sidebar แนวตั้ง) — บนมือถือ sidebar ยุบเป็นแถบเลื่อน
-   แนวนอนอยู่แล้วซึ่งสั้นพอไม่จำเป็นต้องมีช่องค้นหา */
-.cp-sidebar-search{
-  display:flex; align-items:center; gap:8px;
-  border:1px solid var(--gray-200); border-radius:var(--r-md);
-  padding:8px 10px; margin-bottom:4px; background:var(--gray-25);
-  transition:border-color .2s var(--ease);
-}
-.cp-sidebar-search:focus-within,
-.ad-axis-option:focus-within{ border-color:var(--primary); background:#fff; }
-.cp-sidebar-search svg{ width:14px; height:14px; color:var(--gray-400); flex:none; }
-.cp-sidebar-search input{
-  border:none; background:none; outline:none; width:100%;
-  font-size:12.5px; font-family:inherit; color:var(--secondary);
-}
-.cp-sidebar-search input::placeholder,
-.ad-video-item-status.is-empty,
-.ad-gs-input::placeholder,
-.cl-input::placeholder{ color:var(--gray-400); }
-.cp-sidebar-search input::-webkit-search-cancel-button,
-.ad-card .port-visual.no-photo,
-.ad-l-row,
-select.cl-input,
-.cp-sla-box .cp-notif-item,
-button.cp-ov-today-item{ cursor:pointer; }
-
-.cp-sidebar-group.ad-nav-hidden,
-.cp-tabs--grouped .cp-tab.ad-nav-hidden,
-.ad-advanced-summary::-webkit-details-marker,
-.ad-settings-card[hidden],
-.ad-settings-help[hidden],
-.cp-stat-spark.is-empty{ display:none; }
-
-@media (max-width:899px){
-  .cp-sidebar-search{ display:none; }
-}
-
-/* ===========================================================
-   Sidebar collapse — พับเมนูซ้ายให้เหลือแค่ไอคอน (แบบ Linear/Notion)
-   จำสถานะไว้ที่ localStorage (ดู admin-page.js: SIDEBAR_COLLAPSE_KEY)
-   ทำงานเฉพาะจอกว้าง — บนมือถือ sidebar เป็นแถบเลื่อนแนวนอนอยู่แล้ว
-   ไม่มีที่ให้พับ จึงซ่อนปุ่มนี้ไปเลย
-   =========================================================== */
-.cp-sidebar-collapse-btn{
-  display:none; align-self:flex-end; width:26px; height:26px; margin-bottom:2px;
-  align-items:center; justify-content:center; border:none; background:transparent;
-  color:var(--gray-400); border-radius:var(--r-sm); cursor:pointer;
-  transition:background .15s var(--ease), color .15s var(--ease);
-}
-.cp-sidebar-collapse-btn:hover{ background:var(--gray-100); color:var(--gray-600); }
-.cp-sidebar-collapse-btn svg,
-.ad-gs-result-icon svg{ width:15px; height:15px; }
-
-@media (min-width:900px){
-  .cp-sidebar-collapse-btn{ display:flex; }
-
-  .cp-tabs--grouped.is-collapsed{
-    flex:0 0 60px; width:60px; max-width:60px; padding:18px 10px;
-  }
-  .cp-tabs--grouped.is-collapsed .cp-sidebar-collapse-btn{ align-self:center; transform:rotate(180deg); }
-  .cp-tabs--grouped.is-collapsed .cp-sidebar-search,
-  .cp-tabs--grouped.is-collapsed .cp-sidebar-group-label,
-  .cp-tabs--grouped.is-collapsed .cp-tab span{
-    display:none;
-  }
-  .cp-tabs--grouped.is-collapsed .cp-sidebar-group{
-    padding-bottom:10px; margin-bottom:2px; border-bottom:1px solid var(--gray-100);
-  }
-  .cp-tabs--grouped.is-collapsed .cp-sidebar-group:last-child{ border-bottom:none; }
-  .cp-tabs--grouped.is-collapsed .cp-tab{
-    position:relative; justify-content:center; padding:10px 0;
-  }
-  .cp-tabs--grouped.is-collapsed .cp-tab-ic{ width:18px; height:18px; }
-  /* ป้ายเลขแจ้งเตือน (ลีดใหม่ ฯลฯ): ตอนพับเมนูไม่มีที่พอให้แสดงตัวเลข
-     ย่อเหลือจุดเล็กๆ ทับมุมไอคอนแทนการซ่อนไปเลย จะได้ยังรู้ว่ามีของค้างอยู่ */
-  .cp-tabs--grouped.is-collapsed .ad-tab-badge{
-    position:absolute; top:6px; right:14px; min-width:0; width:8px; height:8px;
-    padding:0; font-size:0; line-height:0; border-radius:50%; overflow:hidden;
-  }
-  /* ลบ left-rule ของ active tab ตอนพับ (พื้นที่แคบเกินจะให้ดูดี ใช้พื้นหลังทึบแทน) */
-  .cp-tabs--grouped.is-collapsed .cp-tab.active{
-    border-left:none; padding-left:0; border-radius:var(--r-md);
-  }
-}
-
-/* ===========================================================
-   Overview — Quick action cards ("+ เพิ่มสินค้า" / "+ เพิ่มคำสั่งผลิต")
-   เดิมเป็นปุ่มธรรมดาเรียงกันบนแถบเดียว ปรับเป็นการ์ดขนาดใหญ่ มีไอคอน + คำอธิบาย
-   สั้นๆ ให้เห็นชัดว่ากดแล้วจะเกิดอะไรขึ้น และดูเด่นเป็นจุดเริ่มงานของหน้าภาพรวม
-   =========================================================== */
-.cp-ov-actions{
-  display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:26px;
-}
-.cp-ov-action-card{
-  display:flex; align-items:center; gap:14px; text-align:left; width:100%;
-  background:#fff; border:1.5px solid var(--gray-200); border-radius:var(--r-lg);
-  padding:16px 18px; cursor:pointer; box-shadow:var(--shadow-sm); font-family:inherit;
-  transition:box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease);
-}
-.cp-ov-action-card:hover,
-.cp-kanban-card:hover{ box-shadow:none; border-color:var(--gray-300); }
-.cp-ov-action-card:focus-visible,
-.ad-card:focus-visible,
-button.cp-ov-today-item:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
-.cp-ov-action-icon{
-  flex:none; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
-  background:var(--gray-100); color:var(--gray-600);
-}
-.cp-ov-action-icon svg{ width:21px; height:21px; }
-.cp-ov-action-text{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
-.cp-ov-action-text strong{ font-size:14.5px; font-weight:700; color:var(--secondary); }
-.cp-ov-action-text small{ font-size:12px; color:var(--text-meta); line-height:1.4; }
-.cp-ov-action-arrow{ flex:none; width:17px; height:17px; color:var(--gray-300); transition:transform .2s var(--ease), color .2s var(--ease); }
-.cp-ov-action-card:hover .cp-ov-action-arrow{ transform:translateX(3px); color:var(--gray-500); }
-.cp-ov-action-card--primary{ background:linear-gradient(180deg,#fff,rgba(var(--primary-rgb),0.04)); border-color:rgba(var(--primary-rgb),0.28); }
-.cp-ov-action-card--primary .cp-ov-action-icon,
-.cp-ov-today-item.info .cp-ov-today-icon{ background:rgba(var(--primary-rgb),0.12); color:var(--primary-dark); }
-.cp-ov-action-card--primary:hover{ border-color:var(--primary); }
-.cp-ov-action-card--primary:hover .cp-ov-action-arrow,
-.ad-vb-fillall-btn:hover,
-.cp-ov-today-item.info .cp-ov-today-cta{ color:var(--primary-dark); }
-
-/* หัวข้อ section แรกสุดของหน้าภาพรวม (ต่อจากการ์ด quick action เลย) — ไม่ต้องมีเส้นคั่นด้านบน
-   ซ้ำกับ divider ระหว่าง section เพราะอยู่ติดกับ quick actions อยู่แล้ว */
-.cp-ov-section-head--first{ margin-top:0; padding-top:0; border-top:none; }
-
-@media (max-width:640px){
-  .cp-ov-actions{ grid-template-columns:1fr; }
-}
-
-/* ── Product cards grid (ใช้ภาษาดีไซน์เดียวกับการ์ดผลงาน — port-card/port-visual) ── */
-.ad-grid{
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(236px,1fr)); gap:20px;
-}
-.ad-card,
-.ad-pf-card,
-.ad-l-row-new td:first-child,
-.ad-gs-trigger{ position:relative; }
-/* การ์ดทั้งใบคลิกได้เพื่อแก้ไข (ดู js/admin-page.js) — ใส่ ring ตอน focus ให้กดคีย์บอร์ดได้ด้วย */
-.ad-card .port-visual{
-  aspect-ratio:1/1; min-height:0; background:var(--gray-50); cursor:pointer;
-}
-/* การ์ดในหน้าแอดมิน (สินค้า/ผลงาน/บทความ/โลโก้ลูกค้า) — แสดงรูปเต็มภาพเสมอ ไม่ครอบ/ไม่ซูมแบบหน้าเว็บสาธารณะ
-   (หน้าเว็บสาธารณะยังคง object-fit:cover + ซูมตอน hover ตามเดิม เพราะเป็นดีไซน์ที่ตั้งใจไว้สำหรับผู้ชมทั่วไป) */
-.ad-card .port-photo, .ad-pf-card .port-photo{
-  object-fit:contain !important; transition:none !important;
-}
-.ad-card:hover .port-photo, .ad-pf-card:hover .port-photo{ transform:none !important; }
-.ad-card .port-visual[data-action="gallery"]{ cursor:zoom-in; }
-.ad-card .port-visual svg{ width:36px; height:36px; color:var(--gray-300); position:relative; z-index:1; }
-.ad-card .port-visual.no-photo::after{ content:none; }
-.ad-card .port-visual.no-photo .port-badge{
-  background:#fff; color:var(--gray-500); border-color:var(--gray-200);
-}
-.ad-card--hidden{ opacity:.68; }
-.ad-card--hidden:hover,
-.ad-card:hover .ad-card-actions, .ad-card:focus-within .ad-card-actions,
-.ad-card:hover .ad-card-check, .ad-card-check:checked,
-.ad-pf-card:hover .ad-pf-card-actions,
-.ad-pf-card:hover .ad-pf-card-check, .ad-pf-card-check:checked{ opacity:1; }
-/* ปุ่มแก้ไข/ทำซ้ำ/ลบ: ซ่อนไว้ก่อน แสดงเมื่อเอาเมาส์ไปชี้การ์ด (ให้พฤติกรรมเดียวกับการ์ดผลงาน) */
-.ad-card-actions{
-  position:absolute; top:10px; right:10px; z-index:6; display:flex; gap:6px; opacity:0;
-  transition:opacity .2s var(--ease);
-}
-.ad-card-actions .cp-icon-btn{
-  width:32px; height:32px; background:rgba(15,23,42,0.72); border:1px solid rgba(255,255,255,0.3); color:#fff;
-  box-shadow:0 2px 6px rgba(15,23,42,0.25);
-}
-.ad-card-actions .cp-icon-btn:hover{ background:rgba(15,23,42,0.9); }
-.ad-card-actions .cp-icon-btn.danger:hover,
-.ad-img-remove:hover,
-.ad-pf-card-actions .cp-icon-btn.danger:hover{ background:#DC2626; }
-.ad-card-actions .cp-icon-btn.is-starred{ background: var(--accent); border-color: var(--accent); color:#fff; }
-.ad-card-actions .cp-icon-btn.is-starred:hover{ background:#d9973a; }
-/* เช็คบ็อกซ์เลือกหลายรายการ: ซ่อนไว้ก่อนเช่นกัน แสดงเมื่อชี้การ์ด หรือติ๊กเลือกอยู่แล้ว */
-.ad-card-check{
-  position:absolute; top:10px; left:10px; z-index:7; width:22px; height:22px; cursor:pointer;
-  accent-color:var(--primary); opacity:0; transition:opacity .2s var(--ease);
-  box-shadow:0 0 0 4px rgba(15,23,42,0.35); border-radius:5px;
-}
-/* วางใต้เช็คบ็อกซ์ กันไม่ให้ซ้อนทับกันตอนที่ทั้งคู่แสดงพร้อมกัน (hover / ซ่อนอยู่) */
-.ad-card-status{
-  position:absolute; top:48px; left:10px; z-index:5; font-size:10.5px; font-weight:700; padding:4px 10px;
-  border-radius:var(--r-pill); background:#DC2626; color:#fff; box-shadow:0 2px 6px rgba(220,38,38,0.3);
-}
-.ad-card-feat-flag{
-  position:absolute; bottom:10px; left:10px; z-index:5; display:flex; align-items:center; gap:4px;
-  background:rgba(255,255,255,0.88); color:#B45309; font-size:9.5px; font-weight:700; padding:3px 8px;
-  border-radius:var(--r-pill); box-shadow:0 1px 4px rgba(0,0,0,0.12); cursor:zoom-in;
-}
-.ad-card-feat-flag svg{ width:10px; height:10px; }
-.ad-card-imgcount{
-  position:absolute; bottom:14px; right:14px; z-index:3; font-family:var(--font-mono); font-size:10px;
-  color:#fff; background:rgba(15,23,42,0.55); padding:3px 9px; border-radius:var(--r-pill);
-}
-.ad-card-body{ padding:14px 16px 16px; display:flex; flex-direction:column; gap:6px; flex:1; cursor:pointer; }
-.ad-card-toprow{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.ad-card-cat{ font-size:10.5px; color:var(--primary-dark); font-weight:700; text-transform:uppercase; letter-spacing:.03em;
-  background:rgba(var(--primary-rgb),0.08); padding:2px 8px; border-radius:var(--r-pill); }
-.ad-card-code{
-  font-family:var(--font-mono); font-size:12.5px; font-weight:800; color:var(--primary-dark);
-  background:rgba(var(--primary-rgb),0.08); padding:2px 8px; border-radius:var(--r-pill);
-  letter-spacing:.02em; flex-shrink:0;
-}
-.ad-card-name{ font-size:14.5px; font-weight:700; color:var(--secondary); line-height:1.4; }
-.ad-card-price{ font-size:13.5px; color:var(--primary-dark); font-weight:800; margin-top:2px; }
-
-/* ── Modal: wider for product form (extra room = easier data entry) ── */
-.ad-modal-wide{ max-width:820px; }
-.ad-modal-wide.cp-modal{ padding:32px; gap:16px; }
-
-/* ── Product form: bigger, easier-to-hit fields than the rest of admin ── */
-#ad-p-form .cl-input{ font-size:15px; }
-#ad-p-form input.cl-input, #ad-p-form select.cl-input{ height:46px; }
-#ad-p-form textarea.cl-input{ padding:12px 14px; }
-#ad-p-form .cp-modal-row,
-#ad-p-form .ad-form-section{ gap:14px; }
-
-/* ── Product form: grouped sections so a long form scans faster ── */
-.ad-form-section{
-  display:flex; flex-direction:column; gap:10px;
-  padding:16px; border:1px solid var(--gray-100); border-radius:var(--r-md); background:var(--gray-25);
-}
-.ad-form-section-title{
-  display:flex; align-items:center; gap:6px;
-  font-size:12.5px; font-weight:700; color:var(--gray-500);
-}
-.ad-form-section-title svg{ width:14px; height:14px; flex-shrink:0; color:var(--primary); }
-
-/* ── Featured/star toggle: was a plain small checkbox easy to miss at the
-   bottom of a long form — turn it into a clearly-tappable highlighted chip
-   that visibly fills gold when checked, matching the star button on the
-   product card so the two controls read as the same action. ── */
-.ad-p-featured-toggle{
-  display:flex; align-items:center; gap:10px;
-  padding:12px 16px; border-radius:var(--r-md);
-  border:1px solid var(--gray-200); background:#fff;
-  font-size:13.5px; font-weight:600; color:var(--gray-600);
-  cursor:pointer; transition: border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
-}
-.ad-p-featured-toggle svg{ width:18px; height:18px; flex-shrink:0; color:var(--gray-300); transition: color .2s var(--ease); }
-.ad-p-featured-toggle:hover{ border-color: rgba(var(--accent-rgb),0.4); }
-.ad-p-featured-toggle:has(input:checked){
-  border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); color: var(--secondary);
-}
-.ad-p-featured-toggle:has(input:checked) svg{ color: var(--accent); fill: var(--accent); }
-.ad-p-featured-toggle input{ width:16px; height:16px; flex-shrink:0; accent-color: var(--accent); }
-
-@media (max-width:860px){
-  .ad-modal-wide{ max-width:560px; }
-  .ad-modal-wide.cp-modal{ padding:26px; gap:12px; }
-  #ad-p-form input.cl-input, #ad-p-form select.cl-input{ height:38px; }
-  #ad-p-form .cl-input{ font-size:13.5px; }
-}
-
-/* ── Product form: price becomes read-only once option axes take over ── */
-#ad-p-price-wrap.is-auto .cl-input{ background:var(--gray-100); color:var(--gray-400); }
-
-/* ── Product form: collapsible advanced (slug / SEO) section ── */
-.ad-advanced-details{
-  border:1px dashed var(--gray-200); border-radius:var(--r-md); padding:0;
-}
-.ad-advanced-summary{
-  list-style:none; cursor:pointer; user-select:none;
-  display:flex; align-items:center; gap:7px;
-  padding:11px 14px; font-size:12.5px; font-weight:700; color:var(--gray-500);
-}
-.ad-advanced-summary svg{ width:14px; height:14px; flex-shrink:0; transition:transform .2s var(--ease); }
-.ad-advanced-details[open] .ad-advanced-summary svg{ transform:rotate(75deg); }
-.ad-advanced-summary::after{
-  content:'▾'; margin-left:auto; font-size:11px; color:var(--gray-300);
-}
-.ad-advanced-details[open] .ad-advanced-summary::after{ content:'▴'; }
-.ad-advanced-body{
-  display:flex; flex-direction:column; gap:8px;
-  padding:2px 14px 14px;
-}
-
-/* ── Image manager inside product modal ── */
-.ad-img-label{ font-size:12px; font-weight:700; color:var(--gray-500); margin-top:2px; }
-.ad-char-count{ font-size:11px; color:var(--gray-400); text-align:right; margin-top:-10px; }
-.ad-char-count.is-near-limit,
-.cp-stat-card.warn .cp-stat-num,
-.cp-ov-today-item.warn .cp-ov-today-cta{ color:#B45309; }
-.ad-char-count.is-over-limit{ color:#DC2626; font-weight:700; }
-.ad-img-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:8px; }
-.ad-img-item{
-  position:relative; aspect-ratio:1/1; border-radius:var(--r-sm); overflow:hidden;
-  border:1px solid var(--gray-200); background:var(--gray-50);
-}
-.ad-img-item img,
-.ad-video-preview img{ width:100%; height:100%; object-fit:cover; }
-.ad-img-remove{
-  position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%;
-  background:rgba(15,23,42,0.75); color:#fff; border:none; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; font-size:12px; line-height:1;
-}
-.ad-img-empty{ font-size:11.5px; color:var(--text-meta); padding:6px 2px; }
-.ad-img-cell{ display:flex; flex-direction:column; gap:4px; }
-.ad-img-tag-input{
-  width:100%; font-size:10.5px; padding:4px 6px; border:1px solid var(--gray-200); border-radius:6px;
-  color:var(--secondary); background:#fff; box-sizing:border-box; font-family:inherit;
-}
-.ad-img-tag-input::placeholder,
-.ad-variant-na{ color:var(--gray-300); }
-.ad-img-tag-input:focus{ outline:none; border-color:var(--primary); }
-
-/* โปรโมชั่น/ข่าวอัพเดตหน้าแรก — การ์ดกว้างกว่ารูปสินค้าปกติ เพราะแต่ละรูป
-   มี 2 ช่องกรอก (ชื่อหัวข้อ + ลิงก์) ต่อ 1 รูป ไม่ใช่แค่ป้ายกำกับเดียว */
-.ad-promo-grid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
-.ad-promo-grid .ad-img-item{ aspect-ratio:16/9; }
-.ad-video-current{ font-size:12px; color:var(--text-meta); margin:2px 0 8px; }
-.ad-video-current a{ color:var(--primary); font-weight:600; }
-
-.ad-video-item{
-  border:1px solid var(--gray-100); border-radius:var(--r-md); padding:14px;
-  margin-top:12px; display:flex; flex-direction:column; gap:10px; background:#fbfbfc;
-}
-.ad-video-item-head{ display:flex; align-items:center; gap:10px; }
-.ad-video-item-num{ font-size:12.5px; font-weight:700; color:var(--gray-500); }
-.ad-video-item-status{ font-size:11px; font-weight:700; }
-.ad-video-item-status.is-ready{ color:#15803D; }
-.ad-video-item-actions{ display:flex; align-items:center; gap:6px; margin-left:auto; }
-.ad-video-item-move,
-.ad-video-item-remove{
-  width:26px; height:26px; border-radius:50%; border:1px solid var(--gray-200); background:#fff;
-  color:var(--gray-500); cursor:pointer; display:flex; align-items:center; justify-content:center;
-  font-size:14px; line-height:1; transition: border-color .2s var(--ease), color .2s var(--ease);
-}
-.ad-video-item-move:hover,
-.ad-axis-option-add:hover{ border-color:var(--primary); color:var(--primary); }
-.ad-video-item-move:disabled{ opacity:.35; cursor:not-allowed; }
-.ad-video-item-remove:hover{ border-color:#DC2626; color:#DC2626; }
-.ad-video-item .ad-img-grid{ grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); max-width:220px; }
-.ad-videos-empty{ font-size:12.5px; color:var(--text-meta); padding:10px 2px; }
-
-/* กล่องรูปตัวอย่างวิดีโอ (thumbnail) — โชว์ทันทีที่มีลิงก์ YouTube/รูปปก ให้เห็นว่าตั้งค่าอะไรไว้
-   โดยไม่ต้องกดบันทึกไปดูที่หน้าแรกก่อน */
-.ad-video-preview{
-  width:100%; aspect-ratio:16/9; border-radius:var(--r-sm); overflow:hidden;
-  background:var(--gray-100); border:1px solid var(--gray-200);
-  display:flex; align-items:center; justify-content:center;
-}
-.ad-video-preview-placeholder{
-  font-size:11.5px; color:var(--text-meta); text-align:center; padding:0 16px; line-height:1.5;
-}
-.ad-video-or-divider{
-  display:flex; align-items:center; gap:10px; color:var(--gray-400); font-size:11px; font-weight:700;
-  margin:-2px 0;
-}
-.ad-video-or-divider::before, .ad-video-or-divider::after{ content:""; flex:1; height:1px; background:var(--gray-200); }
-
-.ad-upload-btn{
-  display:flex; align-items:center; justify-content:center; gap:6px;
-  border:1.5px dashed var(--gray-300); border-radius:var(--r-sm); padding:10px;
-  font-size:12.5px; font-weight:700; color:var(--gray-500); cursor:pointer; background:var(--gray-25);
-  transition:border-color .2s var(--ease), color .2s var(--ease), background .2s var(--ease);
-}
-.ad-upload-btn:hover{ border-color:var(--primary); color:var(--primary); background:rgba(var(--primary-rgb),0.04); }
-.ad-upload-btn svg,
-.ad-staff-row button svg,
-.cp-tap-info-btn svg{ width:14px; height:14px; }
-.ad-upload-btn.is-disabled{ opacity:.5; cursor:not-allowed; pointer-events:none; }
-.ad-upload-status{ font-size:11.5px; color:var(--text-meta); min-height:14px; }
-
-/* ── Product option axes (ชนิดของป้าย / แผ่นรองหลัง / ขนาด ฯลฯ) + auto price table ── */
-.ad-axes-section,
-.ad-variant-builder,
-.cp-ov-today-list{ display:flex; flex-direction:column; gap:8px; }
-.ad-axes-box{ display:flex; flex-direction:column; gap:10px; }
-.ad-axis-card{
-  border:1px solid var(--gray-200); border-radius:var(--r-md); background:#fff; padding:12px;
-  display:flex; flex-direction:column; gap:9px;
-  transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
-}
-.ad-axis-card:focus-within{ border-color:rgba(var(--primary-rgb),0.4); box-shadow:0 0 0 3px rgba(var(--primary-rgb),0.08); }
-.ad-axis-head{ display:flex; align-items:center; gap:8px; }
-.ad-axis-head .cl-input{ flex:1; height:34px; font-weight:700; }
-.ad-axis-remove{
-  flex-shrink:0; width:28px; height:28px; border-radius:50%; border:none; cursor:pointer;
-  background:rgba(220,38,38,0.08); color:#DC2626; display:flex; align-items:center; justify-content:center; font-size:14px;
-  transition:background .15s var(--ease), color .15s var(--ease);
-}
-.ad-axis-remove:hover,
-.ad-axis-option .ad-opt-remove:hover,
-.ad-variant-del-btn:hover{ background:#DC2626; color:#fff; }
-.ad-axis-options{ display:flex; flex-wrap:wrap; gap:7px; }
-.ad-axis-option{
-  display:flex; align-items:center; gap:0; background:var(--gray-25); border:1px solid var(--gray-200);
-  border-radius:var(--r-pill); padding:5px 6px 5px 2px;
-  transition:border-color .15s var(--ease), background .15s var(--ease);
-}
-.ad-axis-option input{
-  border:none; background:transparent; font-size:12.5px; color:var(--secondary); font-family:inherit;
-  padding:2px 0; box-sizing:border-box;
-}
-.ad-axis-option input:focus{ outline:none; }
-.ad-axis-option .ad-opt-code{
-  width:42px; flex-shrink:0; text-align:center; text-transform:uppercase; font-weight:700; font-size:11.5px;
-  color:var(--primary); border-right:1px solid var(--gray-200); padding:2px 4px 2px 10px !important;
-}
-.ad-axis-option .ad-opt-code::placeholder{ color:var(--gray-300); text-transform:none; font-weight:400; }
-.ad-axis-option .ad-opt-label{ width:150px; padding-left:10px !important; }
-.ad-axis-option .ad-opt-remove{
-  flex-shrink:0; width:19px; height:19px; border-radius:50%; border:none; cursor:pointer;
-  background:var(--gray-100); color:var(--gray-500); font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
-  margin-left:4px;
-  transition:background .15s var(--ease), color .15s var(--ease);
-}
-.ad-axis-option-add{
-  border:1.5px dashed var(--gray-300); border-radius:var(--r-pill); padding:5px 14px; font-size:12.5px; font-weight:700;
-  color:var(--gray-500); background:transparent; cursor:pointer;
-  transition:border-color .15s var(--ease), color .15s var(--ease);
-}
-.ad-axis-add-btn{ align-self:flex-start; padding:8px 16px; }
-
-/* ── Manual variant-combo builder: pick one value per axis, then add that row ── */
-.ad-vb-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-.ad-vb-select{ flex:1; min-width:140px; height:38px; font-size:13px; }
-.ad-vb-add-btn{ flex-shrink:0; padding:9px 16px; width:auto; }
-.ad-vb-fillall-btn{
-  align-self:flex-start; border:none; background:none; padding:2px 2px; font-size:12px; font-weight:700;
-  color:var(--primary); cursor:pointer; text-decoration:underline; text-underline-offset:2px;
-}
-
-.ad-variant-table-wrap{ overflow:auto; max-height:360px; border:1px solid var(--gray-200); border-radius:var(--r-sm); margin-top:4px; }
-/* min-width กันตารางถูกบีบแคบจนตัวหนังสือขึ้นบรรทัดใหม่กลางคำ อ่านไม่ออก — ถ้าคอลัมน์รวมกว้างกว่า
-   กล่อง .ad-variant-table-wrap (overflow:auto ด้านบน) จะโชว์สโครลแนวนอนแทนการบีบตัวหนังสือ */
-.ad-variant-table{ width:100%; min-width:560px; border-collapse:collapse; font-size:13px; }
-.ad-variant-table th{ position:sticky; top:0; z-index:1; background:var(--gray-50); color:var(--gray-500); text-align:left; padding:10px 12px; font-weight:700; white-space:nowrap; }
-.ad-variant-table th.ad-variant-th-num, .ad-variant-table td.ad-variant-td-num{ text-align:center; width:36px; color:var(--gray-400); font-size:12px; }
-.ad-variant-table th.ad-variant-th-price{ text-align:right; }
-.ad-variant-table th.ad-variant-th-del{ width:32px; }
-.ad-variant-table td{ padding:8px 12px; border-top:1px solid var(--gray-100); vertical-align:middle; white-space:nowrap; }
-.ad-variant-table tbody tr:nth-child(even) td{ background:var(--gray-25); }
-.ad-variant-table tr:hover td{ background:rgba(var(--primary-rgb),0.05); }
-.ad-variant-sku{ font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--primary); font-size:12px; background:rgba(var(--primary-rgb),0.07); padding:2px 6px; border-radius:6px; white-space:nowrap; }
-.ad-variant-price-wrap{ display:flex; align-items:center; justify-content:flex-end; gap:6px; }
-.ad-variant-currency{ font-size:12.5px; color:var(--gray-400); font-weight:700; }
-.ad-variant-price-input{ width:110px; height:34px; border:1px solid var(--gray-200); border-radius:6px; padding:0 8px; font-size:13.5px; font-family:inherit; text-align:right; font-weight:700; color:var(--secondary); }
-.ad-variant-price-input:focus,
-.cl-input:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(var(--primary-rgb),0.12); }
-.ad-variant-copy-btn{
-  flex-shrink:0; width:26px; height:26px; border-radius:6px; border:1px solid var(--gray-200); background:#fff;
-  color:var(--gray-400); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px;
-  transition:border-color .15s var(--ease), color .15s var(--ease), background .15s var(--ease);
-}
-.ad-variant-copy-btn:hover{ border-color:var(--primary); color:var(--primary); background:rgba(var(--primary-rgb),0.06); }
-.ad-variant-del-btn{
-  flex-shrink:0; width:24px; height:24px; border-radius:50%; border:none; cursor:pointer;
-  background:rgba(220,38,38,0.08); color:#DC2626; font-size:13px; line-height:1;
-  display:flex; align-items:center; justify-content:center;
-  transition:background .15s var(--ease), color .15s var(--ease);
-}
-.ad-variant-empty{ font-size:11.5px; color:var(--text-meta); padding:10px; }
-
-@media (max-width:768px){
-  .ad-grid{ grid-template-columns:repeat(auto-fill,minmax(165px,1fr)); gap:14px; }
-}
-
-.ad-pf-pinned-hint{ font-size:11.5px; color:var(--text-meta); margin-top:-4px; }
-
-/* ── Portfolio admin cards: reuse site .port-card look (image2 style) ── */
-#ad-pf-grid.ad-grid{ grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
-.ad-pf-card .port-visual{ min-height:190px; aspect-ratio:4/3; }
-.ad-pf-card .port-info{ padding:18px 20px; }
-.ad-pf-card .port-info h3{ font-size:15.5px; }
-.ad-pf-card .port-info p{ font-size:12.5px; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; }
-.ad-pf-card-actions{
-  position:absolute; top:12px; right:12px; z-index:6; display:flex; gap:6px; opacity:0;
-  transition:opacity .2s var(--ease);
-}
-.ad-pf-card-actions .cp-icon-btn{
-  width:30px; height:30px; background:rgba(15,23,42,0.65); border:1px solid rgba(255,255,255,0.25); color:#fff;
-}
-.ad-pf-card-actions .cp-icon-btn:hover{ background:rgba(15,23,42,0.85); }
-.ad-pf-card-check{
-  position:absolute; top:12px; left:12px; z-index:7; width:20px; height:20px; cursor:pointer;
-  accent-color:var(--primary); opacity:0; transition:opacity .2s var(--ease);
-  box-shadow:0 0 0 4px rgba(15,23,42,0.35); border-radius:4px;
-}
-.ad-pf-card-imgcount{
-  position:absolute; bottom:12px; right:14px; z-index:3; font-family:var(--font-mono); font-size:10px;
-  color:#fff; background:rgba(15,23,42,0.55); padding:3px 9px; border-radius:var(--r-pill);
-}
-
-/* ── Portfolio view popup (gallery + details) ── */
-.ad-pf-view{ position:relative; padding:0; gap:0; overflow:hidden; max-width:640px; }
-.ad-pf-view-close{
-  position:absolute; top:14px; right:14px; z-index:5; width:34px; height:34px; border-radius:50%;
-  background:rgba(15,23,42,0.55); color:#fff; border:1px solid rgba(255,255,255,0.2);
-  display:flex; align-items:center; justify-content:center; cursor:pointer;
-}
-.ad-pf-view-close:hover{ background:rgba(15,23,42,0.78); }
-.ad-pf-view-media{ position:relative; background:var(--secondary); aspect-ratio:16/10; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-.ad-pf-view-media img{ width:100%; height:100%; object-fit:contain; }
-.ad-pf-view-badge{
-  position:absolute; top:14px; left:14px; background:rgba(255,255,255,0.16); color:#fff;
-  font-family:var(--font-mono); font-size:10.5px; letter-spacing:.08em; padding:5px 12px;
-  border-radius:var(--r-pill); border:1px solid rgba(255,255,255,0.22);
-}
-.ad-pf-view-pin{
-  position:absolute; bottom:14px; left:14px; display:flex; align-items:center; gap:6px;
-  background:rgba(245,158,11,0.92); color:#fff; font-size:11px; font-weight:700; padding:5px 12px;
-  border-radius:var(--r-pill);
-}
-.ad-pf-view-thumbs{ display:flex; gap:8px; padding:14px 22px 0; flex-wrap:wrap; }
-.ad-pf-view-thumb{
-  width:52px; height:52px; border-radius:8px; overflow:hidden; padding:0; border:2px solid transparent;
-  cursor:pointer; opacity:.6; background:none;
-}
-.ad-pf-view-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-.ad-pf-view-thumb.active{ opacity:1; border-color:var(--primary); }
-.ad-pf-view-info{ padding:18px 22px 22px; }
-.ad-pf-view-client{ font-family:var(--font-mono); font-size:11px; color:var(--primary); letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px; }
-.ad-pf-view-info h2{ font-family:var(--font-display); font-weight: 700; font-size:17px; color:var(--secondary); margin-bottom:8px; }
-.ad-pf-view-info p{ font-size:13px; color:var(--gray-500); line-height:1.65; }
-.ad-pf-view-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-.ad-pf-view-tags span{ font-family:var(--font-mono); font-size:10px; color:var(--primary); background:rgba(var(--primary-rgb),0.08); padding:4px 10px; border-radius:var(--r-pill); }
-
-/* ── Settings tab — เดิมเป็นการ์ดตั้งค่าหลายบล็อกเรียงยาว/กริด 2 คอลัมน์ทั้งหมดในหน้า
-   เดียว ทำให้ดูรกและงงว่าต้องเลื่อนหาอะไรตรงไหน ปรับเป็น "แท็บย่อย" แทน — กดสลับแท็บ
-   แล้วเห็นแค่การ์ดเดียวที่เกี่ยวข้อง ทีละเรื่อง เหมือนเมนูหลักด้านซ้าย ใช้งานง่ายขึ้น
-   มากสำหรับคนที่ไม่คุ้นหน้าตั้งค่า ── */
-#ad-tab-settings{ display:block; }
-#ad-tab-settings > .cp-page-head{ margin-bottom:14px; }
-
-.ad-settings-tabs{
-  display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:20px;
-  padding:8px; background:var(--gray-50); border:1px solid var(--gray-200); border-radius:var(--r-lg);
-  position:sticky; top:65px; z-index:5;
-}
-.ad-settings-tab{
-  font-size:13px; font-weight:700; color:var(--gray-600); background:#fff;
-  border:1px solid var(--gray-200); border-radius:var(--r-pill); padding:9px 16px; cursor:pointer;
-  transition:background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
-}
-.ad-settings-tab:hover{ background:rgba(var(--primary-rgb),0.08); color:var(--primary-dark); border-color:rgba(var(--primary-rgb),0.3); }
-.ad-settings-tab.active{ background:var(--primary); color:#fff; border-color:var(--primary); box-shadow:0 2px 8px rgba(var(--primary-rgb),0.3); }
-.ad-settings-tabs-sep{ width:1px; height:22px; background:var(--gray-200); margin:0 2px; flex-shrink:0; }
-@media (max-width:640px){
-  .ad-settings-tabs{ position:static; }
-  .ad-settings-tabs-sep,
-  .ad-gs-trigger span, .ad-gs-trigger-kbd,
-  .cp-user-chip .cp-user-email{ display:none; }
-}
-
-.ad-settings-card{
-  background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-md);
-  padding:22px 24px; width:100%; max-width:820px; display:flex; flex-direction:column; gap:12px;
-  box-shadow:none;
-}
-#set-team #ad-team-form{ max-width:460px; }
-/* บล็อกที่มีลิสต์/ตัวกรองต้องการพื้นที่แนวนอนกว้างกว่าฟอร์มทั่วไป */
-#set-videos, #set-staff, #set-audit{ max-width:none; }
-.ad-settings-title{
-  font-family:var(--font-display); font-weight: 700; font-size:15px; color:var(--secondary);
-  display:flex; align-items:center; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--gray-100);
-}
-.ad-settings-desc{ font-size:12.5px; color:var(--gray-500); line-height:1.6; }
-.ad-settings-desc a{ color:var(--primary); font-weight:700; }
-
-.ad-team-list{ display:flex; flex-wrap:wrap; gap:8px; }
-.ad-team-chip{
-  display:flex; align-items:center; gap:6px; background:var(--gray-50); border:1px solid var(--gray-200);
-  border-radius:var(--r-pill); padding:6px 8px 6px 14px; font-size:12.5px; color:var(--secondary);
-}
-.ad-team-chip button{
-  display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%;
-  border:none; background:transparent; color:var(--gray-400); cursor:pointer; padding:0;
-}
-.ad-team-chip button:hover,
-.ad-staff-row button:hover{ background:var(--gray-200); color:var(--danger, #DC2626); }
-.ad-team-chip button svg{ width:12px; height:12px; }
-.ad-team-empty{ font-size:12.5px; color:var(--text-meta); }
-
-/* ── Settings tab — บัญชีผู้ใช้ทีมงาน (staff/role) + ประวัติการทำงาน (audit log) ── */
-.ad-staff-row, .ad-audit-row{
-  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-  background:var(--gray-50); border:1px solid var(--gray-200); border-radius:var(--r-sm);
-  padding:9px 12px; font-size:12.5px; color:var(--secondary);
-}
-.ad-staff-row + .ad-staff-row, .ad-audit-row + .ad-audit-row{ margin-top:8px; }
-.ad-staff-row .ad-staff-name,
-.ad-audit-row .ad-audit-action{ font-weight:700; }
-.ad-staff-row .ad-staff-email{ color:var(--text-meta); }
-.ad-staff-role-badge{
-  font-size:10.5px; font-weight:800; letter-spacing:.02em; text-transform:uppercase;
-  padding:3px 9px; border-radius:var(--r-pill); background:rgba(var(--primary-rgb),0.1); color:var(--primary);
-}
-.ad-staff-role-badge.role-staff{ background:var(--gray-200); color:var(--gray-600); }
-.ad-staff-row button{
-  margin-left:auto; border:none; background:transparent; color:var(--gray-400); cursor:pointer;
-  display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%;
-}
-/* ── Settings — audit log filter row: fields grow to fill the row evenly instead of
-   sitting at fixed widths and leaving a dead gap on the right ── */
-.ad-audit-filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:14px; }
-.ad-audit-filters .ad-field{ flex:1 1 150px; }
-.ad-audit-filters-clear{ flex:none; }
-@media (max-width:640px){ .ad-audit-filters-clear{ width:100%; } }
-
-.ad-audit-list{ display:flex; flex-direction:column; max-height:420px; overflow-y:auto; }
-.ad-audit-row .ad-audit-meta,
-.cp-subtext{ color:var(--text-meta); font-size:11.5px; }
-
-/* ── Leads tab ── */
-.ad-tab-badge{
-  display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px;
-  padding:0 5px; margin-left:6px; border-radius:var(--r-pill); background:#DC2626; color:#fff;
-  font-size:10.5px; font-weight:800; line-height:1; box-shadow:0 0 0 3px rgba(220,38,38,0.14);
-}
-.ad-l-row-new{ background:rgba(var(--primary-rgb),0.04); }
-.ad-l-row-new td:first-child::before{
-  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--primary);
-}
-.ad-l-msg{ max-width:260px; font-size:12.3px; line-height:1.5; }
-.ad-l-status{ min-width:104px; }
-
-/* ── Settings tab: ข้อมูลติดต่อทั้งเว็บไซต์ ── */
-.ad-settings-form{ display:flex; flex-direction:column; gap:12px; margin-top:14px; }
-.ad-settings-form textarea{ resize:vertical; }
-
-/* ── Settings tab — usability pass: คำอธิบายยาวพับเก็บได้ (กด "?" เพื่อดู) + label เหนือช่องกรอก ── */
-.ad-help-toggle{
-  margin-left:auto; display:inline-flex; align-items:center; justify-content:center;
-  width:20px; height:20px; border-radius:50%; border:1px solid var(--gray-300);
-  background:var(--gray-50); color:var(--gray-500); font-size:11px; font-weight:800;
-  cursor:pointer; flex-shrink:0; line-height:1; padding:0;
-}
-.ad-help-toggle:hover{ background:rgba(var(--primary-rgb),0.08); border-color:var(--primary); color:var(--primary); }
-.ad-help-toggle[aria-expanded="true"]{ background:rgba(var(--primary-rgb),0.1); border-color:var(--primary); color:var(--primary); }
-.ad-field{ display:flex; flex-direction:column; gap:5px; flex:1; min-width:0; }
-.ad-field > label{ font-size:11px; font-weight:700; color:var(--text-meta); }
-.ad-field > .cl-input{ width:100%; }
-
-/* ── Blog cards (reuse ad-card visual language) ── */
-#ad-b-grid.ad-grid{ grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
-.ad-b-card{ transition:box-shadow .25s var(--ease), transform .25s var(--ease); }
-.ad-b-card .port-visual{ min-height:150px; aspect-ratio:16/10; }
-.ad-b-status-draft{
-  position:absolute; top:10px; left:10px; z-index:2; display:inline-flex; align-items:center; gap:5px;
-  background:rgba(15,23,42,.82); backdrop-filter:blur(3px); color:#fff;
-  font-size:10.5px; font-weight:700; padding:4px 10px 4px 8px; border-radius:var(--r-pill);
-}
-.ad-b-status-draft::before{
-  content:""; width:6px; height:6px; border-radius:50%; background:#F59E0B; flex-shrink:0;
-}
-.ad-b-card .ad-card-cat{
-  display:inline-flex; align-items:center; gap:5px; color:var(--primary); background:rgba(var(--primary-rgb),0.08);
-  padding:2px 9px; border-radius:var(--r-pill); width:fit-content; letter-spacing:0; font-size:10px;
-}
-.ad-b-card .ad-card-name{ font-size:14px; margin-top:2px; }
-
-#ov-stats-grid .cp-stat-top .cp-stat-label{ font-size:12.5px; }
-
-/* ── Lead notes button (leads tab) ── */
-.ad-l-notes-btn{ position:relative; font-size:16px; padding:6px 8px; }
-.ad-l-notes-dot{
-  position:absolute; top:2px; right:2px; width:7px; height:7px; border-radius:50%;
-  background:var(--accent); border:1.5px solid #fff;
-}
-
-/* ── Lead "ค้างนาน" reminder badge (Phase 3, CRM automation — getStaleLeadReminders) ── */
-.ad-l-stale-badge{
-  display:inline-block; margin-top:6px; font-size:10.5px; font-weight:700; color:#B45309;
-  background:#FEF3C7; border:1px solid #F4D9AE; border-radius:99px; padding:2px 8px; white-space:nowrap;
-}
-
-/* ===========================================================
-   Global Search — ค้นข้ามสินค้า/ลีด/คำสั่งผลิตในกล่องเดียว (topbar)
-   Command-palette style overlay ผูกกับปุ่มบน topbar และคีย์ลัด "/"
-   (ดู js/admin-page.js ส่วน "GLOBAL SEARCH")
-   =========================================================== */
-.ad-gs-trigger-kbd{
-  font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--gray-400);
-  background:var(--gray-100); border:1px solid var(--gray-200); border-radius:5px;
-  padding:1px 6px; line-height:1.5;
-}
-@media (max-width:640px){
-  .ad-gs-trigger{ width:38px; padding:0; justify-content:center; }
-}
-
-.ad-gs-overlay{
-  position:fixed; inset:0; z-index:1200; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px);
-  display:flex; align-items:flex-start; justify-content:center; padding:12vh 16px 16px;
-  animation:cpFadeIn .15s var(--ease);
-}
-.ad-gs-panel{
-  width:100%; max-width:600px; max-height:70vh; background:#fff; border-radius:var(--r-xl);
-  box-shadow:var(--shadow-xl); display:flex; flex-direction:column; overflow:hidden;
-  animation:cpModalIn .18s var(--ease);
-}
-.ad-gs-input-row{ display:flex; align-items:center; gap:10px; padding:16px 18px; border-bottom:1px solid var(--gray-100); }
-.ad-gs-input-icon{ width:18px; height:18px; color:var(--gray-400); flex:none; }
-.ad-gs-input{
-  flex:1; border:none; outline:none; font-size:15px; font-family:var(--font-body); color:var(--secondary);
-  background:transparent;
-}
-.ad-gs-close{
-  flex:none; width:26px; height:26px; border-radius:50%; border:none; background:var(--gray-100);
-  color:var(--gray-500); display:flex; align-items:center; justify-content:center; cursor:pointer;
-  transition:background .15s var(--ease), color .15s var(--ease);
-}
-.ad-gs-close:hover{ background:var(--gray-200); color:var(--secondary); }
-
-.ad-gs-results{ overflow-y:auto; padding:8px; flex:1; }
-.ad-gs-group-label{
-  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--text-meta);
-  padding:10px 10px 6px;
-}
-.ad-gs-result{
-  display:flex; align-items:center; gap:12px; padding:10px 10px; border-radius:var(--r-md);
-  text-decoration:none; color:inherit; cursor:pointer; border:none; background:transparent; width:100%; text-align:left;
-  transition:background .12s var(--ease);
-}
-.ad-gs-result:hover, .ad-gs-result.is-active{ background:var(--gray-50); }
-.ad-gs-result-icon{
-  flex:none; width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center;
-  background:rgba(var(--primary-rgb),0.1); color:var(--primary-dark);
-}
-.ad-gs-result-body{ min-width:0; flex:1; display:flex; flex-direction:column; gap:1px; }
-.ad-gs-result-title{ font-size:13.5px; font-weight:700; color:var(--secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ad-gs-result-title mark{ background:rgba(var(--primary-rgb),0.22); color:inherit; border-radius:2px; }
-.ad-gs-result-desc{ font-size:12px; color:var(--text-meta); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ad-gs-result-tag{
-  flex:none; font-size:10.5px; font-weight:700; color:var(--text-meta); background:var(--gray-100);
-  padding:3px 9px; border-radius:var(--r-pill);
-}
-.ad-gs-empty{ padding:36px 20px; text-align:center; color:var(--text-meta); font-size:13px; }
-.ad-gs-empty strong{ color:var(--secondary); }
-
-.ad-gs-foot{
-  display:flex; gap:16px; padding:9px 18px; border-top:1px solid var(--gray-100); background:var(--gray-25);
-  font-size:11px; color:var(--text-meta);
-}
-.ad-gs-foot kbd, .ad-gs-trigger-kbd {
-  font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--gray-500);
-  background:#fff; border:1px solid var(--gray-200); border-radius:5px; padding:1px 6px; margin-right:2px;
-}
-
-/* ===========================================================
-   Bug fix (found while redesigning the products tab): .cl-input
-   had no base rule anywhere in the codebase — every search box,
-   filter dropdown, and the login fields were rendering as bare
-   unstyled native inputs. .cp-toolbar already assumed 34px of
-   left padding existed to make room for the search icon (see
-   `padding-left:34px !important` in console.css), which only
-   worked by accident because unstyled inputs have no padding to
-   conflict with. Adding the real base style here.
-   =========================================================== */
-.cl-input{
-  width:auto; padding:0 12px; font-size:13.5px; font-family:var(--font-body);
-  color:var(--secondary); background:#fff; border:1px solid var(--gray-200); border-radius:var(--r-md);
-  transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
-}
-input.cl-input, select.cl-input{ height:38px; }
-textarea.cl-input{ padding:9px 12px; line-height:1.6; resize:vertical; }
-.cl-input:disabled{ background:var(--gray-50); color:var(--gray-400); cursor:not-allowed; }
-
-/* ===========================================================
-   Products/Portfolio/Blog tabs redesign pass — the shared
-   .port-card class (used by the public portfolio grid too) has a
-   bouncy translateY+shadow-lg hover meant for a marketing page.
-   Flatten it here, scoped to these 3 admin grids only, so the
-   public portfolio page is untouched. Added across 3 separate passes
-   (products first, then portfolio, then blog) but the
-   declaration is identical every time — merged into one rule (P2.11).
-   =========================================================== */
-#ad-p-grid.ad-grid .ad-card,
-#ad-pf-grid.ad-grid .ad-pf-card,
-#ad-b-grid.ad-grid .ad-card{ box-shadow:none; transition:border-color .15s var(--ease); }
-#ad-p-grid.ad-grid .ad-card:hover,
-#ad-pf-grid.ad-grid .ad-pf-card:hover,
-#ad-b-grid.ad-grid .ad-card:hover,
-.cp-stat-card:hover{ box-shadow:none; transform:none; border-color:var(--gray-300); }
-
-/* ===========================================================
-   Orders tab redesign pass — same flattening as Overview:
-   drop shadow-heavy hovers, keep hairline borders only.
-   =========================================================== */
-.cp-table-wrap,
-.cp-kanban-card,
-.cp-stat-card{ box-shadow:none; }
-.cp-view-toggle .cp-view-btn.active{ box-shadow:none; border:1px solid var(--gray-200); }
-@keyframes adSearchHighlight{ 0%{ background-color:rgba(var(--primary-rgb),0.22); } 100%{ background-color:transparent; } }
-.cp-table tbody tr.ad-search-highlight td{ animation:adSearchHighlight 1.8s ease-out; }
-.ad-card.ad-search-highlight,
-.cp-kanban-card.ad-search-highlight{ animation:adSearchHighlight 1.8s ease-out; box-shadow:0 0 0 3px rgba(var(--primary-rgb),0.35); }
-
-/* ===========================================================
-   Overview redesign pass 1 — flatter "Clean SaaS" surfaces
-   Removes bounce/heavy-shadow hovers and gradient status cards;
-   adds a sparkline slot to stat cards. Markup/IDs unchanged
-   elsewhere so admin-page.js / orders-tab.js keep working.
-   =========================================================== */
-
-/* Sidebar active tab: swap the white-card lift for a quiet left rule */
-@media (min-width: 900px){
-  .cp-tabs--grouped .cp-tab.active{
-    border-left:2px solid var(--primary); border-radius:0 var(--r-md) var(--r-md) 0;
-    padding-left:10px;
-  }
-}
-
-/* Stat cards: flat by default, no translateY bounce, no gradients on warn/danger
-   (.cp-stat-card:hover declaration รวมไว้กับกลุ่ม 4 กริดด้านบนแล้ว — P2.11) */
-.cp-stat-card.warn{ background:#fff; border-color:#F4D9AE; }
-.cp-stat-card.danger{ background:#fff; border-color:#F3C2C2; }
-.cp-stat-card.danger .cp-stat-num,
-.cp-ov-today-item.danger .cp-ov-today-cta{ color:#B91C1C; }
-.cp-stat-card.good{ background:#fff; border-color:#BEE3D3; }
-.cp-stat-card.good .cp-stat-num{ color:#0D9268; }
-
-/* นำเข้าสินค้าจาก CSV — ตารางตัวอย่างก่อนยืนยัน */
-.ad-import-sub{ font-size:13px; color:var(--gray-600); margin:-4px 0 4px; }
-.ad-import-table-wrap{ max-height:52vh; overflow-y:auto; }
-.ad-import-status{ display:inline-block; padding:2px 9px; border-radius:99px; font-size:11.5px; font-weight:700; white-space:nowrap; }
-.ad-import-status.new{ background:#E6F6EE; color:var(--success-text); }
-.ad-import-status.update{ background:#E7EEFC; color:var(--primary); }
-.ad-import-status.error{ background:#FBE7E7; color:#B91C1C; }
-.ad-import-error-msg{ display:block; font-size:11px; color:#B91C1C; margin-top:2px; }
-
-/* Sparkline slot: quiet trend line under the stat number, same role color */
-.cp-stat-spark{ width:100%; height:26px; display:block; margin-top:2px; }
-.cp-stat-spark polyline{ fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.cp-stat-spark .spark-line{ stroke:var(--primary); }
-.cp-stat-card.warn .cp-stat-spark .spark-line{ stroke:#B45309; }
-.cp-stat-card.danger .cp-stat-spark .spark-line{ stroke:#B91C1C; }
-.cp-stat-card.good .cp-stat-spark .spark-line{ stroke:#0D9268; }
-
-/* ── Sparkline fill: พื้นที่จางๆ ใต้เส้นกราฟ ให้ดูเป็นกราฟการเงินสมัยใหม่ขึ้น
-   (เดิมมีแค่เส้นลอยๆ ไม่มี fill เลย) สีผูกกับสถานะการ์ดแบบเดียวกับ .spark-line ── */
-.cp-stat-spark .spark-fill{ fill:var(--primary); opacity:.10; }
-.cp-stat-card.warn .cp-stat-spark .spark-fill{ fill:#B45309; }
-.cp-stat-card.danger .cp-stat-spark .spark-fill{ fill:#B91C1C; }
-.cp-stat-card.good .cp-stat-spark .spark-fill{ fill:#0D9268; }
-
-/* ===========================================================
-   Dashboard polish pass — friendlier overview greeting, user
-   avatar chip in the topbar, and icon-chip layout for the
-   content-overview stat cards (matches the icon-chip cards
-   already used further down in "สรุปคำสั่งผลิต", so the whole
-   Overview tab now reads as one consistent visual language).
-   =========================================================== */
-
-/* ── Overview greeting header ── */
-.cp-ov-greeting-date{ font-size:12.5px; color:var(--text-meta); margin-top:4px; }
-
-/* ── Topbar user chip: initial-letter avatar + email, grouped
-   into one pill so it reads as a single "account" affordance
-   instead of two loose elements floating next to the logout button ── */
-.cp-user-chip{
-  display:flex; align-items:center; gap:8px; padding:4px 12px 4px 4px;
-  border:1px solid var(--gray-200); border-radius:var(--r-pill); background:var(--gray-25);
-}
-.cp-user-avatar{
-  flex:none; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  background:var(--primary); color:#fff; font-family:var(--font-display); font-weight:700; font-size:11.5px;
-}
-.cp-user-chip .cp-user-email{ padding-left:0; }
-
-/* ── Content-overview stat cards: adopt the same icon-chip top row as
-   the order stats below, instead of the plain corner dot. Keeps the
-   grid's existing sizing/columns/sparkline slots untouched. ── */
-#ov-stats-grid .cp-stat-card{ gap:9px; }
-
-/* หมวดหมู่ใหญ่ / หมวดหมู่ย่อย: หัวข้อย่อยเล็กๆ คั่นระหว่าง 2 ตารางในแท็บเดียวกัน */
-.cp-subsection-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
-.cp-subsection-title{ font-size:15px; font-weight:700; color:var(--gray-800); margin:0; }
-.cp-subsection-head .cp-add-btn{ margin-left:0; }
-.ad-g-badge{ display:inline-block; padding:2px 9px; border-radius:999px; background:var(--gray-100); color:var(--gray-600); font-size:12px; font-weight:600; }
-
-/* ===========================================================
-   "วันนี้ต้องทำอะไร" — แถบสรุปงานด่วนบนสุดของแท็บภาพรวม (js/admin-overview-today.js)
-   ออกแบบให้อ่านง่ายเป็นประโยคเดียวจบต่อรายการ แทนตัวเลขลอยๆ ในการ์ดสถิติ
-   เจาะจงเพื่อพนักงานที่ไม่คุ้นกับ dashboard/สถิติมาก่อน ให้กวาดตาแล้วรู้ทันที
-   ว่าต้องกดอะไรต่อ ไม่ต้องตีความตัวเลขเอง
-   =========================================================== */
-.cp-ov-today,
-.cp-sla-box{ margin-bottom:22px; }
-.cp-sla-box .cp-notif-list{ display:flex; flex-direction:column; }
-.cp-sla-box .cp-notif-item:first-child{ padding-top:0; }
-.cp-sla-box .cp-notif-item:last-child{ padding-bottom:0; }
-
-.cp-ov-today-item{
-  display:flex; align-items:center; gap:12px; width:100%; text-align:left;
-  padding:13px 16px; border-radius:var(--r-lg); border:1px solid var(--gray-200);
-  background:#fff; font:inherit; color:var(--gray-800);
-  transition:transform .15s var(--ease), box-shadow .15s var(--ease), border-color .15s var(--ease);
-}
-button.cp-ov-today-item:hover{ box-shadow:var(--shadow-sm); transform:translateY(-1px); }
-
-.cp-ov-today-icon{
-  flex:none; width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center;
-}
-.cp-ov-today-icon svg{ width:17px; height:17px; }
-.cp-ov-today-text{ flex:1; font-size:14px; line-height:1.5; }
-.cp-ov-today-text strong{ font-weight:800; }
-.cp-ov-today-cta{ flex:none; font-size:12.5px; font-weight:700; white-space:nowrap; }
-
-.cp-ov-today-item.danger{ border-color:#F3C2C2; background:linear-gradient(180deg,#FEF2F2,#fff); }
-.cp-ov-today-item.danger .cp-ov-today-icon{ background:#FEE2E2; color:#B91C1C; }
-
-.cp-ov-today-item.warn{ border-color:#F4D9AE; background:linear-gradient(180deg,#FFFBEB,#fff); }
-.cp-ov-today-item.warn .cp-ov-today-icon{ background:#FEF3C7; color:#B45309; }
-
-.cp-ov-today-item.info{ border-color:#BFDCF0; background:linear-gradient(180deg,#F0F8FF,#fff); }
-
-.cp-ov-today-item.ok{ border-color:#BEE3D3; background:linear-gradient(180deg,#F0FBF6,#fff); cursor:default; }
-.cp-ov-today-item.ok .cp-ov-today-icon{ background:#DCFCE7; color:#0D9268; }
-.cp-ov-today-item.ok .cp-ov-today-text{ color:var(--gray-700); }
-
-@media (max-width:640px){
-  .cp-ov-today-item{ flex-wrap:wrap; }
-  .cp-ov-today-cta{ margin-left:44px; }
-}
-
-/* ===========================================================
-   Tap-friendly info button (js/admin-tap-tooltip.js) — แทนที่
-   title="..." แบบ hover-only บนการ์ดสถิติบางใบ ให้กดดูได้บนแท็บเล็ต/มือถือ
-   =========================================================== */
-.cp-tap-info-btn{
-  position:absolute; top:10px; right:10px; width:22px; height:22px;
-  display:flex; align-items:center; justify-content:center; padding:0;
-  border:none; border-radius:50%; background:var(--gray-100); color:var(--gray-500);
-  cursor:pointer; transition:background .15s var(--ease), color .15s var(--ease);
-}
-.cp-tap-info-btn:hover, .cp-tap-info-btn:focus-visible{ background:rgba(var(--primary-rgb),0.12); color:var(--primary-dark); outline:none; }
-
-.cp-tap-info-bubble{
-  position:absolute; z-index:5; top:36px; right:8px; width:min(240px, 78vw);
-  padding:10px 12px; border-radius:var(--r-md); background:var(--gray-900); color:#fff;
-  font-size:12.5px; line-height:1.5; font-weight:500; box-shadow:var(--shadow-lg);
-}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ศูนย์บริหารจัดการ — CS.SIGN</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="assets/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<meta name="theme-color" content="#0B5A96">
+<link rel="stylesheet" href="css/style.css?v=20260711a">
+<link rel="stylesheet" href="css/console.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="console-page-body">
+
+<!-- ============ LOGIN GATE ============ -->
+<div class="cp-gate" id="ad-gate">
+  <form class="cp-gate-card" id="ad-login-form">
+    <img src="assets/logo.png" alt="CS.SIGN" width="34" height="34" class="cp-gate-logo">
+    <div class="cp-gate-title">ศูนย์บริหารจัดการ CS.SIGN</div>
+    <div class="cp-gate-sub">เข้าสู่ระบบสำหรับทีมงาน CS.SIGN</div>
+    <input type="email" id="ad-email" aria-label="อีเมล" class="cl-input" placeholder="อีเมล" required autocomplete="username">
+    <input type="password" id="ad-pass" aria-label="รหัสผ่าน" class="cl-input" placeholder="รหัสผ่าน" required autocomplete="current-password">
+    <div class="cl-error" id="ad-login-error" style="display:none;"></div>
+    <button type="submit" class="btn btn-primary cp-gate-btn">เข้าสู่ระบบ</button>
+    <a href="index.html" class="cp-gate-back">← กลับหน้าเว็บไซต์</a>
+  </form>
+</div>
+
+<!-- ============ ADMIN APP ============ -->
+<div class="cp-app" id="ad-app" style="display:none;">
+
+  <header class="cp-topbar">
+    <div class="cp-brand"><img src="assets/logo.png" alt="CS.SIGN" width="24" height="24"><span>ศูนย์บริหารจัดการ CS.SIGN</span></div>
+    <div class="cp-user">
+      <!-- Global search: ค้นข้ามสินค้า/ลีด/คำสั่งผลิตในกล่องเดียว -->
+      <button type="button" class="cp-icon-text-btn ad-gs-trigger" id="ad-gs-trigger" title="ค้นหาสินค้า / ลีด / คำสั่งผลิต">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <span>ค้นหา</span>
+        <kbd class="ad-gs-trigger-kbd">/</kbd>
+      </button>
+
+      <!-- Notification bell (ลีดใหม่) -->
+      <div class="cp-notif-wrap">
+        <button class="cp-notif-btn" id="ad-notif-btn" title="การแจ้งเตือน" aria-label="การแจ้งเตือน">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="cp-notif-dot" id="ad-notif-dot" style="display:none;"></span>
+        </button>
+        <div class="cp-notif-panel" id="ad-notif-panel" style="display:none;">
+          <div class="cp-notif-panel-title">ลีดใหม่</div>
+          <div class="cp-notif-list" id="ad-notif-list"></div>
+        </div>
+      </div>
+
+      <span class="cp-user-chip">
+        <span class="cp-user-avatar" id="ad-user-avatar" aria-hidden="true"></span>
+        <span id="ad-user-email" class="cp-user-email"></span>
+      </span>
+      <button class="cp-logout" id="ad-logout-btn">ออกจากระบบ</button>
+    </div>
+  </header>
+
+  <!-- ============ GLOBAL SEARCH — ค้นข้ามสินค้า/ลีด/คำสั่งผลิตในกล่องเดียว ============ -->
+  <div class="ad-gs-overlay" id="ad-gs-overlay" style="display:none;">
+    <div class="ad-gs-panel" role="dialog" aria-modal="true" aria-label="ค้นหาสินค้า ลีด หรือคำสั่งผลิต">
+      <div class="ad-gs-input-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="ad-gs-input-icon"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="ad-gs-input" aria-label="ค้นหาสินค้า ลีด หรือคำสั่งผลิต..." class="ad-gs-input" placeholder="ค้นหาสินค้า ลีด หรือคำสั่งผลิต..." autocomplete="off">
+        <button type="button" class="ad-gs-close" id="ad-gs-close" aria-label="ปิดการค้นหา">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ad-gs-results" id="ad-gs-results"></div>
+      <div class="ad-gs-foot">
+        <span><kbd>↑</kbd><kbd>↓</kbd> เลือก</span>
+        <span><kbd>Enter</kbd> ไปยังผลลัพธ์</span>
+        <span><kbd>Esc</kbd> ปิด</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="cp-main cp-main--wide">
+  <div class="cp-shell">
+    <nav class="cp-tabs cp-tabs--grouped" id="ad-tabs" aria-label="เมนูจัดการเนื้อหา" role="tablist" aria-orientation="vertical">
+      <button type="button" class="cp-sidebar-collapse-btn" id="ad-sidebar-collapse-btn" title="พับเมนู" aria-label="พับ/กางเมนู" aria-expanded="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M5 9l2 3-2 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="cp-sidebar-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="ad-sidebar-search" placeholder="ค้นหาเมนู..." aria-label="ค้นหาเมนูจัดการเนื้อหา" autocomplete="off">
+      </div>
+      <div class="cp-sidebar-group">
+        <div class="cp-sidebar-group-label">หน้าหลัก</div>
+        <button class="cp-tab active" data-tab="overview" id="ad-tabbtn-overview" role="tab" aria-selected="true" aria-controls="ad-tab-overview" tabindex="0">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          <span>ภาพรวม</span> <span class="ad-tab-badge" id="ad-overview-badge" style="display:none;"></span>
+        </button>
+      </div>
+
+      <div class="cp-sidebar-group">
+        <div class="cp-sidebar-group-label">การผลิต &amp; แคตตาล็อก</div>
+        <button class="cp-tab" data-tab="orders" id="ad-tabbtn-orders" role="tab" aria-selected="false" aria-controls="ad-tab-orders" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7 12 3 4 7l8 4 8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg>
+          <span>คำสั่งผลิต</span> <span class="ad-tab-badge" id="ad-orders-badge" style="display:none;"></span>
+        </button>
+        <button class="cp-tab" data-tab="products" id="ad-tabbtn-products" role="tab" aria-selected="false" aria-controls="ad-tab-products" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <span>สินค้า</span>
+        </button>
+        <button class="cp-tab" data-tab="categories" id="ad-tabbtn-categories" role="tab" aria-selected="false" aria-controls="ad-tab-categories" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 12 22l-9-9 8.59-8.59A2 2 0 0 1 13 4h6a1 1 0 0 1 1 1v6a2 2 0 0 1-.41 1.41Z"/><circle cx="15" cy="8" r="1"/></svg>
+          <span>หมวดหมู่</span>
+        </button>
+      </div>
+
+      <div class="cp-sidebar-group">
+        <div class="cp-sidebar-group-label">คอนเทนต์เว็บไซต์</div>
+        <button class="cp-tab" data-tab="portfolio" id="ad-tabbtn-portfolio" role="tab" aria-selected="false" aria-controls="ad-tab-portfolio" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          <span>ผลงาน</span>
+        </button>
+        <button class="cp-tab" data-tab="blog" id="ad-tabbtn-blog" role="tab" aria-selected="false" aria-controls="ad-tab-blog" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h7"/></svg>
+          <span>บทความ</span>
+        </button>
+        <button class="cp-tab" data-tab="faq" id="ad-tabbtn-faq" role="tab" aria-selected="false" aria-controls="ad-tab-faq" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.5"/><path d="M12 17.5h.01"/></svg>
+          <span>คำถามที่พบบ่อย</span>
+        </button>
+      </div>
+
+      <div class="cp-sidebar-group">
+        <div class="cp-sidebar-group-label">การตลาด &amp; ลูกค้า</div>
+        <button class="cp-tab" data-tab="leads" id="ad-tabbtn-leads" role="tab" aria-selected="false" aria-controls="ad-tab-leads" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H7l-3 3V4Z"/></svg>
+          <span>ลีด</span> <span class="ad-tab-badge" id="ad-leads-badge" style="display:none;"></span>
+        </button>
+        <button class="cp-tab" data-tab="quotations" id="ad-tabbtn-quotations" role="tab" aria-selected="false" aria-controls="ad-tab-quotations" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l3 3v17H6V5l3-3Z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>
+          <span>ใบเสนอราคา</span>
+        </button>
+      </div>
+
+      <div class="cp-sidebar-group">
+        <div class="cp-sidebar-group-label">ระบบ</div>
+        <button class="cp-tab" data-tab="settings" id="ad-tabbtn-settings" role="tab" aria-selected="false" aria-controls="ad-tab-settings" tabindex="-1">
+          <svg class="cp-tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+          <span>ตั้งค่าเว็บไซต์</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="cp-content">
+
+    <!-- ============ OVERVIEW TAB ============ -->
+    <section id="ad-tab-overview" role="tabpanel" aria-labelledby="ad-tabbtn-overview" tabindex="0">
+      <div class="cp-page-head cp-ov-greeting cp-page-head--with-action">
+        <div>
+          <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg> หน้าหลัก</div>
+          <h1 class="cp-page-title" id="ov-greeting-title">ภาพรวม</h1>
+          <div class="cp-ov-greeting-date" id="ov-greeting-date"></div>
+        </div>
+        <!-- Export รายงาน (PDF/CSV) — สถิติภาพรวม/ลีด/คำสั่งผลิตรายเดือน ทำฝั่ง browser ล้วนๆ
+             ดู js/admin-overview-export.js -->
+        <div class="cp-ov-export-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="cp-icon-text-btn" id="ov-export-csv-btn" title="ส่งออกสถิติภาพรวม/ลีด/คำสั่งผลิตรายเดือนเป็น CSV">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            Export CSV
+          </button>
+          <button type="button" class="cp-icon-text-btn" id="ov-export-pdf-btn" title="ส่งออกรายงานภาพรวมเป็น PDF">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 17v-4h1.2a1.4 1.4 0 0 1 0 2.8H9.5"/><path d="M14 17v-4h1.6c.9 0 1.4.6 1.4 1.4v1.2c0 .8-.5 1.4-1.4 1.4H14"/></svg>
+            Export PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ วันนี้ต้องทำอะไร — สรุปสิ่งที่ต้องรีบดำเนินการเป็นประโยคอ่านง่าย
+           ดึงจากตัวเลขที่มีอยู่แล้ว (งานเกินกำหนด/ใกล้กำหนด/ลีดใหม่) ไม่ต้องคำนวณซ้ำ
+           ดูโค้ดที่ js/admin-overview-today.js — ไม่แตะ render/ข้อมูลเดิมใน admin-page.js
+           หรือ orders-tab.js เลย ผูกด้วย MutationObserver กับตัวเลขที่ render ไว้แล้วเท่านั้น ============ -->
+      <section class="cp-ov-today" id="ov-today-banner" style="display:none;" aria-live="polite">
+        <div class="cp-ov-today-list" id="cp-ov-today-list"></div>
+      </section>
+
+      <!-- Quick actions -->
+      <section class="cp-ov-actions" id="ov-quick-actions">
+        <button type="button" class="cp-ov-action-card cp-ov-action-card--primary" id="ov-quick-add-product">
+          <span class="cp-ov-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/><path d="M15 14h4M17 12v4"/></svg></span>
+          <span class="cp-ov-action-text">
+            <strong>เพิ่มสินค้าใหม่</strong>
+            <small>เพิ่มรายการเข้าแคตตาล็อกที่แสดงบนเว็บไซต์</small>
+          </span>
+          <svg class="cp-ov-action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="cp-ov-action-card" id="ov-quick-add-order">
+          <span class="cp-ov-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7 12 3 4 7l8 4 8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v6M9 14h6"/></svg></span>
+          <span class="cp-ov-action-text">
+            <strong>สร้างคำสั่งผลิตใหม่</strong>
+            <small>เปิดงานผลิตป้ายให้ลูกค้า ติดตามได้ทันที</small>
+          </span>
+          <svg class="cp-ov-action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </section>
+
+      <!-- ============ ปฏิทินงาน + คำสั่งผลิตที่ต้องรีบดำเนินการ — สองกล่องนี้พูดเรื่อง
+           "กำหนดส่ง" เหมือนกัน จึงวางคู่กันเป็นแถวเดียว (แทนที่จะกระจายอยู่คนละที่ในหน้าเดิม)
+           ปฏิทิน: js/admin-overview-calendar.js (renderOverviewCalendar → #ov-calendar-view)
+           SLA warning: js/admin-overview-dashboard.js → renderSlaWarning() ใน
+           js/admin-overview-detail-cards.js — ซ่อนอัตโนมัติถ้าไม่มีรายการเกิน/ใกล้กำหนด ============ -->
+      <div class="cp-ov-section-head cp-ov-section-head--first">
+        <div>
+          <div class="cp-ov-section-title">ปฏิทินงาน &amp; กำหนดส่ง</div>
+          <div class="cp-ov-section-sub">คำสั่งผลิตที่ยังไม่เสร็จ เรียงตามวันที่ต้องส่งมอบ</div>
+        </div>
+      </div>
+      <section class="cp-breakdown-grid cp-ov-cal-row">
+        <div class="cp-breakdown-box cp-ov-cal-box">
+          <div class="cp-breakdown-head">
+            <div class="cp-breakdown-title">ปฏิทินกำหนดส่งงาน</div>
+            <button type="button" class="cp-viewall-btn" id="ov-cal-viewall">ดูมุมมองปฏิทินเต็ม →</button>
+          </div>
+          <div id="ov-calendar-view"></div>
+        </div>
+
+        <section class="cp-breakdown-box cp-sla-box" id="ov-sla-warning" style="display:none;">
+          <div class="cp-breakdown-head">
+            <div class="cp-breakdown-title">⚠️ คำสั่งผลิตที่ต้องรีบดำเนินการ</div>
+            <button type="button" class="cp-viewall-btn" id="ov-sla-viewall">ไปที่คำสั่งผลิต →</button>
+          </div>
+          <div class="cp-notif-list" id="ov-sla-list"></div>
+        </section>
+      </section>
+
+      <div class="cp-ov-section-head">
+        <div>
+          <div class="cp-ov-section-title">ภาพรวมเนื้อหาเว็บไซต์</div>
+          <div class="cp-ov-section-sub">จำนวนสินค้า หมวดหมู่ ผลงาน และข้อมูลอื่นๆ ที่แสดงอยู่บนเว็บไซต์ตอนนี้</div>
+        </div>
+        <button type="button" class="cp-ov-toggle-btn" id="ov-content-toggle" aria-expanded="false" aria-controls="ov-content-stats-wrap">
+          <span>แสดงสถิติ</span>
+          <svg class="cp-ov-toggle-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+
+      <div class="cp-ov-collapsible" id="ov-content-stats-wrap">
+      <section class="cp-stats" id="ov-stats-grid">
+        <div class="cp-stat-card" data-jump="products">
+          <div class="cp-stat-top"><span class="cp-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></span><span class="cp-stat-label">สินค้าทั้งหมด</span></div>
+          <span class="cp-stat-num" id="ov-stat-products">0</span>
+          <svg class="cp-stat-spark is-empty" id="ov-spark-products" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="ov-trend-products" title="เทียบเดือนก่อน"></span>
+        </div>
+        <div class="cp-stat-card" data-jump="categories">
+          <div class="cp-stat-top"><span class="cp-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 12 22l-9-9 8.59-8.59A2 2 0 0 1 13 4h6a1 1 0 0 1 1 1v6a2 2 0 0 1-.41 1.41Z"/><circle cx="15" cy="8" r="1"/></svg></span><span class="cp-stat-label">หมวดหมู่สินค้า</span></div>
+          <span class="cp-stat-num" id="ov-stat-categories">0</span>
+          <svg class="cp-stat-spark is-empty" id="ov-spark-categories" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="ov-trend-categories" title="เทียบเดือนก่อน"></span>
+        </div>
+        <div class="cp-stat-card" data-jump="portfolio">
+          <div class="cp-stat-top"><span class="cp-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span class="cp-stat-label">ผลงานทั้งหมด</span></div>
+          <span class="cp-stat-num" id="ov-stat-portfolio">0</span>
+          <svg class="cp-stat-spark is-empty" id="ov-spark-portfolio" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="ov-trend-portfolio" title="เทียบเดือนก่อน"></span>
+        </div>
+        <div class="cp-stat-card" data-jump="blog">
+          <div class="cp-stat-top"><span class="cp-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h7"/></svg></span><span class="cp-stat-label">บทความทั้งหมด</span></div>
+          <span class="cp-stat-num" id="ov-stat-blog">0</span>
+          <svg class="cp-stat-spark is-empty" id="ov-spark-blog" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="ov-trend-blog" title="เทียบเดือนก่อน"></span>
+        </div>
+        <div class="cp-stat-card warn" data-jump="leads">
+          <div class="cp-stat-top"><span class="cp-stat-icon cp-stat-icon--warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H7l-3 3V4Z"/></svg></span><span class="cp-stat-label">ลีดใหม่ที่ยังไม่อ่าน</span></div>
+          <span class="cp-stat-num" id="ov-stat-leads-new">0</span>
+          <svg class="cp-stat-spark is-empty" id="ov-spark-leads-new" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="ov-trend-leads-new" title="เทียบเดือนก่อน"></span>
+        </div>
+        <div class="cp-stat-card good" data-jump="leads" title="สัดส่วนลีดที่ปิดการขายสำเร็จ (won) เทียบกับลีดที่ปิดจบแล้วทั้งหมด (won + lost) — ไม่นับลีดที่ยังอยู่ระหว่างดำเนินการ">
+          <div class="cp-stat-top"><span class="cp-stat-icon cp-stat-icon--good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="cp-stat-label">อัตราปิดการขาย (Lead → Won)</span></div>
+          <span class="cp-stat-num" id="ov-stat-conversion">—</span>
+          <svg class="cp-stat-spark is-empty" id="ov-spark-conversion" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="ov-trend-conversion" title="เทียบเดือนก่อน"></span>
+        </div>
+      </section>
+      </div>
+
+      <!-- ============ สรุปคำสั่งผลิต (ย้ายมาจากแท็บ "คำสั่งผลิต" — รวมเป็นชุดสถิติเดียว
+           แทนที่จะแยกเป็น 3 ชุดเหมือนเดิม เพื่อลดความซ้ำซ้อน) ============ -->
+      <div class="cp-ov-section-head">
+        <div>
+          <div class="cp-ov-section-title">สรุปคำสั่งผลิต</div>
+          <div class="cp-ov-section-sub">ภาพรวมงานผลิต การจัดส่ง และยอดขายจากคำสั่งผลิตทั้งหมด</div>
+        </div>
+        <button type="button" class="cp-viewall-btn" id="ov-orders-viewall">ไปที่คำสั่งผลิต →</button>
+      </div>
+
+      <!-- Stats: รวมสถิติคำสั่งผลิตทั้งหมดไว้ชุดเดียว (เดิมแยก 3 ชุด: จำนวนงานใหม่/สถิติหลัก/สถิติรอง
+           ซึ่งซ้ำซ้อนกัน เช่น "คำสั่งผลิตที่ดำเนินการ" ที่จริงคือ งานใหม่ + งานที่กำลังผลิตรวมกัน จึงตัดออก) -->
+      <section class="cp-stats" id="cp-stats-grid">
+        <div class="cp-stat-card" id="cp-stat-card-new" data-jump="orders" title="คำสั่งผลิตที่ยังไม่เริ่มดำเนินการ (สถานะ: รับงาน)">
+          <div class="cp-stat-top">
+            <span class="cp-stat-icon cp-stat-icon--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
+            <span class="cp-stat-label">งานใหม่</span>
+          </div>
+          <span class="cp-stat-num" id="cp-stat-new">0</span>
+          <svg class="cp-stat-spark is-empty" id="cp-spark-new" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="cp-trend-new" title="คำสั่งผลิตใหม่ต่อเดือน"></span>
+        </div>
+        <div class="cp-stat-card" id="cp-stat-card-production" data-jump="production">
+          <div class="cp-stat-top">
+            <span class="cp-stat-icon cp-stat-icon--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7 12 3 4 7l8 4 8-4Z"/><path d="M4 7v10l8 4 8-4V7"/></svg></span>
+            <span class="cp-stat-label">งานที่กำลังผลิต</span>
+          </div>
+          <span class="cp-stat-num" id="cp-stat-production">0</span>
+          <svg class="cp-stat-spark is-empty" id="cp-spark-production" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="cp-trend-production" title="เวลาเฉลี่ยรับงาน→เสร็จงานรายเดือน"></span>
+        </div>
+        <div class="cp-stat-card" id="cp-stat-card-completed" data-jump="completed">
+          <div class="cp-stat-top">
+            <span class="cp-stat-icon cp-stat-icon--good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <span class="cp-stat-label">งานที่เสร็จแล้ว</span>
+          </div>
+          <span class="cp-stat-num" id="cp-stat-completed">0</span>
+          <svg class="cp-stat-spark is-empty" id="cp-spark-completed" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <span class="cp-stat-trend na" id="cp-trend-completed" title="งานที่เสร็จต่อเดือน"></span>
+        </div>
+        <div class="cp-stat-card danger" id="cp-stat-card-overdue" data-jump="overdue">
+          <div class="cp-stat-top">
+            <span class="cp-stat-icon cp-stat-icon--danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></span>
+            <span class="cp-stat-label">งานที่ค้าง (เกินกำหนดส่ง)</span>
+          </div>
+          <span class="cp-stat-num" id="cp-stat-overdue">0</span>
+        </div>
+        <div class="cp-stat-card" id="cp-stat-card-sales" title="คำนวณจากคำสั่งผลิตที่ผูกกับสินค้าในแคตตาล็อกเท่านั้น">
+          <div class="cp-stat-top">
+            <span class="cp-stat-icon cp-stat-icon--good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+            <span class="cp-stat-label">ยอดขายวันนี้ / เดือนนี้</span>
+          </div>
+          <span class="cp-stat-num cp-stat-num--sales" id="cp-stat-sales">฿0 <small>วันนี้</small> / ฿0 <small>เดือนนี้</small></span>
+          <span class="cp-stat-trend na" id="cp-stat-sales-trend" title="เทียบยอดขายเดือนนี้กับเดือนก่อน"></span>
+        </div>
+      </section>
+
+      <!-- Chart — รายวัน/30วัน กับ รายได้ 6 เดือนย้อนหลัง รวมเป็นกล่องเดียว สลับดูด้วยแท็บ
+           (เดิมแยก 2 กล่องเรียงต่อกัน กินพื้นที่จอเยอะโดยไม่จำเป็น เพราะดูทีละอย่างอยู่ดี) -->
+      <section class="cp-chart-box">
+        <div class="cchart-tabs" id="ov-chart-tabs" role="tablist" aria-label="สลับมุมมองกราฟ">
+          <button type="button" class="cchart-tab active" data-chart-panel="daily" role="tab" aria-selected="true">คำสั่งผลิตรายวัน</button>
+          <button type="button" class="cchart-tab" data-chart-panel="monthly" role="tab" aria-selected="false">รายได้รายเดือน (6 เดือน)</button>
+        </div>
+
+        <div class="ov-chart-panel" id="ov-chart-panel-daily" role="tabpanel">
+          <div class="cchart-head cchart-subhead">
+            <strong id="cp-chart-title">คำสั่งผลิตใหม่รายวัน</strong>
+            <div class="cchart-range-toggle" id="cp-chart-metric">
+              <button class="cchart-range-btn active" data-metric="count">จำนวนงาน</button>
+              <button class="cchart-range-btn" data-metric="revenue">รายได้</button>
+            </div>
+            <div class="cchart-range-toggle" id="cp-chart-range">
+              <button class="cchart-range-btn active" data-range="7">7 วัน</button>
+              <button class="cchart-range-btn" data-range="30">30 วัน</button>
+            </div>
+          </div>
+          <div class="cchart-bars" id="cp-chart-bars" style="height:90px;"></div>
+        </div>
+
+        <div class="ov-chart-panel" id="ov-chart-panel-monthly" role="tabpanel" style="display:none;">
+          <div id="ov-revenue-linechart"></div>
+        </div>
+      </section>
+
+      <!-- Breakdown: ลีดล่าสุด + กิจกรรมล่าสุด อยู่หน้าเดิมเสมอ (ต้องเข้าไปดำเนินการต่อ) —
+           ส่วนแยกตามหมวดป้าย/ลูกค้าสูงสุด เป็นข้อมูลอ้างอิง ย้ายไปไว้ใต้ปุ่ม "แสดง" ด้านล่าง
+           เพื่อไม่ให้หน้าภาพรวมแน่นเกินไป -->
+      <section class="cp-breakdown-grid">
+        <div class="cp-breakdown-box">
+          <div class="cp-breakdown-head">
+            <div class="cp-breakdown-title">ลีดล่าสุดที่รอดำเนินการ</div>
+            <button type="button" class="cp-viewall-btn" id="ov-leads-viewall">ดูทั้งหมด →</button>
+          </div>
+          <div class="cp-breakdown-list" id="ov-recent-leads"><div class="cp-empty">ไม่มีข้อมูล</div></div>
+        </div>
+        <div class="cp-breakdown-box">
+          <div class="cp-breakdown-head">
+            <div class="cp-breakdown-title">กิจกรรมล่าสุดในระบบ</div>
+            <button type="button" class="cp-viewall-btn" id="ov-activity-viewall">ดูทั้งหมด →</button>
+          </div>
+          <div class="cp-breakdown-list ad-audit-list" id="ov-recent-activity" style="max-height:none;"><div class="cp-empty">กำลังโหลด…</div></div>
+        </div>
+      </section>
+
+      <div class="cp-ov-section-head">
+        <div>
+          <div class="cp-ov-section-title">รายละเอียดเพิ่มเติม</div>
+          <div class="cp-ov-section-sub">แยกยอดตามหมวดป้าย และลูกค้าที่สั่งผลิตบ่อยที่สุด</div>
+        </div>
+        <button type="button" class="cp-ov-toggle-btn" id="ov-more-toggle" aria-expanded="false" aria-controls="ov-more-wrap">
+          <span>แสดง</span>
+          <svg class="cp-ov-toggle-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div class="cp-ov-collapsible" id="ov-more-wrap">
+        <!-- ตัวเลขรองของคำสั่งผลิต (ใกล้กำหนดส่ง/รวมทั้งหมด/ยอดค้างชำระ) — ย้ายมาจากกริดหลัก
+             ด้านบน ยังเป็น DOM element จริง (ไม่ใช่ template) เพราะ js/admin-overview-today.js
+             และ js/orders-tab-stats.js อ่าน/เขียนค่าที่ id เหล่านี้โดยตรง (MutationObserver +
+             renderTrendBadge/renderSparkline) — แค่ย้ายตำแหน่งที่แสดงผล ไม่ตัดออกจาก DOM -->
+        <section class="cp-stats" id="ov-stats-grid-secondary" style="margin-bottom:18px;">
+          <div class="cp-stat-card warn" id="cp-stat-card-duesoon" data-jump="duesoon">
+            <div class="cp-stat-top">
+              <span class="cp-stat-icon cp-stat-icon--warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+              <span class="cp-stat-label">งานใกล้กำหนดส่ง (≤2 วัน)</span>
+            </div>
+            <span class="cp-stat-num" id="cp-stat-duesoon">0</span>
+            <svg class="cp-stat-spark is-empty" id="cp-spark-duesoon" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <span class="cp-stat-trend na" id="cp-trend-duesoon" title="อัตราส่งงานตรงเวลารายเดือน"></span>
+          </div>
+          <div class="cp-stat-card">
+            <span class="cp-stat-num" id="cp-stat-total">0</span>
+            <span class="cp-stat-label">คำสั่งผลิตทั้งหมด</span>
+          </div>
+          <div class="cp-stat-card" id="cp-stat-card-balance" data-jump="orders" title="ยอดค้างชำระรวมจากคำสั่งผลิตทั้งหมดที่ยังไม่ถูกยกเลิก (ยอดรวม - มัดจำที่รับแล้ว)">
+            <span class="cp-stat-num" id="cp-stat-balance">฿0</span>
+            <span class="cp-stat-label">ยอดค้างชำระรวม</span>
+          </div>
+        </section>
+        <section class="cp-breakdown-grid">
+          <div class="cp-breakdown-box">
+            <div class="cp-breakdown-title">แยกตามหมวดป้าย</div>
+            <div class="cp-breakdown-list" id="cp-breakdown-cat"><div class="cp-empty">ไม่มีข้อมูล</div></div>
+          </div>
+          <div class="cp-breakdown-box">
+            <div class="cp-breakdown-title">ลูกค้าที่มีคำสั่งผลิตมากที่สุด</div>
+            <div class="cp-breakdown-list" id="cp-breakdown-cust"><div class="cp-empty">ไม่มีข้อมูล</div></div>
+          </div>
+          <div class="cp-breakdown-box">
+            <div class="cp-breakdown-title">สินค้าขายดี (ตามจำนวนที่สั่งผลิต)</div>
+            <div class="cp-breakdown-list" id="cp-breakdown-products"><div class="cp-empty">ไม่มีข้อมูล</div></div>
+          </div>
+          <div class="cp-breakdown-box">
+            <div class="cp-breakdown-title">ช่องทางขาย — สถานะลีดทั้งหมด</div>
+            <div class="cp-breakdown-list" id="ov-breakdown-funnel"><div class="cp-empty">ไม่มีข้อมูล</div></div>
+          </div>
+          <div class="cp-breakdown-box" title="อัตราปิดการขาย (won ÷ (won+lost)) แยกตามช่องทางที่ลีดเข้ามา">
+            <div class="cp-breakdown-title">อัตราปิดการขายแยกตามช่องทาง</div>
+            <div class="cp-breakdown-list" id="ov-breakdown-source-conversion"><div class="cp-empty">ไม่มีข้อมูล</div></div>
+          </div>
+          <div class="cp-breakdown-box">
+            <div class="cp-breakdown-title">อัตราลูกค้าซื้อซ้ำ</div>
+            <div class="cp-breakdown-list" id="cp-breakdown-repeat"><div class="cp-empty">ไม่มีข้อมูล</div></div>
+          </div>
+          <div class="cp-breakdown-box">
+            <div class="cp-breakdown-title">หมวดขายดีเดือนนี้</div>
+            <div class="cp-breakdown-list" id="cp-breakdown-topcat-month"><div class="cp-empty">ไม่มีข้อมูล</div></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ============ ORDER QUEUE TAB — คำสั่งผลิต (เดิมคือหน้า console.html แยกต่างหาก) ============ -->
+    <section id="ad-tab-orders" role="tabpanel" aria-labelledby="ad-tabbtn-orders" tabindex="0" style="display:none;">
+      <div class="cp-page-head cp-page-head--with-action">
+        <div>
+          <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7 12 3 4 7l8 4 8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg> การผลิต &amp; แคตตาล็อก</div>
+          <h1 class="cp-page-title">คำสั่งผลิต</h1>
+        </div>
+        <!-- สรุปสถิติ/กราฟ/แยกหมวดย้ายไปอยู่หน้า "ภาพรวม" แล้ว — เหลือปุ่มลัดไว้เผื่ออยากดู -->
+        <button type="button" class="cp-icon-text-btn" id="cp-view-summary-btn" title="ดูสถิติและกราฟสรุปคำสั่งผลิตที่หน้าภาพรวม">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          ดูสรุปภาพรวมการผลิต
+        </button>
+      </div>
+
+      <!-- Status filter pills -->
+      <section class="cp-status-pills" id="cp-filter-status-pills" role="tablist" aria-label="กรองคำสั่งผลิตตามสถานะ">
+        <button type="button" class="cp-status-pill active" data-status="" role="tab" aria-selected="true">ทั้งหมด</button>
+        <button type="button" class="cp-status-pill" data-status="received" role="tab" aria-selected="false">รับงาน</button>
+        <button type="button" class="cp-status-pill" data-status="design" role="tab" aria-selected="false">ออกแบบ</button>
+        <button type="button" class="cp-status-pill" data-status="approval" role="tab" aria-selected="false">รออนุมัติแบบ</button>
+        <button type="button" class="cp-status-pill" data-status="production" role="tab" aria-selected="false">กำลังผลิต</button>
+        <button type="button" class="cp-status-pill" data-status="qc" role="tab" aria-selected="false">QC</button>
+        <button type="button" class="cp-status-pill" data-status="packing" role="tab" aria-selected="false">แพ็กสินค้า</button>
+        <button type="button" class="cp-status-pill" data-status="shipping" role="tab" aria-selected="false">จัดส่ง</button>
+        <button type="button" class="cp-status-pill" data-status="completed" role="tab" aria-selected="false">เสร็จสิ้น</button>
+        <button type="button" class="cp-status-pill" data-status="cancelled" role="tab" aria-selected="false">ยกเลิก</button>
+      </section>
+
+      <!-- Toolbar -->
+      <section class="cp-toolbar">
+        <input type="text" id="cp-search" aria-label="ค้นหาเลขที่คำสั่ง / ลูกค้า / รายการ..." class="cl-input cp-search" placeholder="ค้นหาเลขที่คำสั่ง / ลูกค้า / รายการ...">
+        <button type="button" class="cp-mine-toggle" id="cp-mine-toggle" title="แสดงเฉพาะคำสั่งผลิตที่มอบหมายให้ฉัน">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          งานของฉัน
+        </button>
+        <div class="cp-view-toggle" id="cp-view-toggle">
+          <button class="cp-view-btn active" data-view="table" title="มุมมองตาราง">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          </button>
+          <button class="cp-view-btn" data-view="kanban" title="มุมมองบอร์ด (Kanban)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="6" height="16" rx="1"/><rect x="9.5" y="4" width="6" height="10" rx="1"/><rect x="16" y="4" width="6" height="13" rx="1"/></svg>
+          </button>
+          <button class="cp-view-btn" data-view="calendar" title="มุมมองปฏิทิน">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </button>
+        </div>
+        <button class="cp-icon-text-btn" id="cp-export-csv-btn" title="ส่งออก CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Export CSV
+        </button>
+        <button class="cp-icon-text-btn" id="cp-print-btn" title="พิมพ์รายงาน / บันทึกเป็น PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          พิมพ์รายงาน
+        </button>
+        <button class="btn btn-primary cp-add-btn" id="cp-add-btn">+ เพิ่มคำสั่งผลิต</button>
+      </section>
+
+      <div class="cp-legend">
+        <span class="cp-legend-item"><span class="cp-legend-dot" style="background:#DC2626;"></span>เกินกำหนดส่ง</span>
+        <span class="cp-legend-item"><span class="cp-legend-dot" style="background:#F59E0B;"></span>ใกล้ครบกำหนดส่ง</span>
+      </div>
+
+      <!-- Bulk actions bar -->
+      <div class="cp-bulk-bar" id="cp-bulk-bar">
+        <span><strong id="cp-bulk-count">0</strong> รายการที่เลือก</span>
+        <button type="button" class="cp-bulk-clear" id="cp-bulk-clear">ล้างการเลือก</button>
+        <div class="cp-bulk-actions">
+          <select class="cp-bulk-select" id="cp-bulk-status-select" aria-label="เปลี่ยนสถานะเป็น...">
+            <option value="">เปลี่ยนสถานะเป็น...</option>
+            <option value="received">รับงาน</option>
+            <option value="design">ออกแบบ</option>
+            <option value="approval">รออนุมัติแบบ</option>
+            <option value="production">กำลังผลิต</option>
+            <option value="qc">ตรวจสอบคุณภาพ (QC)</option>
+            <option value="packing">แพ็กสินค้า</option>
+            <option value="shipping">จัดส่ง</option>
+            <option value="completed">เสร็จสิ้น</option>
+            <option value="cancelled">ยกเลิก</option>
+          </select>
+          <button type="button" class="cp-bulk-btn" id="cp-bulk-apply-status">เปลี่ยนสถานะ</button>
+          <button type="button" class="cp-bulk-btn danger" id="cp-bulk-delete">ลบที่เลือก</button>
+        </div>
+      </div>
+
+      <!-- Orders table (view=table) — เหลือแค่คอลัมน์จำเป็น: เลขที่คำสั่ง/ลูกค้า/เบอร์โทร/สถานะ/กำหนดส่ง/ดูรายละเอียด
+           ทั้งแถวคลิกได้ (ไม่ใช่แค่ปุ่ม) เปิดป๊อปอัพรายละเอียดเดียวกับปุ่ม "ดูรายละเอียด" -->
+      <section class="cp-table-wrap" id="cp-table-view">
+        <table class="cp-table">
+          <colgroup>
+            <col style="width:40px;">
+            <col style="width:130px;">
+            <col style="width:210px;">
+            <col style="width:140px;">
+            <col style="width:150px;">
+            <col style="width:120px;">
+            <col style="width:130px;">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="cp-th-check"><input type="checkbox" class="cp-head-check" id="cp-head-check" aria-label="เลือกทั้งหมด"></th>
+              <th>เลขที่คำสั่ง (PO)</th><th>ลูกค้า</th><th>เบอร์โทร</th>
+              <th>สถานะ</th><th>กำหนดส่ง</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="cp-table-body">
+            <tr class="cp-skel-row"><td colspan="7"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="7"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="7"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="7"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="7"><div class="cp-skel" style="width:100%;"></div></td></tr>
+          </tbody>
+        </table>
+        <div class="cp-pagination" id="cp-pagination" style="display:none;">
+          <span class="cp-pagination-info" id="cp-pagination-info"></span>
+          <div class="cp-pagination-btns" id="cp-pagination-btns"></div>
+        </div>
+      </section>
+
+      <!-- Kanban board (view=kanban) -->
+      <section class="cp-kanban" id="cp-kanban-view" style="display:none;"></section>
+
+      <!-- Calendar month-view ของกำหนดส่ง (view=calendar, P1.5b) -->
+      <section class="cp-calendar" id="cp-calendar-view" style="display:none;"></section>
+    </section>
+
+    <!-- ============ PRODUCTS TAB ============ -->
+    <section id="ad-tab-products" role="tabpanel" aria-labelledby="ad-tabbtn-products" tabindex="0" style="display:none;">
+      <div class="cp-page-head">
+        <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg> การผลิต &amp; แคตตาล็อก</div>
+        <h1 class="cp-page-title">สินค้า</h1>
+      </div>
+      <section class="cp-toolbar">
+        <input type="text" id="ad-p-search" aria-label="ค้นหาชื่อสินค้า / รหัสสินค้า..." class="cl-input cp-search" placeholder="ค้นหาชื่อสินค้า / รหัสสินค้า...">
+        <select id="ad-p-filter-cat" aria-label="ทุกหมวดหมู่" class="cl-input cp-filter">
+          <option value="">ทุกหมวดหมู่</option>
+        </select>
+        <button class="cp-icon-text-btn" id="ad-p-export-btn" title="ส่งออกสินค้าทั้งหมดเป็น CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Export CSV
+        </button>
+        <button class="cp-icon-text-btn" id="ad-p-import-btn" title="นำเข้าสินค้าจากไฟล์ CSV (เพิ่มใหม่ทีละหลายรายการ หรืออัปเดตของเดิมด้วยรหัสสินค้า)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5"/><path d="M12 3v12"/></svg>
+          นำเข้า CSV
+        </button>
+        <input type="file" id="ad-p-import-file" accept=".csv,text/csv" style="display:none;">
+        <button class="cp-icon-text-btn" id="ad-p-import-template-btn" title="ดาวน์โหลดไฟล์ CSV เปล่าพร้อมหัวคอลัมน์และแถวตัวอย่าง เอาไปกรอกต่อใน Excel/Google Sheets">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 8h8M8 16h5"/></svg>
+          เทมเพลต
+        </button>
+        <button class="btn btn-primary cp-add-btn" id="ad-p-add-btn">+ เพิ่มสินค้า</button>
+      </section>
+
+      <div class="cp-legend">
+        <span class="cp-legend-item"><span class="cp-legend-dot" style="background:#0D9268;"></span>แสดงบนเว็บไซต์</span>
+        <span class="cp-legend-item"><span class="cp-legend-dot" style="background:#DC2626;"></span>ซ่อนอยู่</span>
+      </div>
+
+      <!-- Bulk actions bar -->
+      <div class="cp-bulk-bar" id="ad-p-bulk-bar">
+        <span><strong id="ad-p-bulk-count">0</strong> รายการที่เลือก</span>
+        <button type="button" class="cp-bulk-clear" id="ad-p-bulk-clear">ล้างการเลือก</button>
+        <div class="cp-bulk-actions">
+          <select class="cp-bulk-select" id="ad-p-bulk-status-select" aria-label="เปลี่ยนสถานะเป็น...">
+            <option value="">เปลี่ยนสถานะเป็น...</option>
+            <option value="active">แสดงบนเว็บไซต์</option>
+            <option value="hidden">ซ่อนจากเว็บไซต์</option>
+          </select>
+          <button type="button" class="cp-bulk-btn" id="ad-p-bulk-apply-status">เปลี่ยนสถานะ</button>
+          <button type="button" class="cp-bulk-btn danger" id="ad-p-bulk-delete">ลบที่เลือก</button>
+        </div>
+      </div>
+
+      <section class="ad-grid" id="ad-p-grid">
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:60%"></div><div class="cp-skel" style="width:90%"></div><div class="cp-skel" style="width:40%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:60%"></div><div class="cp-skel" style="width:90%"></div><div class="cp-skel" style="width:40%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:60%"></div><div class="cp-skel" style="width:90%"></div><div class="cp-skel" style="width:40%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:60%"></div><div class="cp-skel" style="width:90%"></div><div class="cp-skel" style="width:40%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:60%"></div><div class="cp-skel" style="width:90%"></div><div class="cp-skel" style="width:40%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:60%"></div><div class="cp-skel" style="width:90%"></div><div class="cp-skel" style="width:40%"></div></div></div>
+      </section>
+      <div class="cp-pagination" id="ad-p-pagination" style="display:none;">
+        <span class="cp-pagination-info" id="ad-p-pagination-info"></span>
+        <div class="cp-pagination-btns" id="ad-p-pagination-btns"></div>
+      </div>
+    </section>
+
+    <!-- ============ LEADS TAB — คำขอใบเสนอราคา/ติดต่อจากลูกค้า ============ -->
+    <section id="ad-tab-leads" role="tabpanel" aria-labelledby="ad-tabbtn-leads" tabindex="0" style="display:none;">
+      <div class="cp-page-head">
+        <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H7l-3 3V4Z"/></svg> การตลาด &amp; ลูกค้า</div>
+        <h1 class="cp-page-title">ลีด</h1>
+      </div>
+      <section class="cp-toolbar">
+        <input type="text" id="ad-l-search" aria-label="ค้นหาชื่อ / เบอร์โทร / อีเมล / บริษัท..." class="cl-input cp-search" placeholder="ค้นหาชื่อ / เบอร์โทร / อีเมล / บริษัท...">
+        <select id="ad-l-filter-source" aria-label="ทุกช่องทาง" class="cl-input cp-filter">
+          <option value="">ทุกช่องทาง</option>
+        </select>
+        <select id="ad-l-filter-assignee" aria-label="ผู้รับผิดชอบทั้งหมด" class="cl-input cp-filter">
+          <option value="">ผู้รับผิดชอบทั้งหมด</option>
+        </select>
+        <button class="cp-icon-text-btn" id="ad-l-export-btn" title="ส่งออก CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Export CSV
+        </button>
+      </section>
+
+      <section class="cp-status-pills" id="ad-l-filter-status-pills" role="tablist" aria-label="กรองลีดตามสถานะ">
+        <button type="button" class="cp-status-pill active" data-status="" role="tab" aria-selected="true">ทั้งหมด</button>
+        <button type="button" class="cp-status-pill" data-status="new" role="tab" aria-selected="false">ใหม่</button>
+        <button type="button" class="cp-status-pill" data-status="read" role="tab" aria-selected="false">อ่านแล้ว</button>
+        <button type="button" class="cp-status-pill" data-status="replied" role="tab" aria-selected="false">ติดต่อแล้ว</button>
+        <button type="button" class="cp-status-pill" data-status="won" role="tab" aria-selected="false">ปิดการขายได้</button>
+        <button type="button" class="cp-status-pill" data-status="lost" role="tab" aria-selected="false">ไม่สำเร็จ</button>
+      </section>
+
+      <!-- Bulk actions bar -->
+      <div class="cp-bulk-bar" id="ad-l-bulk-bar">
+        <span><strong id="ad-l-bulk-count">0</strong> รายการที่เลือก</span>
+        <button type="button" class="cp-bulk-clear" id="ad-l-bulk-clear">ล้างการเลือก</button>
+        <div class="cp-bulk-actions">
+          <select class="cp-bulk-select" id="ad-l-bulk-status-select" aria-label="เปลี่ยนสถานะเป็น...">
+            <option value="">เปลี่ยนสถานะเป็น...</option>
+            <option value="new">ใหม่</option>
+            <option value="read">อ่านแล้ว</option>
+            <option value="replied">ติดต่อแล้ว</option>
+            <option value="won">ปิดการขายได้</option>
+            <option value="lost">ไม่สำเร็จ</option>
+          </select>
+          <button type="button" class="cp-bulk-btn" id="ad-l-bulk-apply-status">เปลี่ยนสถานะ</button>
+          <button type="button" class="cp-bulk-btn danger" id="ad-l-bulk-delete">ลบที่เลือก</button>
+        </div>
+      </div>
+
+      <section class="cp-table-wrap">
+        <table class="cp-table">
+          <thead>
+            <tr>
+              <th class="cp-th-check"><input type="checkbox" class="cp-head-check" id="ad-l-head-check" aria-label="เลือกทั้งหมด"></th>
+              <th>วันที่</th>
+              <th>ชื่อ / บริษัท</th>
+              <th>ติดต่อกลับ</th>
+              <th>บริการที่สนใจ</th>
+              <th>ข้อความ</th>
+              <th>ช่องทาง</th>
+              <th>สถานะ</th>
+              <th>ผู้รับผิดชอบ</th>
+              <th>โน้ต</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ad-l-table-body">
+            <tr class="cp-skel-row"><td colspan="11"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="11"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="11"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="11"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="11"><div class="cp-skel" style="width:100%;"></div></td></tr>
+          </tbody>
+        </table>
+        <div class="cp-pagination" id="ad-l-pagination" style="display:none;">
+          <span class="cp-pagination-info" id="ad-l-pagination-info"></span>
+          <div class="cp-pagination-btns" id="ad-l-pagination-btns"></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============ LEAD NOTES MODAL ============ -->
+    <div class="cp-modal-overlay" id="ad-l-notes-overlay" style="display:none;">
+      <form class="cp-modal" id="ad-l-notes-form">
+        <div class="cp-modal-title">โน้ต — <span id="ad-l-notes-name"></span></div>
+        <input type="hidden" id="ad-l-notes-id">
+        <p class="cp-subtext" id="ad-l-notes-summary" style="margin:-8px 0 4px;"></p>
+        <textarea class="cl-input" id="ad-l-notes-text" aria-label="เช่น โทรคุยวันที่ ... เสนอราคา ... นัดโทรกลับวันที่ ..." rows="6"
+          placeholder="เช่น โทรคุยวันที่ ... เสนอราคา ... นัดโทรกลับวันที่ ..."></textarea>
+        <div class="cl-actions">
+          <button type="button" class="btn btn-secondary cl-btn" id="ad-l-notes-cancel">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary cl-btn">บันทึกโน้ต</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ============ CATEGORIES TAB ============ -->
+    <section id="ad-tab-categories" role="tabpanel" aria-labelledby="ad-tabbtn-categories" tabindex="0" style="display:none;">
+      <div class="cp-page-head">
+        <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 12 22l-9-9 8.59-8.59A2 2 0 0 1 13 4h6a1 1 0 0 1 1 1v6a2 2 0 0 1-.41 1.41Z"/><circle cx="15" cy="8" r="1"/></svg> การผลิต &amp; แคตตาล็อก</div>
+        <h1 class="cp-page-title">หมวดหมู่</h1>
+      </div>
+
+      <!-- ---- หมวดหมู่ใหญ่ (groups) ---- -->
+      <div class="cp-subsection-head">
+        <h2 class="cp-subsection-title">หมวดหมู่ใหญ่</h2>
+        <button type="button" class="btn btn-secondary cp-add-btn" id="ad-g-add-btn">+ เพิ่มหมวดหมู่ใหญ่</button>
+      </div>
+      <p class="ad-settings-desc" style="margin:-4px 0 12px;">
+        โครงสร้างหมวดหมู่เป็น 3 ชั้น: <strong>หมวดหมู่ใหญ่</strong> → หมวดหมู่ย่อย → รายการสินค้า
+        หมวดหมู่ใหญ่คือคอลัมน์บนสุดที่ใช้จัดกลุ่มหมวดหมู่ย่อยทั้งในเมนู "หมวดหมู่" และหน้าสินค้า
+      </p>
+      <section class="cp-table-wrap">
+        <table class="cp-table">
+          <thead><tr><th>ไอคอน</th><th>ชื่อหมวดหมู่ใหญ่</th><th>จำนวนหมวดหมู่ย่อย</th><th></th></tr></thead>
+          <tbody id="ad-g-table-body">
+            <tr class="cp-skel-row"><td colspan="4"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="4"><div class="cp-skel" style="width:100%;"></div></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ---- หมวดหมู่ย่อย (categories) ---- -->
+      <div class="cp-subsection-head" style="margin-top:28px;">
+        <h3 class="cp-subsection-title">หมวดหมู่ย่อย</h3>
+      </div>
+      <section class="cp-toolbar">
+        <input type="text" id="ad-c-search" aria-label="ค้นหาชื่อหมวดหมู่ / หมวดหมู่ใหญ่..." class="cl-input cp-search" placeholder="ค้นหาชื่อหมวดหมู่ / หมวดหมู่ใหญ่...">
+        <button class="btn btn-primary cp-add-btn" id="ad-c-add-btn">+ เพิ่มหมวดหมู่ย่อย</button>
+      </section>
+
+      <p class="ad-settings-desc" style="margin:-4px 0 12px;">
+        แต่ละหมวดหมู่ย่อยต้องอยู่ใต้หมวดหมู่ใหญ่หนึ่งรายการ — สินค้าจะถูกผูกกับหมวดหมู่ย่อยเสมอ (เหมือนเดิม)
+      </p>
+      <section class="cp-table-wrap">
+        <table class="cp-table">
+          <thead><tr><th>ไอคอน</th><th>ชื่อหมวดหมู่ย่อย</th><th>หมวดหมู่ใหญ่</th><th>คำอธิบาย</th><th></th></tr></thead>
+          <tbody id="ad-c-table-body">
+            <tr class="cp-skel-row"><td colspan="5"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="5"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="5"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="5"><div class="cp-skel" style="width:100%;"></div></td></tr>
+          </tbody>
+        </table>
+        <div class="cp-pagination" id="ad-c-pagination" style="display:none;">
+          <span class="cp-pagination-info" id="ad-c-pagination-info"></span>
+          <div class="cp-pagination-btns" id="ad-c-pagination-btns"></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============ PORTFOLIO TAB ============ -->
+    <section id="ad-tab-portfolio" role="tabpanel" aria-labelledby="ad-tabbtn-portfolio" tabindex="0" style="display:none;">
+      <div class="cp-page-head">
+        <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg> คอนเทนต์เว็บไซต์</div>
+        <h1 class="cp-page-title">ผลงาน</h1>
+      </div>
+      <section class="cp-toolbar">
+        <input type="text" id="ad-pf-search" aria-label="ค้นหาชื่อผลงาน / ลูกค้า..." class="cl-input cp-search" placeholder="ค้นหาชื่อผลงาน / ลูกค้า...">
+        <select id="ad-pf-filter-cat" aria-label="ทุกประเภทโครงการ" class="cl-input cp-filter">
+          <option value="">ทุกประเภทโครงการ</option>
+          <option value="factory">โรงงานอุตสาหกรรม</option>
+          <option value="government">ภาครัฐ</option>
+          <option value="industrial">นิคมอุตสาหกรรม</option>
+          <option value="custom">Custom Order</option>
+        </select>
+        <button class="btn btn-primary cp-add-btn" id="ad-pf-add-btn">+ เพิ่มผลงาน</button>
+      </section>
+
+      <!-- Bulk actions bar -->
+      <div class="cp-bulk-bar" id="ad-pf-bulk-bar">
+        <span><strong id="ad-pf-bulk-count">0</strong> รายการที่เลือก</span>
+        <button type="button" class="cp-bulk-clear" id="ad-pf-bulk-clear">ล้างการเลือก</button>
+        <div class="cp-bulk-actions">
+          <button type="button" class="cp-bulk-btn danger" id="ad-pf-bulk-delete">ลบที่เลือก</button>
+        </div>
+      </div>
+
+      <section class="ad-grid" id="ad-pf-grid">
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:50%"></div><div class="cp-skel" style="width:85%"></div><div class="cp-skel" style="width:65%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:50%"></div><div class="cp-skel" style="width:85%"></div><div class="cp-skel" style="width:65%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:50%"></div><div class="cp-skel" style="width:85%"></div><div class="cp-skel" style="width:65%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:50%"></div><div class="cp-skel" style="width:85%"></div><div class="cp-skel" style="width:65%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:50%"></div><div class="cp-skel" style="width:85%"></div><div class="cp-skel" style="width:65%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:50%"></div><div class="cp-skel" style="width:85%"></div><div class="cp-skel" style="width:65%"></div></div></div>
+      </section>
+      <div class="cp-pagination" id="ad-pf-pagination" style="display:none;">
+        <span class="cp-pagination-info" id="ad-pf-pagination-info"></span>
+        <div class="cp-pagination-btns" id="ad-pf-pagination-btns"></div>
+      </div>
+    </section>
+
+    <!-- ============ BLOG TAB ============ -->
+
+    <section id="ad-tab-blog" role="tabpanel" aria-labelledby="ad-tabbtn-blog" tabindex="0" style="display:none;">
+      <div class="cp-page-head">
+        <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h7"/></svg> คอนเทนต์เว็บไซต์</div>
+        <h1 class="cp-page-title">บทความ</h1>
+      </div>
+      <section class="cp-toolbar">
+        <input type="text" id="ad-b-search" aria-label="ค้นหาชื่อบทความ..." class="cl-input cp-search" placeholder="ค้นหาชื่อบทความ...">
+        <select id="ad-b-filter-status" aria-label="ทุกสถานะ" class="cl-input cp-filter">
+          <option value="">ทุกสถานะ</option>
+          <option value="published">เผยแพร่แล้ว</option>
+          <option value="draft">ฉบับร่าง</option>
+        </select>
+        <button class="btn btn-primary cp-add-btn" id="ad-b-add-btn">+ เพิ่มบทความ</button>
+      </section>
+
+      <!-- Bulk actions bar -->
+      <div class="cp-bulk-bar" id="ad-b-bulk-bar">
+        <span><strong id="ad-b-bulk-count">0</strong> รายการที่เลือก</span>
+        <button type="button" class="cp-bulk-clear" id="ad-b-bulk-clear">ล้างการเลือก</button>
+        <div class="cp-bulk-actions">
+          <select class="cp-bulk-select" id="ad-b-bulk-status-select" aria-label="เปลี่ยนสถานะเป็น...">
+            <option value="">เปลี่ยนสถานะเป็น...</option>
+            <option value="published">เผยแพร่แล้ว</option>
+            <option value="draft">ฉบับร่าง</option>
+          </select>
+          <button type="button" class="cp-bulk-btn" id="ad-b-bulk-apply-status">เปลี่ยนสถานะ</button>
+          <button type="button" class="cp-bulk-btn danger" id="ad-b-bulk-delete">ลบที่เลือก</button>
+        </div>
+      </div>
+
+      <section class="ad-grid" id="ad-b-grid">
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:40%"></div><div class="cp-skel" style="width:80%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:40%"></div><div class="cp-skel" style="width:80%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:40%"></div><div class="cp-skel" style="width:80%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:40%"></div><div class="cp-skel" style="width:80%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:40%"></div><div class="cp-skel" style="width:80%"></div></div></div>
+        <div class="cp-skel-card"><div class="cp-skel-thumb"></div><div class="cp-skel-body"><div class="cp-skel" style="width:40%"></div><div class="cp-skel" style="width:80%"></div></div></div>
+      </section>
+      <div class="cp-pagination" id="ad-b-pagination" style="display:none;">
+        <span class="cp-pagination-info" id="ad-b-pagination-info"></span>
+        <div class="cp-pagination-btns" id="ad-b-pagination-btns"></div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ TAB ============ -->
+    <section id="ad-tab-faq" role="tabpanel" aria-labelledby="ad-tabbtn-faq" tabindex="0" style="display:none;">
+      <div class="cp-page-head">
+        <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.5"/><path d="M12 17.5h.01"/></svg> คอนเทนต์เว็บไซต์</div>
+        <h1 class="cp-page-title">คำถามที่พบบ่อย</h1>
+      </div>
+      <section class="cp-toolbar">
+        <div style="flex:1;"></div>
+        <button class="btn btn-primary cp-add-btn" id="ad-f-add-btn">+ เพิ่มคำถาม</button>
+      </section>
+
+      <section class="cp-table-wrap">
+        <table class="cp-table">
+          <thead><tr><th>คำถาม</th><th>คำตอบ</th><th></th></tr></thead>
+          <tbody id="ad-f-table-body">
+            <tr class="cp-skel-row"><td colspan="3"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="3"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="3"><div class="cp-skel" style="width:100%;"></div></td></tr>
+          </tbody>
+        </table>
+        <div class="cp-pagination" id="ad-f-pagination" style="display:none;">
+          <span class="cp-pagination-info" id="ad-f-pagination-info"></span>
+          <div class="cp-pagination-btns" id="ad-f-pagination-btns"></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============ QUOTATIONS TAB — ใบเสนอราคา (P3.0 Phase 3) ============ -->
+    <section id="ad-tab-quotations" role="tabpanel" aria-labelledby="ad-tabbtn-quotations" tabindex="0" style="display:none;">
+      <div class="cp-page-head">
+        <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l3 3v17H6V5l3-3Z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg> การตลาด &amp; ลูกค้า</div>
+        <h1 class="cp-page-title">ใบเสนอราคา</h1>
+      </div>
+      <section class="cp-toolbar">
+        <p class="ad-settings-desc" style="flex:1;">ออกใบเสนอราคาให้ลูกค้า สร้างใหม่เองหรือสร้างจากคำขอที่ลูกค้าส่งเข้ามา</p>
+        <button class="cp-icon-text-btn" id="ad-q-export-csv-btn" title="ส่งออก CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Export CSV
+        </button>
+        <button class="btn" id="ad-q-add-from-request-btn">สร้างจากคำขอ</button>
+        <button class="btn btn-primary cp-add-btn" id="ad-q-add-btn">+ สร้างใบเสนอราคาใหม่</button>
+      </section>
+
+      <section class="cp-table-wrap">
+        <table class="cp-table">
+          <thead><tr><th>วันที่</th><th>เลขที่เอกสาร</th><th>ลูกค้า</th><th>ยอดสุทธิ</th><th>สถานะ</th><th></th></tr></thead>
+          <tbody id="ad-q-table-body">
+            <tr class="cp-skel-row"><td colspan="6"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="6"><div class="cp-skel" style="width:100%;"></div></td></tr>
+            <tr class="cp-skel-row"><td colspan="6"><div class="cp-skel" style="width:100%;"></div></td></tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+
+    <!-- ============ โมดัลเลือกคำขอใบเสนอราคา (P3.0 Phase 3 รอบย่อย 5, ปุ่ม "สร้างจากคำขอ") ============ -->
+    <div class="cp-modal-overlay" id="ad-qr-overlay" style="display:none;">
+      <div class="cp-modal ad-qr-picker-modal">
+        <div class="cp-modal-title">เลือกคำขอใบเสนอราคา</div>
+        <p class="ad-settings-desc">เลือกคำขอที่ลูกค้าส่งเข้ามาเพื่อนำข้อมูลลูกค้า/รายการสินค้ามาช่วยกรอกฟอร์ม (คำขอที่แปลงเป็นใบเสนอราคาไปแล้วจะไม่แสดงในรายการนี้)</p>
+        <section class="cp-table-wrap">
+          <table class="cp-table">
+            <thead><tr><th>วันที่</th><th>ลูกค้า</th><th>จำนวนรายการ</th><th></th></tr></thead>
+            <tbody id="ad-qr-list-body"></tbody>
+          </table>
+        </section>
+        <div class="cl-actions">
+          <button type="button" class="btn btn-secondary cl-btn" id="ad-qr-cancel">ปิด</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ฟอร์มสร้าง/แก้ไขใบเสนอราคา (P3.0 Phase 3 รอบย่อย 4) ============ -->
+    <div class="cp-modal-overlay" id="ad-q-overlay" style="display:none;">
+      <form class="cp-modal ad-q-form-modal cl-sticky-footer" id="ad-q-form">
+        <div class="cp-modal-title" id="ad-q-modal-title">สร้างใบเสนอราคาใหม่</div>
+
+        <!-- หมายเหตุ (redesign): เดิมหน้านี้แบ่งเป็น 3 แท็บที่มองเห็นได้ทีละหมวด ต้องกดสลับไปมา
+             ผู้ใช้ให้แก้ให้เห็นทุกหมวดพร้อมกันในหน้าเดียวโดยไม่ต้องเลื่อน/สลับแท็บอ่าน — ปุ่มแท็บเดิม
+             (.cp-od-tabs) เก็บ markup ไว้เผื่อ JS อ้างอิง data-od-tab แต่ซ่อนด้วย CSS
+             (.ad-q-form-modal .cp-od-tabs{display:none} ใน console.css) ส่วน .cp-od-panel ทุกหมวด
+             ถูกบังคับ display:flex ตลอดด้วย CSS เดียวกัน แล้วจัดเป็นกริด 2 คอลัมน์ผ่าน .ad-q-grid ด้านล่าง -->
+        <div class="cp-od-tabs" role="tablist" aria-label="หมวดข้อมูลใบเสนอราคา">
+          <button type="button" class="cp-od-tab active" data-od-tab="customer" role="tab" aria-selected="true">ข้อมูลลูกค้า</button>
+          <button type="button" class="cp-od-tab" data-od-tab="items" role="tab" aria-selected="false">รายการสินค้า</button>
+          <button type="button" class="cp-od-tab" data-od-tab="summary" role="tab" aria-selected="false">สรุปยอด &amp; หมายเหตุ</button>
+        </div>
+
+        <div class="ad-q-grid">
+          <!-- ── หมวด 1: ข้อมูลลูกค้า ── -->
+          <div class="cp-od-panel ad-q-panel-customer" data-od-panel="customer">
+            <div class="cp-od-panel-heading">ข้อมูลลูกค้า</div>
+            <div class="cp-modal-row">
+              <input class="cl-input" id="ad-q-billing-name" aria-label="ชื่อลูกค้า/บริษัท" placeholder="ชื่อลูกค้า/บริษัท" required>
+              <input class="cl-input" id="ad-q-contact-person" aria-label="ผู้ติดต่อ (ไม่บังคับ)" placeholder="ผู้ติดต่อ (ไม่บังคับ)">
+            </div>
+            <div class="cp-modal-row">
+              <input class="cl-input" id="ad-q-phone" aria-label="เบอร์โทร (ไม่บังคับ)" placeholder="เบอร์โทร (ไม่บังคับ)">
+              <select class="cl-input" id="ad-q-status" aria-label="สถานะ">
+                <option value="draft">ร่าง</option>
+                <option value="sent">ส่งลูกค้าแล้ว</option>
+                <option value="accepted">ลูกค้าตอบรับ</option>
+                <option value="rejected">ลูกค้าปฏิเสธ</option>
+                <option value="expired">หมดอายุ</option>
+              </select>
+            </div>
+            <textarea class="cl-input" id="ad-q-billing-address" aria-label="ที่อยู่ออกใบเสนอราคา (ไม่บังคับ)" placeholder="ที่อยู่ออกใบเสนอราคา (ไม่บังคับ)" rows="2"></textarea>
+          </div>
+
+          <!-- ── หมวด 3: สรุปยอด & หมายเหตุ ── -->
+          <div class="cp-od-panel ad-q-panel-summary" data-od-panel="summary">
+            <div class="cp-od-panel-heading">สรุปยอด &amp; หมายเหตุ</div>
+            <div class="cp-modal-row">
+              <select class="cl-input" id="ad-q-vat-mode" aria-label="เงื่อนไข VAT">
+                <option value="excluded">ราคายังไม่รวม VAT (บวกเพิ่ม 7%)</option>
+                <option value="included">ราคารวม VAT แล้ว</option>
+                <option value="none">ไม่มี VAT</option>
+              </select>
+              <!-- วันหมดอายุใบเสนอราคา (P3.0 Phase 6, badge ใกล้หมดอายุ) — ฟิลด์นี้มีอยู่แล้วใน schema
+              (js/db-quotations.js validUntil) และแสดงผลอยู่แล้วที่หน้า public (quotation-view.html
+              id="qv-valid-until") แต่ก่อนหน้านี้ไม่เคยมีช่องกรอกในฟอร์มแอดมินเลยสักจุด (ตรวจแล้วจริง
+              ด้วย grep ก่อนเพิ่ม) — ไม่บังคับกรอก (ถ้าเว้นว่างจะไม่มี badge เตือนหมดอายุที่ตารางรายการ
+              ดู js/admin-quotations.js quotationExpiryBadge()) -->
+              <input class="cl-input" type="date" id="ad-q-valid-until" aria-label="วันหมดอายุใบเสนอราคา (ไม่บังคับ)" placeholder="วันหมดอายุ">
+            </div>
+            <textarea class="cl-input" id="ad-q-notes" aria-label="หมายเหตุ (ไม่บังคับ)" placeholder="หมายเหตุ (ไม่บังคับ)" rows="2"></textarea>
+
+            <div class="ad-q-totals">
+              <div>ยอดรวมก่อน VAT: <span id="ad-q-subtotal">฿0</span></div>
+              <div>VAT: <span id="ad-q-vat">฿0</span></div>
+              <div class="ad-q-grandtotal">ยอดสุทธิ: <span id="ad-q-grandtotal">฿0</span></div>
+            </div>
+          </div>
+
+          <!-- ── หมวด 2: รายการสินค้า (กว้างเต็มที่ ไม่บีบคอลัมน์) ── -->
+          <div class="cp-od-panel ad-q-panel-items" data-od-panel="items">
+            <div class="cp-od-panel-heading">รายการสินค้า</div>
+            <div class="ad-q-items-wrap">
+              <table class="cp-table ad-q-items-table">
+                <thead><tr><th>ชื่อสินค้า</th><th>ตัวเลือก</th><th>จำนวน</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>ส่วนลด</th><th>รวม</th><th></th></tr></thead>
+                <tbody id="ad-q-items-body"></tbody>
+              </table>
+              <button type="button" class="ad-upload-btn" id="ad-q-add-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                เพิ่มรายการสินค้า
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-actions">
+          <button type="button" class="btn btn-secondary cl-btn" id="ad-q-cancel">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary cl-btn">บันทึก</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ============ SETTINGS TAB — ข้อมูลติดต่อ + แคตตาล็อก PDF ============ -->
+    <section id="ad-tab-settings" role="tabpanel" aria-labelledby="ad-tabbtn-settings" tabindex="0" style="display:none;">
+      <div class="cp-page-head">
+        <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg> ระบบ</div>
+        <h1 class="cp-page-title">ตั้งค่าเว็บไซต์</h1>
+      </div>
+
+      <!-- Sub-tabs: หน้านี้มีบล็อกตั้งค่าหลายเรื่อง แยกเป็นแท็บย่อยให้เห็นทีละเรื่อง
+           แทนการ์ดเรียงยาวให้เลื่อนหาเอง — กดสลับแท็บแล้วเห็นแค่เรื่องนั้นเรื่องเดียว
+           ใช้ง่ายขึ้นสำหรับคนที่ไม่คุ้นหน้าตั้งค่า -->
+      <div class="ad-settings-tabs" id="ad-settings-tabs" role="tablist" aria-label="หัวข้อตั้งค่า">
+        <button type="button" class="ad-settings-tab active" data-settings-tab="contact" id="ad-stabbtn-contact" role="tab" aria-selected="true" aria-controls="set-contact" tabindex="0">ข้อมูลติดต่อ</button>
+        <button type="button" class="ad-settings-tab" data-settings-tab="promo" id="ad-stabbtn-promo" role="tab" aria-selected="false" aria-controls="set-promo" tabindex="-1">โปรโมชั่น/ข่าว</button>
+        <button type="button" class="ad-settings-tab" data-settings-tab="videos" id="ad-stabbtn-videos" role="tab" aria-selected="false" aria-controls="set-videos" tabindex="-1">วิดีโอแนะนำ</button>
+        <span class="ad-settings-tabs-sep" aria-hidden="true"></span>
+        <button type="button" class="ad-settings-tab" data-settings-tab="team" id="ad-stabbtn-team" role="tab" aria-selected="false" aria-controls="set-team" tabindex="-1">ทีมงาน</button>
+        <button type="button" class="ad-settings-tab" data-settings-tab="staff" id="ad-stabbtn-staff" role="tab" aria-selected="false" aria-controls="set-staff" tabindex="-1">บัญชีผู้ใช้</button>
+        <span class="ad-settings-tabs-sep" aria-hidden="true"></span>
+        <button type="button" class="ad-settings-tab" data-settings-tab="audit" id="ad-stabbtn-audit" role="tab" aria-selected="false" aria-controls="set-audit" tabindex="-1">ประวัติการทำงาน</button>
+      </div>
+
+      <section class="ad-settings-card" id="set-contact" role="tabpanel" aria-labelledby="ad-stabbtn-contact" tabindex="0">
+        <div class="ad-settings-title">
+          ข้อมูลติดต่อ — ใช้ทั่วทั้งเว็บไซต์
+          <button type="button" class="ad-help-toggle" data-help-toggle aria-expanded="false" title="วิธีใช้">?</button>
+        </div>
+        <p class="ad-settings-desc ad-settings-help" hidden>
+          แก้ค่าตรงนี้จุดเดียว ระบบจะอัปเดตเบอร์โทร/LINE/อีเมล/ที่อยู่ ให้ตรงกันทุกหน้าโดยอัตโนมัติ
+          (หน้าแรก, ฟุตเตอร์ทุกหน้า, ปุ่มแชท, ป๊อปอัปขอใบเสนอราคา ฯลฯ) ไม่ต้องแก้โค้ดทีละหน้าอีกต่อไป
+        </p>
+        <form id="ad-s-form" class="ad-settings-form">
+          <div class="cp-modal-row">
+            <div class="ad-field"><label for="ad-s-phone">เบอร์โทรหลัก</label><input class="cl-input" id="ad-s-phone" placeholder="เช่น 062-883-3880"></div>
+            <div class="ad-field"><label for="ad-s-phone2">เบอร์โทรสำรอง (ไม่บังคับ)</label><input class="cl-input" id="ad-s-phone2" placeholder=""></div>
+          </div>
+          <div class="cp-modal-row">
+            <div class="ad-field"><label for="ad-s-fax">โทรสาร (Fax)</label><input class="cl-input" id="ad-s-fax" placeholder=""></div>
+            <div class="ad-field"><label for="ad-s-email">อีเมล</label><input class="cl-input" id="ad-s-email" type="email" placeholder="เช่น cssigngroup@gmail.com"></div>
+          </div>
+          <div class="cp-modal-row">
+            <div class="ad-field"><label for="ad-s-line-url">ลิงก์ LINE</label><input class="cl-input" id="ad-s-line-url" placeholder="เช่น https://line.me/ti/p/@cssigngroup"></div>
+            <div class="ad-field"><label for="ad-s-facebook-url">ลิงก์ Facebook เพจ</label><input class="cl-input" id="ad-s-facebook-url" placeholder=""></div>
+          </div>
+          <div class="ad-field"><label for="ad-s-address">ที่อยู่บริษัท</label><textarea class="cl-input" id="ad-s-address" rows="2"></textarea></div>
+          <div class="cl-actions">
+            <button type="submit" class="btn btn-primary cl-btn">บันทึกข้อมูลติดต่อ</button>
+          </div>
+          <div class="ad-upload-status" id="ad-s-status"></div>
+        </form>
+      </section>
+
+      <section class="ad-settings-card" id="set-promo" role="tabpanel" aria-labelledby="ad-stabbtn-promo" tabindex="0" hidden>
+        <div class="ad-settings-title">
+          โปรโมชั่น &amp; ข่าวอัพเดตล่าสุด — หน้าแรก
+          <button type="button" class="ad-help-toggle" data-help-toggle aria-expanded="false" title="วิธีใช้">?</button>
+        </div>
+        <p class="ad-settings-desc ad-settings-help" hidden>
+          รูปที่อัปโหลดตรงนี้จะไปแสดงเป็นคารูเซลพรีเมียมในหน้าแรก แสดงทีละ 3 รูป (อันกลางใหญ่ที่สุด ซ้าย-ขวาเล็กเท่ากัน)
+          เลื่อนสไลด์อัตโนมัติทุก 5 วินาที รูปจะแสดงเต็มภาพโดยไม่ครอบตัด ใส่ชื่อหัวข้อ/ลิงก์ให้แต่ละรูปได้ (ไม่บังคับ)
+          อัปโหลดได้สูงสุด 10 รูป เรียงลำดับตามที่อัปโหลด ถ้ายังไม่อัปโหลดรูปไว้เลย หน้าแรกจะขึ้นข้อความ "รออัพเดต" แทน
+        </p>
+        <div class="ad-img-grid ad-promo-grid" id="ad-promo-images"></div>
+        <label class="ad-upload-btn" id="ad-promo-upload-label">
+          <input type="file" id="ad-promo-upload" accept="image/*" multiple hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          อัปโหลดรูปโปรโมชั่น/ข่าว (สูงสุด 10 รูป)
+        </label>
+        <div class="ad-upload-status" id="ad-promo-upload-status"></div>
+        <div class="cl-actions" style="margin-top:12px;">
+          <button type="button" id="ad-promo-save" class="btn btn-primary cl-btn">บันทึกโปรโมชั่น/ข่าวอัพเดต</button>
+        </div>
+        <div class="ad-upload-status" id="ad-promo-status"></div>
+      </section>
+
+      <section class="ad-settings-card" id="set-videos" role="tabpanel" aria-labelledby="ad-stabbtn-videos" tabindex="0" hidden>
+        <div class="ad-settings-title">
+          วิดีโอแนะนำสินค้า — หน้าแรก (สูงสุด 10 คลิป)
+          <button type="button" class="ad-help-toggle" data-help-toggle aria-expanded="false" title="วิธีใช้">?</button>
+        </div>
+        <p class="ad-settings-desc ad-settings-help" hidden>
+          หน้าแรกจะแสดงเป็นการ์ดวิดีโอแนวตั้งเลื่อนได้ทีละ 3 คลิป (อันกลางเล่นอัตโนมัติ อันข้างๆ หรี่ไว้) เรียงตามลำดับด้านล่างนี้
+          — เพิ่มได้สูงสุด 10 คลิป แต่ละคลิปอัปโหลดไฟล์วิดีโอโดยตรงได้เลย หรือวางลิงก์ YouTube แทนก็ได้ พร้อมรูปปก (ถ้าเป็น
+          YouTube ไม่ใส่รูปปกก็ได้ ระบบจะดึงภาพปกให้อัตโนมัติ) ใช้ปุ่ม ↑ ↓ จัดลำดับก่อน-หลังในการเลื่อนชม ถ้ายังไม่มีคลิปเลย
+          หน้าแรกจะขึ้นข้อความ "รออัพเดต" แทน
+        </p>
+        <div id="ad-videos-list"></div>
+        <div class="cl-actions" style="margin-top:12px;">
+          <button type="button" id="ad-videos-add" class="btn btn-secondary cl-btn">+ เพิ่มวิดีโอ</button>
+          <button type="button" id="ad-videos-save" class="btn btn-primary cl-btn">บันทึกวิดีโอแนะนำสินค้า</button>
+        </div>
+        <div class="ad-upload-status" id="ad-videos-status"></div>
+      </section>
+
+      <section class="ad-settings-card" id="set-team" role="tabpanel" aria-labelledby="ad-stabbtn-team" tabindex="0" hidden>
+        <div class="ad-settings-title">
+          ทีมงาน — รายชื่อผู้รับผิดชอบลีด
+          <button type="button" class="ad-help-toggle" data-help-toggle aria-expanded="false" title="วิธีใช้">?</button>
+        </div>
+        <p class="ad-settings-desc ad-settings-help" hidden>
+          เพิ่มรายชื่อพนักงานไว้ที่นี่เพื่อเลือกเป็น "ผู้รับผิดชอบ" ให้ลีดแต่ละรายการในแท็บลีดได้
+          (รายชื่อสำหรับ dropdown เท่านั้น — ไม่ใช่บัญชีล็อกอิน ดูหัวข้อ "บัญชีผู้ใช้ทีมงาน" ด้านล่างสำหรับสิทธิ์เข้าระบบจริง)
+        </p>
+        <form id="ad-team-form" class="cp-modal-row" style="margin-bottom:12px;">
+          <div class="ad-field"><label for="ad-team-input">ชื่อพนักงานใหม่</label><input class="cl-input" id="ad-team-input" placeholder="เช่น สมชาย ใจดี"></div>
+          <button type="submit" class="btn btn-secondary cl-btn" style="align-self:flex-end;">เพิ่มชื่อ</button>
+        </form>
+        <div id="ad-team-list" class="ad-team-list"></div>
+
+        <!-- ============ CRM automation (Phase 3): มอบหมายลีดใหม่ให้ทีมงานที่มีรายชื่อด้านบน
+             แบบ round-robin อัตโนมัติทันทีที่เข้ามา (js/admin-leads-automation.js) + ตั้งค่าจำนวน
+             วันที่ถ้าลีดไม่มีการอัปเดตโน้ต/สถานะจะขึ้น badge "ค้างนาน" เตือนในตารางลีด (ดู
+             getStaleLeadReminders() ใน js/admin-leads.js) — ตั้งค่าได้ที่นี่ ไม่ hardcode ============ -->
+        <div class="ad-settings-title" style="margin-top:24px;">แจ้งเตือนลีดค้างนาน</div>
+        <p class="ad-settings-desc">
+          ลีดที่เข้ามาใหม่จะถูกมอบหมายให้ทีมงานในรายชื่อด้านบนแบบวนรอบ (round-robin) อัตโนมัติ
+          ทันทีที่เข้ามา (ต้องมีคนเปิดหน้านี้ค้างอยู่ระบบถึงจะทำงาน) — ส่วนช่องด้านล่างนี้ตั้งค่าว่า
+          ถ้าลีดที่ยังไม่ปิดจบไม่มีการอัปเดตโน้ต/สถานะนานเกินกี่วัน จะขึ้นป้าย "⏰ ค้างนาน" เตือนใน
+          ตารางลีด
+        </p>
+        <form id="ad-lead-reminder-form" class="cp-modal-row">
+          <div class="ad-field"><label for="ad-lead-reminder-days">แจ้งเตือนถ้าไม่อัปเดตเกิน (วัน)</label><input class="cl-input" type="number" min="1" step="1" id="ad-lead-reminder-days" style="max-width:120px;"></div>
+          <button type="submit" class="btn btn-secondary cl-btn" style="align-self:flex-end;">บันทึก</button>
+        </form>
+
+      </section>
+
+      <section class="ad-settings-card" id="set-staff" role="tabpanel" aria-labelledby="ad-stabbtn-staff" tabindex="0" hidden>
+        <div class="ad-settings-title">
+          บัญชีผู้ใช้ทีมงาน — สิทธิ์แยกรายคน (ฟรี ไม่ต้องผูกบัตร)
+          <button type="button" class="ad-help-toggle" data-help-toggle aria-expanded="false" title="วิธีใช้">?</button>
+        </div>
+        <p class="ad-settings-desc ad-settings-help" hidden>
+          ทุกคนยัง login ด้วยบัญชี Firebase Auth ของตัวเองเหมือนเดิม แต่ตอนนี้แยก "บทบาท" ได้:
+          <b>admin</b> แก้ไข/ลบได้ทุกอย่าง, <b>staff</b> แก้ไขได้แต่ <u>ลบไม่ได้</u> (เช่น ลบสินค้า/ผลงาน/บทความ/ลีด/คำสั่งผลิต),
+          <b>production</b> (พนักงานหน้างานผลิต) สิทธิ์แก้ไขเหมือน staff แต่หลัง login จะ<u>เห็นแค่แท็บคำสั่งผลิตแท็บเดียว</u>
+          ไม่เห็นแท็บตั้งค่า/สินค้า/บล็อก/SEO ฯลฯ เพื่อไม่ให้หน้าจอรกสำหรับพนักงานที่ไม่เก่ง IT<br>
+          วิธีเพิ่มพนักงานคนใหม่ (ทำครั้งเดียว ไม่มีค่าใช้จ่าย): ไปที่ Firebase Console → Authentication → Add user
+          กรอกอีเมล/รหัสผ่าน แล้วคัดลอก UID ที่ได้มาใส่ในฟอร์มด้านล่าง
+        </p>
+        <form id="ad-staff-form" style="margin-bottom:12px;">
+          <div class="cp-modal-row" style="flex-wrap:wrap; margin-bottom:10px;">
+            <div class="ad-field" style="min-width:180px;"><label for="ad-staff-uid">UID จาก Firebase Console</label><input class="cl-input" id="ad-staff-uid"></div>
+            <div class="ad-field" style="min-width:140px;"><label for="ad-staff-name">ชื่อพนักงาน</label><input class="cl-input" id="ad-staff-name"></div>
+          </div>
+          <div class="cp-modal-row" style="flex-wrap:wrap;">
+            <div class="ad-field" style="min-width:160px;"><label for="ad-staff-email">อีเมล (ใช้แสดงผลเฉยๆ)</label><input class="cl-input" id="ad-staff-email"></div>
+            <div class="ad-field" style="max-width:150px;"><label for="ad-staff-role">บทบาท</label>
+              <select class="cl-input" id="ad-staff-role">
+                <option value="staff">staff</option>
+                <option value="admin">admin</option>
+                <option value="production">production</option>
+              </select>
+            </div>
+          </div>
+          <div class="cl-actions" style="margin-top:10px;">
+            <button type="submit" class="btn btn-secondary cl-btn">บันทึกสิทธิ์</button>
+          </div>
+        </form>
+        <div id="ad-staff-list" class="ad-team-list"></div>
+        <p class="ad-settings-desc" style="margin-top:10px;">
+          หมายเหตุ: ถ้ายังไม่เคยเพิ่มใครไว้ในนี้เลย ทุกบัญชีที่ล็อกอินได้จะยังลบข้อมูลได้ตามเดิม (ค่าเริ่มต้น = admin)
+          เพื่อกันบัญชีเดิมถูกล็อกออกจากของตัวเอง — เพิ่มพนักงานคนแรกเป็น admin ก่อน แล้วค่อยเพิ่มคนอื่นเป็น staff
+        </p>
+      </section>
+
+      <section class="ad-settings-card" id="set-audit" role="tabpanel" aria-labelledby="ad-stabbtn-audit" tabindex="0" hidden>
+        <div class="ad-settings-title">
+          ประวัติการทำงาน (Audit Log)
+          <button type="button" class="ad-help-toggle" data-help-toggle aria-expanded="false" title="วิธีใช้">?</button>
+        </div>
+        <p class="ad-settings-desc ad-settings-help" hidden>
+          บันทึกอัตโนมัติทุกครั้งที่มีการ <b>ลบ</b> ข้อมูล หรือแก้ไขรายชื่อทีมงาน/สิทธิ์ผู้ใช้ — ดูได้เฉพาะบัญชีที่มีบทบาท admin
+          กดตัวกรองด้านล่างเพื่อดูเฉพาะการกระทำ/คน/ช่วงวันที่ที่ต้องการ
+        </p>
+        <div class="ad-audit-filters">
+          <div class="ad-field"><label for="ad-audit-filter-action">การกระทำ</label>
+            <select id="ad-audit-filter-action" class="cl-input cp-filter">
+              <option value="">ทุกการกระทำ</option>
+              <option value="create">เพิ่ม</option>
+              <option value="update">แก้ไข</option>
+              <option value="delete">ลบ</option>
+            </select>
+          </div>
+          <div class="ad-field"><label for="ad-audit-filter-user">คน</label>
+            <select id="ad-audit-filter-user" class="cl-input cp-filter">
+              <option value="">ทุกคน</option>
+            </select>
+          </div>
+          <div class="ad-field"><label for="ad-audit-filter-from">ตั้งแต่วันที่</label>
+            <input type="date" id="ad-audit-filter-from" class="cl-input cp-filter">
+          </div>
+          <div class="ad-field"><label for="ad-audit-filter-to">ถึงวันที่</label>
+            <input type="date" id="ad-audit-filter-to" class="cl-input cp-filter">
+          </div>
+          <button type="button" id="ad-audit-filter-clear" class="cp-icon-text-btn ad-audit-filters-clear" title="ล้างตัวกรอง">ล้างตัวกรอง</button>
+        </div>
+        <div class="cl-actions" style="margin:6px 0 12px;">
+          <button type="button" id="ad-audit-refresh" class="btn btn-secondary cl-btn">โหลดล่าสุด</button>
+          <button type="button" id="ad-audit-export" class="btn btn-secondary cl-btn">ส่งออก CSV</button>
+        </div>
+        <div id="ad-audit-list-count" class="ad-settings-desc" style="margin-bottom:6px;"></div>
+        <div id="ad-audit-list" class="ad-audit-list"></div>
+      </section>
+    </section>
+    </div>
+  </div>
+  </main>
+</div>
+
+<!-- รายการประเภทป้าย/บริการทั้งหมด — ใช้แนะนำตอนตั้งชื่อหมวดหมู่ / แท็กผลงาน ให้ครอบคลุมทุกประเภท -->
+<datalist id="ad-sign-types">
+  <option value="ป้ายความปลอดภัย (Safety Sign)">
+  <option value="ป้ายเตือนอันตราย (Warning Sign)">
+  <option value="ป้ายบังคับ / ห้าม (Prohibition Sign)">
+  <option value="ป้ายบังคับให้ปฏิบัติ (Mandatory Sign)">
+  <option value="ป้ายทางหนีไฟ / อพยพฉุกเฉิน (Exit & Emergency)">
+  <option value="ป้ายดับเพลิง (Fire Equipment Sign)">
+  <option value="ป้ายจราจร (Traffic Sign)">
+  <option value="ป้ายชี้ทาง / บอกทิศทาง (Directional Sign)">
+  <option value="ป้ายชี้บ่งพื้นที่ / โซนนิ่ง (Zoning Sign)">
+  <option value="ป้าย 5ส (5S Signage)">
+  <option value="ป้ายสารเคมีอันตราย (Chemical Hazard Sign)">
+  <option value="ป้ายไฟฟ้าแรงสูง (High Voltage Warning)">
+  <option value="ป้ายอาคาร / หน้าร้าน (Building & Storefront Sign)">
+  <option value="ป้ายอาคารจอดรถ (Parking Sign)">
+  <option value="ป้ายโฆษณา / Billboard">
+  <option value="ป้าย LED / ดิจิทัล (Digital Signage)">
+  <option value="สติกเกอร์ / ฉลากติดสินค้า (Sticker & Label)">
+  <option value="ป้ายอะคริลิค (Acrylic Sign)">
+  <option value="ป้ายสะท้อนแสง (Reflective Sign)">
+  <option value="ป้ายมาตรฐาน มอก.">
+  <option value="งานออกแบบ Artwork">
+  <option value="งานติดตั้งหน้างาน (Installation Service)">
+  <option value="งาน Custom Order ตามแบบลูกค้า">
+</datalist>
+
+<!-- ============ ADD/EDIT PRODUCT MODAL — จัดเป็น 4 หมวด (ข้อมูลพื้นฐาน/ราคา&ตัวเลือก/รูปภาพ/
+     SEO ขั้นสูง) แทนฟอร์มยาวเดียวเดิม แพทเทิร์นเดียวกับป๊อปอัพคำสั่งผลิต (cp-order-overlay): บนจอกว้าง
+     ทุกหมวดแสดงพร้อมกันเป็นการ์ดใน multi-column แบบ balance อัตโนมัติ (คลาส .cp-od-gridview บนฟอร์ม +
+     .ad-p-modal-grid ครอบ 4 หมวด) ไม่ต้องสลับแท็บ จอแคบยุบเหลือคอลัมน์เดียว — ดูคลาส CSS ที่เกี่ยวข้อง
+     ใน css/console.css หัวข้อ "Order/Product popup — คอลัมน์แบบ balance อัตโนมัติ" (ใช้
+     .cp-od-tabs/.cp-od-panel ร่วมกับป๊อปอัพคำสั่งผลิต เป็นคลาสกลาง ไม่ผูกกับฟอร์มใดฟอร์มหนึ่งโดยเฉพาะ) ============ -->
+<div class="cp-modal-overlay" id="ad-p-overlay" style="display:none;">
+  <form class="cp-modal ad-modal-wide cl-sticky-footer cp-order-detail cp-od-gridview" id="ad-p-form">
+    <div class="cp-modal-title" id="ad-p-modal-title">เพิ่มสินค้า</div>
+    <input type="hidden" id="ad-p-id">
+
+    <!-- แถบแท็บนี้ยังอยู่ในโค้ด (ใช้ตอนจอแคบ/มือถือที่กลับไปแสดงทีละหมวด — ดู CSS
+         "Order/Product popup — ให้เห็นทุกหมวดพร้อมกันในจอกว้าง" ใน console.css) แต่บนจอกว้าง
+         จะถูกซ่อนไว้ เพราะทุกหมวดเห็นพร้อมกันในกริดด้านล่างอยู่แล้ว ไม่ต้องสลับแท็บอีก -->
+    <div class="cp-od-tabs" role="tablist" aria-label="หมวดข้อมูลสินค้า">
+      <button type="button" class="cp-od-tab active" data-od-tab="basic" role="tab" aria-selected="true">ข้อมูลพื้นฐาน</button>
+      <button type="button" class="cp-od-tab" data-od-tab="pricing" role="tab" aria-selected="false">ราคา &amp; ตัวเลือก</button>
+      <button type="button" class="cp-od-tab" data-od-tab="images" role="tab" aria-selected="false">รูปภาพ</button>
+      <button type="button" class="cp-od-tab" data-od-tab="seo" role="tab" aria-selected="false">SEO ขั้นสูง</button>
+    </div>
+
+    <div class="ad-p-modal-grid">
+    <!-- ── หมวด 1: ข้อมูลพื้นฐาน ── -->
+    <div class="cp-od-panel active ad-p-panel-basic" data-od-panel="basic">
+      <div class="cp-od-panel-heading">ข้อมูลพื้นฐาน</div>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="ad-p-name" aria-label="ชื่อสินค้า" placeholder="ชื่อสินค้า *" required>
+        <input class="cl-input" id="ad-p-code" aria-label="รหัสสินค้า (ไม่บังคับ)" placeholder="รหัสสินค้า (ไม่บังคับ)">
+      </div>
+      <div class="cp-modal-row">
+        <select class="cl-input" id="ad-p-cat" aria-label="หมวดหมู่สินค้า" required></select>
+        <select class="cl-input" id="ad-p-status" aria-label="สถานะการแสดงผลสินค้า">
+          <option value="active">แสดงบนเว็บไซต์</option>
+          <option value="hidden">ซ่อนจากเว็บไซต์</option>
+        </select>
+      </div>
+      <textarea class="cl-input" id="ad-p-desc" aria-label="รายละเอียดสินค้า" placeholder="รายละเอียดสินค้า" rows="3"></textarea>
+
+      <label class="cp-checkbox ad-p-featured-toggle" for="ad-p-featured">
+        <input type="checkbox" id="ad-p-featured">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.6 4.9H19l-4 3 1.5 5L12 12l-4.5 3 1.5-5-4-3h5.4z"/></svg>
+        <span>ติดดาวเป็นสินค้าแนะนำ — แสดงในหน้าแรกของเว็บไซต์</span>
+      </label>
+    </div>
+
+    <!-- ── หมวด 2: ราคา & ตัวเลือกสินค้า (เรียงก่อน "รูปภาพ" เพราะเป็นลำดับที่กรอกต่อจากข้อมูลพื้นฐานจริง) ── -->
+    <div class="cp-od-panel ad-p-panel-pricing" data-od-panel="pricing">
+      <div class="cp-od-panel-heading">ราคา &amp; ตัวเลือก</div>
+      <div class="cp-modal-row">
+        <div id="ad-p-price-wrap">
+          <input class="cl-input" type="number" min="0" id="ad-p-price" aria-label="ราคา (บาท)" placeholder="ราคา (บาท)">
+        </div>
+        <input class="cl-input" id="ad-p-unit" aria-label="หน่วย เช่น ชิ้น, ตร.ม." placeholder="หน่วย เช่น ชิ้น, ตร.ม.">
+      </div>
+      <div class="ad-img-label" id="ad-p-price-hint" style="display:none;">ใช้ราคาต่ำสุดจากตารางตัวเลือกแทนอัตโนมัติ</div>
+
+      <div class="cp-modal-row" id="ad-p-legacy-row">
+        <input class="cl-input" id="ad-p-material" aria-label="วัสดุ (ไม่บังคับ)" placeholder="วัสดุ (ไม่บังคับ)">
+        <input class="cl-input" id="ad-p-size" aria-label="ขนาด (ไม่บังคับ)" placeholder="ขนาด (ไม่บังคับ)">
+      </div>
+
+      <div class="ad-axes-section">
+        <div class="ad-img-label">มีหลายแบบ/หลายราคา? เพิ่มทีละหมวด เช่น "ขนาด", "เกรด", "วัสดุรองหลัง" — ระบบคูณทุกหมวดเป็นตารางราคาให้เอง</div>
+        <div class="ad-axes-box" id="ad-p-axes"></div>
+        <button type="button" class="ad-upload-btn ad-axis-add-btn" id="ad-p-axis-add">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          เพิ่มหมวดตัวเลือก
+        </button>
+
+        <div class="ad-img-label" id="ad-p-variant-label" style="display:none;margin-top:14px;">ตารางราคา</div>
+        <div class="ad-variant-builder" id="ad-p-variant-builder"></div>
+        <div class="ad-variant-table-wrap" id="ad-p-variant-table"></div>
+      </div>
+    </div>
+
+    <!-- ── หมวด 3: รูปภาพ ── -->
+    <div class="cp-od-panel ad-p-panel-images" data-od-panel="images">
+      <div class="cp-od-panel-heading">รูปภาพ</div>
+      <div class="ad-img-label">รูปภาพสินค้า</div>
+      <div class="ad-img-grid" id="ad-p-images"></div>
+      <label class="ad-upload-btn">
+        <input type="file" id="ad-p-upload" accept="image/*" multiple hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        อัปโหลดรูปภาพ
+      </label>
+      <div class="ad-upload-status" id="ad-p-upload-status"></div>
+    </div>
+
+    <!-- ── หมวด 4: SEO ขั้นสูง (ไม่บังคับกรอก) ── -->
+    <div class="cp-od-panel ad-p-panel-seo" data-od-panel="seo">
+      <div class="cp-od-panel-heading">SEO ขั้นสูง</div>
+      <div class="ad-img-label">slug (เว้นว่างให้สร้างอัตโนมัติจากชื่อสินค้า)</div>
+      <input class="cl-input" id="ad-p-slug" aria-label="slug (เว้นว่างให้สร้างอัตโนมัติ)" placeholder="slug (เว้นว่างให้สร้างอัตโนมัติ)">
+      <div class="ad-img-label">Meta title/description ของหน้าสินค้า (เว้นว่างได้)</div>
+      <input class="cl-input" id="ad-p-meta-title" aria-label="Meta title สำหรับสินค้านี้" placeholder="Meta title สำหรับสินค้านี้" maxlength="70">
+      <div class="ad-char-count" id="ad-p-meta-title-count">0 / 70</div>
+      <textarea class="cl-input" id="ad-p-meta-desc" aria-label="Meta description สำหรับสินค้านี้" placeholder="Meta description สำหรับสินค้านี้" rows="2" maxlength="160"></textarea>
+      <div class="ad-char-count" id="ad-p-meta-desc-count">0 / 160</div>
+    </div>
+    </div><!-- /.ad-p-modal-grid -->
+
+    <div class="cl-actions">
+      <button type="button" class="btn btn-secondary cl-btn" id="ad-p-cancel">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary cl-btn">บันทึก</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ นำเข้าสินค้าจาก CSV — ตัวอย่างก่อนยืนยัน ============ -->
+<div class="cp-modal-overlay" id="ad-p-import-overlay" style="display:none;">
+  <div class="cp-modal ad-modal-wide">
+    <div class="cp-modal-title">ตรวจสอบก่อนนำเข้าสินค้าจาก CSV</div>
+    <p class="ad-import-sub" id="ad-p-import-summary">กำลังอ่านไฟล์...</p>
+    <div class="cp-table-wrap ad-import-table-wrap">
+      <table class="cp-table">
+        <thead>
+          <tr>
+            <th>แถวที่</th>
+            <th>รหัสสินค้า</th>
+            <th>ชื่อสินค้า</th>
+            <th>หมวดหมู่</th>
+            <th>ราคา</th>
+            <th>สถานะการนำเข้า</th>
+          </tr>
+        </thead>
+        <tbody id="ad-p-import-table-body"></tbody>
+      </table>
+    </div>
+    <div class="cl-actions">
+      <button type="button" class="btn btn-secondary cl-btn" id="ad-p-import-cancel">ยกเลิก</button>
+      <button type="button" class="btn btn-primary cl-btn" id="ad-p-import-confirm">ยืนยันนำเข้า</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VIEW PRODUCT GALLERY (popup รูปภาพสินค้าแนะนำ) ============ -->
+<div class="cp-modal-overlay" id="ad-p-view-overlay" style="display:none;">
+  <div class="cp-modal ad-modal-wide ad-pf-view">
+    <button type="button" class="ad-pf-view-close" id="ad-p-view-close" aria-label="ปิด">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="ad-pf-view-media">
+      <img src="" alt="" id="ad-p-view-img">
+      <div class="ad-pf-view-badge" id="ad-p-view-badge"></div>
+      <div class="ad-pf-view-pin" id="ad-p-view-pin" title="สินค้าแนะนำ">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M12 2l1.6 4.9H19l-4 3 1.5 5L12 12l-4.5 3 1.5-5-4-3h5.4z"/></svg>
+        สินค้าแนะนำ
+      </div>
+    </div>
+    <div class="ad-pf-view-thumbs" id="ad-p-view-thumbs"></div>
+    <div class="ad-pf-view-info">
+      <div class="ad-pf-view-client" id="ad-p-view-cat"></div>
+      <h2 id="ad-p-view-title"></h2>
+      <p id="ad-p-view-desc"></p>
+      <div class="ad-pf-view-tags" id="ad-p-view-meta"></div>
+      <div class="cl-actions" style="margin-top:18px;">
+        <button type="button" class="btn btn-secondary cl-btn" id="ad-p-view-edit">แก้ไขสินค้านี้</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============ ADD/EDIT CATEGORY (หมวดหมู่ย่อย) MODAL ============ -->
+<div class="cp-modal-overlay" id="ad-c-overlay" style="display:none;">
+  <form class="cp-modal" id="ad-c-form">
+    <div class="cp-modal-title" id="ad-c-modal-title">เพิ่มหมวดหมู่ย่อย</div>
+    <input type="hidden" id="ad-c-id">
+    <input class="cl-input" id="ad-c-name" aria-label="ชื่อหมวดหมู่ย่อย" placeholder="ชื่อหมวดหมู่ย่อย" list="ad-sign-types" required>
+    <select class="cl-input" id="ad-c-group" aria-label="หมวดหมู่ใหญ่" required></select>
+    <button type="button" class="btn btn-secondary cl-btn" id="ad-c-group-new-btn" style="align-self:flex-start;">+ เพิ่มหมวดหมู่ใหญ่ใหม่</button>
+    <input class="cl-input" id="ad-c-icon" aria-label="ไอคอน (emoji เช่น 🏷️ หรือไม่ใส่ก็ได้)" placeholder="ไอคอน (emoji เช่น 🏷️ หรือไม่ใส่ก็ได้)">
+    <textarea class="cl-input" id="ad-c-desc" aria-label="คำอธิบายสั้นๆ" placeholder="คำอธิบายสั้นๆ" rows="2"></textarea>
+    <div class="cl-actions">
+      <button type="button" class="btn btn-secondary cl-btn" id="ad-c-cancel">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary cl-btn">บันทึก</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ ADD/EDIT GROUP (หมวดหมู่ใหญ่) MODAL ============ -->
+<div class="cp-modal-overlay" id="ad-g-overlay" style="display:none;">
+  <form class="cp-modal" id="ad-g-form">
+    <div class="cp-modal-title" id="ad-g-modal-title">เพิ่มหมวดหมู่ใหญ่</div>
+    <input type="hidden" id="ad-g-id">
+    <input class="cl-input" id="ad-g-name" aria-label="ชื่อหมวดหมู่ใหญ่ เช่น ป้ายความปลอดภัย" placeholder="ชื่อหมวดหมู่ใหญ่ เช่น ป้ายความปลอดภัย" required>
+    <input class="cl-input" id="ad-g-icon" aria-label="ไอคอน (emoji เช่น 🏷️ หรือไม่ใส่ก็ได้)" placeholder="ไอคอน (emoji เช่น 🏷️ หรือไม่ใส่ก็ได้)">
+    <div class="cl-actions">
+      <button type="button" class="btn btn-secondary cl-btn" id="ad-g-cancel">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary cl-btn">บันทึก</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ ADD/EDIT PORTFOLIO MODAL ============ -->
+<div class="cp-modal-overlay" id="ad-pf-overlay" style="display:none;">
+  <form class="cp-modal ad-modal-wide" id="ad-pf-form">
+    <div class="cp-modal-title" id="ad-pf-modal-title">เพิ่มผลงาน</div>
+    <input type="hidden" id="ad-pf-id">
+
+    <div class="ad-img-label">ข้อมูลโครงการ</div>
+    <div class="cp-modal-row">
+      <input class="cl-input" id="ad-pf-title" aria-label="ชื่อโครงการ / ผลงาน" placeholder="ชื่อโครงการ / ผลงาน" required>
+      <input class="cl-input" id="ad-pf-client" aria-label="ชื่อลูกค้า / หน่วยงาน" placeholder="ชื่อลูกค้า / หน่วยงาน">
+    </div>
+    <select class="cl-input" id="ad-pf-cat" aria-label="ประเภทโครงการ" required>
+      <option value="factory">โรงงานอุตสาหกรรม</option>
+      <option value="government">ภาครัฐ</option>
+      <option value="industrial">นิคมอุตสาหกรรม</option>
+      <option value="custom">Custom Order</option>
+    </select>
+    <textarea class="cl-input" id="ad-pf-desc" aria-label="รายละเอียดโครงการ" placeholder="รายละเอียดโครงการ" rows="3"></textarea>
+    <input class="cl-input" id="ad-pf-tags" aria-label="ประเภทป้าย/บริการที่ใช้ในงานนี้ (คั่นด้วย , เช่น ป้ายความปลอดภัย, มอก.)" list="ad-sign-types" placeholder="ประเภทป้าย/บริการที่ใช้ในงานนี้ (คั่นด้วย , เช่น ป้ายความปลอดภัย, มอก.)">
+    <label class="cp-checkbox"><input type="checkbox" id="ad-pf-pinned"> ปักหมุดแสดงในหน้าแรก (Home)</label>
+    <div class="ad-pf-pinned-hint" id="ad-pf-pinned-hint"></div>
+
+    <div class="ad-img-label">รูปภาพผลงาน</div>
+    <div class="ad-img-grid" id="ad-pf-images"></div>
+    <label class="ad-upload-btn">
+      <input type="file" id="ad-pf-upload" accept="image/*" multiple hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      อัปโหลดรูปภาพ
+    </label>
+    <div class="ad-upload-status" id="ad-pf-upload-status"></div>
+
+    <div class="cl-actions">
+      <button type="button" class="btn btn-secondary cl-btn" id="ad-pf-cancel">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary cl-btn">บันทึก</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ VIEW PORTFOLIO DETAIL (popup รูปภาพ + รายละเอียด) ============ -->
+<div class="cp-modal-overlay" id="ad-pf-view-overlay" style="display:none;">
+  <div class="cp-modal ad-modal-wide ad-pf-view">
+    <button type="button" class="ad-pf-view-close" id="ad-pf-view-close" aria-label="ปิด">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="ad-pf-view-media">
+      <img src="" alt="" id="ad-pf-view-img">
+      <div class="ad-pf-view-badge" id="ad-pf-view-badge"></div>
+      <div class="ad-pf-view-pin" id="ad-pf-view-pin" title="ปักหมุดแสดงหน้าแรก" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M12 2l1.6 4.9H19l-4 3 1.5 5L12 12l-4.5 3 1.5-5-4-3h5.4z"/></svg>
+        ปักหมุดหน้าแรก
+      </div>
+    </div>
+    <div class="ad-pf-view-thumbs" id="ad-pf-view-thumbs"></div>
+    <div class="ad-pf-view-info">
+      <div class="ad-pf-view-client" id="ad-pf-view-client"></div>
+      <h2 id="ad-pf-view-title"></h2>
+      <p id="ad-pf-view-desc"></p>
+      <div class="ad-pf-view-tags" id="ad-pf-view-tags"></div>
+      <div class="cl-actions" style="margin-top:18px;">
+        <button type="button" class="btn btn-secondary cl-btn" id="ad-pf-view-edit">แก้ไขผลงานนี้</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ADD/EDIT BLOG MODAL ============ -->
+<div class="cp-modal-overlay" id="ad-b-overlay" style="display:none;">
+  <form class="cp-modal ad-modal-wide cl-sticky-footer cp-order-detail" id="ad-b-form">
+    <div class="cp-modal-title" id="ad-b-modal-title">เพิ่มบทความ</div>
+    <input type="hidden" id="ad-b-id">
+
+    <div class="cp-od-tabs" role="tablist" aria-label="หมวดข้อมูลบทความ">
+      <button type="button" class="cp-od-tab active" data-od-tab="content" role="tab" aria-selected="true">เนื้อหา</button>
+      <button type="button" class="cp-od-tab" data-od-tab="seo" role="tab" aria-selected="false">SEO</button>
+      <button type="button" class="cp-od-tab" data-od-tab="publish" role="tab" aria-selected="false">เผยแพร่ &amp; รูปปก</button>
+    </div>
+
+    <!-- ── หมวด 1: เนื้อหา ── -->
+    <div class="cp-od-panel active" data-od-panel="content">
+      <input class="cl-input" id="ad-b-title" aria-label="ชื่อบทความ" placeholder="ชื่อบทความ" required>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="ad-b-slug" aria-label="slug (URL) เช่น safety-sign-standards — เว้นว่างให้สร้างอัตโนมัติ" placeholder="slug (URL) เช่น safety-sign-standards — เว้นว่างให้สร้างอัตโนมัติ">
+        <input class="cl-input" id="ad-b-category" aria-label="หมวดหมู่บทความ (ไม่บังคับ)" placeholder="หมวดหมู่บทความ (ไม่บังคับ)">
+      </div>
+      <textarea class="cl-input" id="ad-b-excerpt" aria-label="สรุปย่อบทความ (แสดงในการ์ดหน้ารายการบทความ)" placeholder="สรุปย่อบทความ (แสดงในการ์ดหน้ารายการบทความ)" rows="2"></textarea>
+      <textarea class="cl-input" id="ad-b-content" aria-label="เนื้อหาเต็มของบทความ — ขึ้นย่อหน้าใหม่ให้เว้นบรรทัดว่าง 1 บรรทัด" placeholder="เนื้อหาเต็มของบทความ — ขึ้นย่อหน้าใหม่ให้เว้นบรรทัดว่าง 1 บรรทัด" rows="8"></textarea>
+    </div>
+
+    <!-- ── หมวด 2: SEO ── -->
+    <div class="cp-od-panel" data-od-panel="seo">
+      <div class="ad-img-label">SEO (ไม่บังคับ — เว้นว่างจะใช้ชื่อบทความ/สรุปย่อแทนอัตโนมัติ)</div>
+      <input class="cl-input" id="ad-b-meta-title" aria-label="Meta title (ชื่อที่แสดงบน Google และแท็บเบราว์เซอร์)" placeholder="Meta title (ชื่อที่แสดงบน Google และแท็บเบราว์เซอร์)" maxlength="70">
+      <div class="ad-char-count" id="ad-b-meta-title-count">0 / 70</div>
+      <textarea class="cl-input" id="ad-b-meta-desc" aria-label="Meta description (คำอธิบายที่แสดงใต้ลิงก์ผลการค้นหา Google)" placeholder="Meta description (คำอธิบายที่แสดงใต้ลิงก์ผลการค้นหา Google)" rows="2" maxlength="160"></textarea>
+      <div class="ad-char-count" id="ad-b-meta-desc-count">0 / 160</div>
+    </div>
+
+    <!-- ── หมวด 3: เผยแพร่ & รูปปก ── -->
+    <div class="cp-od-panel" data-od-panel="publish">
+      <div class="cp-modal-row">
+        <input class="cl-input" id="ad-b-author" aria-label="ผู้เขียน" placeholder="ผู้เขียน" value="ทีมงาน CS.SIGN">
+        <select class="cl-input" id="ad-b-status" aria-label="สถานะบทความ">
+          <option value="published">เผยแพร่แล้ว</option>
+          <option value="draft">ฉบับร่าง (ยังไม่แสดงบนเว็บ)</option>
+        </select>
+      </div>
+      <label class="cp-checkbox"><input type="checkbox" id="ad-b-featured"> บทความแนะนำ (Featured)</label>
+
+      <div class="ad-img-label">รูปหน้าปกบทความ</div>
+      <div class="ad-img-grid" id="ad-b-image"></div>
+      <label class="ad-upload-btn">
+        <input type="file" id="ad-b-upload" accept="image/*" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        อัปโหลดรูปปก
+      </label>
+      <div class="ad-upload-status" id="ad-b-upload-status"></div>
+    </div>
+
+    <div class="cl-actions">
+      <button type="button" class="btn btn-secondary cl-btn" id="ad-b-cancel">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary cl-btn">บันทึก</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ ADD/EDIT FAQ MODAL ============ -->
+<div class="cp-modal-overlay" id="ad-f-overlay" style="display:none;">
+  <form class="cp-modal" id="ad-f-form">
+    <div class="cp-modal-title" id="ad-f-modal-title">เพิ่มคำถาม</div>
+    <input type="hidden" id="ad-f-id">
+    <input class="cl-input" id="ad-f-question" aria-label="คำถาม" placeholder="คำถาม" required>
+    <textarea class="cl-input" id="ad-f-answer" aria-label="คำตอบ" placeholder="คำตอบ" rows="3" required></textarea>
+    <div class="cl-actions">
+      <button type="button" class="btn btn-secondary cl-btn" id="ad-f-cancel">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary cl-btn">บันทึก</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ ADD/EDIT ORDER MODAL (คำสั่งผลิต) — ป๊อปอัพเดียว จัดเป็น 6 หมวด
+     (ข้อมูลงาน/การเงิน/การจัดส่ง/แนบไฟล์/อนุมัติแบบ/ประวัติ) แทนฟอร์มยาวเดียวเดิม อ่านง่ายขึ้นสำหรับ
+     พนักงานไม่ถนัด IT — บนจอกว้างทุกหมวดแสดงพร้อมกันเป็นการ์ดในกริด 2 คอลัมน์ (คลาส
+     .cp-od-gridview) ไม่ต้องสลับแท็บ/เลื่อนหาเอง จอแคบ/มือถือจะยุบเหลือคอลัมน์เดียว (ยังเห็นทุกหมวด
+     เหมือนกัน แค่เรียงต่อกันแทน) — ดูคลาส CSS ที่เกี่ยวข้องใน css/console.css หัวข้อ
+     "Order/Product popup — ให้เห็นทุกหมวดพร้อมกันในจอกว้าง" ============ -->
+<div class="cp-modal-overlay" id="cp-order-overlay" style="display:none;">
+  <form class="cp-modal cl-sticky-footer cp-order-detail cp-od-gridview" id="cp-order-form">
+    <div class="cp-od-head">
+      <div>
+        <div class="cp-modal-title" id="cp-order-modal-title">เพิ่มคำสั่งผลิต</div>
+        <div class="cp-od-head-code" id="cp-o-head-code"></div>
+      </div>
+    </div>
+    <input type="hidden" id="cp-o-id">
+
+    <div class="cp-od-tabs" role="tablist" aria-label="หมวดข้อมูลคำสั่งผลิต">
+      <button type="button" class="cp-od-tab active" data-od-tab="info" role="tab" aria-selected="true">ข้อมูลงาน</button>
+      <button type="button" class="cp-od-tab" data-od-tab="finance" role="tab" aria-selected="false">การเงิน</button>
+      <button type="button" class="cp-od-tab" data-od-tab="shipping" role="tab" aria-selected="false">การจัดส่ง</button>
+      <button type="button" class="cp-od-tab" data-od-tab="attach" role="tab" aria-selected="false">แนบไฟล์</button>
+      <button type="button" class="cp-od-tab" data-od-tab="design-approvals" role="tab" aria-selected="false">อนุมัติแบบ</button>
+      <button type="button" class="cp-od-tab" data-od-tab="history" role="tab" aria-selected="false">ประวัติ</button>
+    </div>
+
+    <!-- หมายเหตุ (2026-08 รอบล่าสุด — ห้ามเนื้อหาหาย/ห้ามต้องเลื่อนอ่านเพิ่ม): เคยลองทั้งกริดคอลัมน์
+         จับคู่หมวดด้วยมือ (ช่องว่างเยอะเวลาเดาความสูงพลาด) และคอลัมน์เดียวเรียงยาว (จัดเรียงเป็นระเบียบ
+         แต่ต้องเลื่อนอ่านยาวขึ้น) รอบนี้ใช้ CSS multi-column (column-count) แทน — เบราว์เซอร์บาลานซ์
+         ความสูงแต่ละคอลัมน์ให้ใกล้เคียงกันเองอัตโนมัติตามเนื้อหาจริง ไม่ต้องเดามือ ทุกหมวดยังอยู่ครบ
+         ไม่มีอะไรถูกซ่อน — ดูรายละเอียด CSS ที่หัวข้อ "Order/Product popup — คอลัมน์แบบ balance
+         อัตโนมัติ" ท้ายไฟล์ console.css (คลาส .cp-od-gridview ที่ตัวฟอร์ม) -->
+    <div class="cp-o-grid">
+    <!-- ── หมวด 1: ข้อมูลงาน ── -->
+    <div class="cp-od-panel cp-o-panel-info" data-od-panel="info">
+      <div class="cp-od-panel-heading">ข้อมูลงาน</div>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="cp-o-code" aria-label="เลขที่คำสั่งผลิต เช่น PO-2026-0120" placeholder="เลขที่คำสั่งผลิต เช่น PO-2026-0120" required>
+        <input class="cl-input" id="cp-o-customer" aria-label="ลูกค้า / หน่วยงาน" placeholder="ลูกค้า / หน่วยงาน" required>
+      </div>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="cp-o-phone" aria-label="เบอร์โทรลูกค้า (ไม่บังคับ — ใส่แล้วลูกค้าเช็คสถานะเองได้จากปุ่ม &quot;เช็คสถานะคำสั่งผลิต&quot; บนเว็บไซต์)" type="tel" placeholder="เบอร์โทรลูกค้า (ไม่บังคับ — ใส่แล้วลูกค้าเช็คสถานะเองได้จากปุ่ม &quot;เช็คสถานะคำสั่งผลิต&quot; บนเว็บไซต์)">
+        <input class="cl-input" id="cp-o-email" aria-label="อีเมลลูกค้า (ไม่บังคับ — ใส่แล้วระบบจะส่งอีเมลแจ้งเตือนอัตโนมัติทุกครั้งที่สถานะคำสั่งผลิตเปลี่ยน)" type="email" placeholder="อีเมลลูกค้า (ไม่บังคับ — รับอีเมลแจ้งเตือนเมื่อสถานะเปลี่ยน)">
+      </div>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="cp-o-line-user-id" list="cp-o-line-user-datalist" aria-label="LINE user ID ลูกค้า (เลือกจากรายชื่อผู้เคยขอใบเสนอราคา หรือพิมพ์เอง — ไม่บังคับ — ใส่แล้วระบบจะส่งข้อความ LINE แจ้งเตือนอัตโนมัติทุกครั้งที่สถานะคำสั่งผลิตเปลี่ยน)" type="text" placeholder="LINE user ID ลูกค้า — พิมพ์ชื่อเพื่อเลือกจากผู้ขอใบเสนอราคา (ไม่บังคับ)" autocomplete="off">
+        <datalist id="cp-o-line-user-datalist"></datalist>
+      </div>
+      <!-- หมายเหตุแก้ผังหน้า (2026-08): เดิมกล่องนี้ทั้งก้อนถูกครอบด้วย .cp-modal-row (grid 2 คอลัมน์
+           สำหรับจับคู่ 2 ช่องข้างกัน) ทั้งที่มีแค่ก้อนเดียวไม่ได้จับคู่กับอะไร ผลคือรายการสินค้า/
+           ป้ายคำอธิบายถูกบีบเหลือครึ่งความกว้างจอ อ่าน/กดยาก — เอา .cp-modal-row ออก ให้เป็น full
+           width เต็มแนวเหมือนช่องอื่นๆ ที่ไม่ได้จับคู่ (เช่น textarea หมายเหตุด้านล่าง) -->
+      <div class="ad-img-label" style="margin-bottom:-2px;">เลือกสินค้าจากแคตตาล็อก (ไม่บังคับ แต่จำเป็นถ้าต้องการนับยอดขาย)</div>
+      <!-- select จริงซ่อนไว้ — เป็นแหล่งความจริงเดียวของ "สินค้าที่เลือก" (selectedOptions) ที่
+           js/orders-tab-modal.js อ่าน/เขียนอยู่เดิม (selectedProducts()/applyProductSelection()/
+           submit payload/openOrderModal restore) — ไม่ต้องแก้ logic เหล่านั้นเลย แค่เพิ่ม UI
+           checkbox ด้านล่างมาคลิกแทน "select multiple" เดิมที่ต้องกด Ctrl/Cmd ค้างไว้ ซึ่งไม่ค่อย
+           เป็นมิตรกับพนักงานที่ไม่ถนัด IT — checkbox ทำหน้าที่แค่ toggle .selected ของ option คู่กัน
+           แล้วยิง "change" event ต่อให้ select เดิมเหมือนผู้ใช้คลิกเอง (ดู renderProductChecklist()/
+           syncProductChecklistFromSelect() ใน js/orders-tab-modal.js) -->
+      <select id="cp-o-product" multiple style="display:none;" aria-hidden="true" tabindex="-1"></select>
+      <div class="cp-product-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="cl-input" id="cp-o-product-search" type="text" placeholder="พิมพ์ค้นหาสินค้า…" autocomplete="off">
+      </div>
+      <div class="cp-product-checklist" id="cp-o-product-checklist" role="group" aria-label="สินค้าจากแคตตาล็อก (เลือกได้หลายรายการ — แตะเพื่อเลือก/ยกเลิกทีละรายการ)">
+        <div class="cp-product-checklist-empty">กำลังโหลดรายการสินค้า…</div>
+      </div>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="cp-o-item" aria-label="ชื่อรายการ / ป้าย" placeholder="ชื่อรายการ / ป้าย" required>
+        <input class="cl-input" id="cp-o-category" aria-label="หมวดป้าย (ไม่บังคับ)" placeholder="หมวดป้าย (ไม่บังคับ)">
+      </div>
+      <div class="cp-modal-row" id="cp-o-unit-price-row" style="display:none;">
+        <input class="cl-input" id="cp-o-unit-price-display" aria-label="ราคาต่อหน่วย (ดึงจากสินค้าที่เลือก)" placeholder="ราคาต่อหน่วย (ดึงจากสินค้าที่เลือก)" readonly>
+        <input type="hidden" id="cp-o-unit-price">
+      </div>
+      <div class="cp-modal-row">
+        <input class="cl-input" type="number" min="1" id="cp-o-qty" aria-label="จำนวน" placeholder="จำนวน" required>
+        <input class="cl-input" type="date" id="cp-o-due" aria-label="กำหนดส่ง" placeholder="กำหนดส่ง">
+      </div>
+      <div class="cp-modal-row">
+        <select class="cl-input" id="cp-o-status" aria-label="สถานะคำสั่งผลิต">
+          <option value="received">รับงาน</option>
+          <option value="design">ออกแบบ</option>
+          <option value="approval">รออนุมัติแบบ</option>
+          <option value="production">กำลังผลิต</option>
+          <option value="qc">ตรวจสอบคุณภาพ (QC)</option>
+          <option value="packing">แพ็กสินค้า</option>
+          <option value="shipping">จัดส่ง</option>
+          <option value="completed">เสร็จสิ้น</option>
+          <option value="cancelled">ยกเลิก</option>
+        </select>
+        <input class="cl-input" type="number" min="0" max="100" id="cp-o-progress" aria-label="ความคืบหน้า (%)" placeholder="ความคืบหน้า (%)">
+      </div>
+      <div class="cp-modal-row">
+        <select class="cl-input" id="cp-o-assignee" aria-label="ผู้รับผิดชอบ">
+          <option value="">— ยังไม่มอบหมาย —</option>
+        </select>
+      </div>
+
+      <div class="ad-img-label" style="margin-top:4px;">สเปกงาน (ไม่บังคับ)</div>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="cp-o-spec-size" aria-label="ขนาด เช่น 60x40 ซม." placeholder="ขนาด เช่น 60x40 ซม.">
+        <input class="cl-input" id="cp-o-spec-material" aria-label="วัสดุ เช่น อะลูมิเนียมคอมโพสิต" placeholder="วัสดุ เช่น อะลูมิเนียมคอมโพสิต">
+      </div>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="cp-o-spec-color" aria-label="สี" placeholder="สี">
+        <input class="cl-input" id="cp-o-spec-finish" aria-label="ผิวสำเร็จ เช่น เคลือบเงา/ด้าน" placeholder="ผิวสำเร็จ เช่น เคลือบเงา/ด้าน">
+      </div>
+
+      <div class="ad-img-label" style="margin-top:4px;">รายการตรวจสอบคุณภาพ (QC checklist)</div>
+      <div class="cp-qc-list" id="cp-o-qc-list"></div>
+      <button type="button" class="cp-icon-text-btn" id="cp-o-qc-add" style="align-self:flex-start;">+ เพิ่มรายการตรวจสอบ</button>
+
+      <textarea class="cl-input" id="cp-o-notes" aria-label="หมายเหตุ" placeholder="หมายเหตุ" rows="2"></textarea>
+    </div>
+
+    <!-- ── หมวด 2: การเงิน ── -->
+    <div class="cp-od-panel cp-o-panel-finance" data-od-panel="finance">
+      <div class="cp-od-panel-heading">การเงิน</div>
+      <div class="cp-modal-row">
+        <input class="cl-input" type="number" min="0" step="0.01" id="cp-o-deposit" aria-label="ยอดมัดจำที่รับแล้ว (บาท)" placeholder="ยอดมัดจำที่รับแล้ว (บาท)">
+        <input class="cl-input" type="number" min="0" step="0.01" id="cp-o-discount" aria-label="ส่วนลด (บาท)" placeholder="ส่วนลด (บาท)">
+      </div>
+      <label class="cp-checkbox"><input type="checkbox" id="cp-o-vat-included"> ราคาต่อหน่วยรวม VAT แล้ว (ไม่ติ๊ก = ต้องบวก VAT 7% เพิ่ม)</label>
+
+      <div class="ad-img-label" style="margin-top:4px;">สถานะการชำระเงิน</div>
+      <div class="cp-chip-group" id="cp-o-payment-chips">
+        <button type="button" class="cp-chip-btn" data-value="unpaid">ยังไม่ชำระ</button>
+        <button type="button" class="cp-chip-btn" data-value="deposit_paid">มัดจำแล้ว</button>
+        <button type="button" class="cp-chip-btn" data-value="paid_full">ชำระครบแล้ว</button>
+      </div>
+
+      <textarea class="cl-input" id="cp-o-invoice-address" aria-label="ที่อยู่ออกใบกำกับภาษี (ไม่บังคับ)" placeholder="ที่อยู่ออกใบกำกับภาษี (ไม่บังคับ)" rows="2"></textarea>
+
+      <div class="cp-od-summary" id="cp-o-summary">
+        <div class="cp-od-summary-row"><span>ยอดสินค้า (หลังหักส่วนลด/VAT)</span><strong id="cp-o-sum-goods">฿0</strong></div>
+        <div class="cp-od-summary-row"><span>ค่าจัดส่ง</span><strong id="cp-o-sum-shipping">฿0</strong></div>
+        <div class="cp-od-summary-row total"><span>ยอดรวมทั้งสิ้น</span><strong id="cp-o-sum-total">฿0</strong></div>
+        <div class="cp-od-summary-row"><span>มัดจำที่รับแล้ว</span><strong id="cp-o-sum-deposit">฿0</strong></div>
+        <div class="cp-od-summary-row balance"><span>ยอดค้างชำระ</span><strong id="cp-o-sum-balance">฿0</strong></div>
+      </div>
+    </div>
+
+    <!-- ── หมวด 3: การจัดส่ง ── -->
+    <div class="cp-od-panel cp-o-panel-shipping" data-od-panel="shipping">
+      <div class="cp-od-panel-heading">การจัดส่ง</div>
+      <div class="cp-modal-row">
+        <input class="cl-input" id="cp-o-recipient" aria-label="ชื่อผู้รับปลายทาง (ถ้าต่างจากลูกค้า)" placeholder="ชื่อผู้รับปลายทาง (ถ้าต่างจากลูกค้า)">
+        <input class="cl-input" type="number" min="0" step="0.01" id="cp-o-shipping-cost" aria-label="ค่าจัดส่ง (บาท)" placeholder="ค่าจัดส่ง (บาท)">
+      </div>
+      <textarea class="cl-input" id="cp-o-shipping-address" aria-label="ที่อยู่จัดส่ง" placeholder="ที่อยู่จัดส่ง" rows="2"></textarea>
+
+      <div class="ad-img-label" style="margin-top:4px;">ช่องทางจัดส่ง</div>
+      <div class="cp-chip-group" id="cp-o-shipping-chips">
+        <button type="button" class="cp-chip-btn" data-value="pickup">ลูกค้ามารับเอง</button>
+        <button type="button" class="cp-chip-btn" data-value="self_delivery">ส่งเองโดยทีมงาน</button>
+        <button type="button" class="cp-chip-btn" data-value="courier">ขนส่งเอกชน (Kerry/Flash ฯลฯ)</button>
+      </div>
+
+      <input class="cl-input" id="cp-o-shipping-tracking" aria-label="เลขพัสดุของขนส่งจริง (ไม่บังคับ)" placeholder="เลขพัสดุของขนส่งจริง (ไม่บังคับ)">
+    </div>
+
+    <!-- ── หมวด 4: แนบไฟล์ ── -->
+    <div class="cp-od-panel cp-o-panel-attach" data-od-panel="attach">
+      <div class="cp-od-panel-heading">แนบไฟล์</div>
+      <div class="cp-attach-grid" id="cp-o-attach-grid"></div>
+      <div class="cp-modal-row">
+        <label class="ad-upload-btn">
+          <input type="file" id="cp-o-attach-image" accept="image/*" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          แนบรูปภาพ
+        </label>
+        <label class="ad-upload-btn">
+          <input type="file" id="cp-o-attach-file" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          แนบไฟล์ (PDF ฯลฯ)
+        </label>
+      </div>
+      <div class="ad-upload-status" id="cp-o-attach-status"></div>
+    </div>
+
+    <!-- ── หมวด 5: อนุมัติแบบ (P0.2c — ประวัติที่ลูกค้ากดอนุมัติ/ขอแก้ไขแบบเองจากหน้า public) ── -->
+    <div class="cp-od-panel cp-o-panel-design" data-od-panel="design-approvals">
+      <div class="cp-od-panel-heading">อนุมัติแบบ</div>
+      <div class="cp-history-list" id="cp-o-design-approvals-list">
+        <div class="cp-qc-empty">บันทึกคำสั่งผลิตนี้ให้เสร็จก่อน แล้วประวัติอนุมัติแบบจะเริ่มปรากฏที่นี่</div>
+      </div>
+    </div>
+
+    <!-- ── หมวด 6: ประวัติ (audit trail เฉพาะคำสั่งผลิตนี้) ── -->
+    <div class="cp-od-panel cp-o-panel-history" data-od-panel="history">
+      <div class="cp-od-panel-heading">ประวัติ</div>
+      <div class="cp-history-list" id="cp-o-history-list">
+        <div class="cp-qc-empty">บันทึกหลังจากเพิ่มคำสั่งผลิตแล้วจึงจะเริ่มเห็นประวัติที่นี่</div>
+      </div>
+    </div>
+    </div><!-- /.cp-o-grid -->
+
+    <div class="cl-actions">
+      <button type="button" class="btn btn-secondary cl-btn" id="cp-order-cancel">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary cl-btn">บันทึก</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ PRINT REPORT (คำสั่งผลิต — hidden on screen, visible when printing) ============ -->
+<div id="cp-print-report" class="cp-print-report"></div>
+
+<script type="module" src="js/admin-page.js"></script>
+<script type="module" src="js/admin-overview-ui.js"></script>
+<script type="module" src="js/admin-overview-today.js"></script>
+<script type="module" src="js/admin-tap-tooltip.js"></script>
+</body>
+</html>
