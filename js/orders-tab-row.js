@@ -25,9 +25,27 @@ import { orderUrgency } from "./db-orders-stats.js";
 import { ORDER_STATUS } from "./db-orders.js";
 import { escapeHtml, avatarHtml } from "./admin-utils.js";
 
-export function renderOrderRow(o, selectedOrderIds) {
+// P0.2-fix: approvalSummary = { [trackingId]: { action, createdAt } } จาก
+// listenDesignApprovalsSummary() (js/db-orders.js) — เทียบเวลาของ log ล่าสุดกับ
+// o.designApprovalSeenAt (เขียนโดย markDesignApprovalSeen() ตอนแอดมินเปิดแท็บ "อนุมัติแบบ" ของ
+// order ใบนั้นดูแล้ว) ถ้ายังไม่เคยเห็น หรือมี log ใหม่กว่าที่เคยเห็นล่าสุด ถือว่า "ยังไม่เห็น"
+function hasUnseenDesignApproval(o, approvalSummary) {
+  if (!o.trackingId || !approvalSummary) return false;
+  const latest = approvalSummary[o.trackingId];
+  if (!latest || !latest.createdAt) return false;
+  const latestMs = latest.createdAt.toMillis ? latest.createdAt.toMillis() : new Date(latest.createdAt).getTime();
+  if (!o.designApprovalSeenAt) return true;
+  const seenMs = o.designApprovalSeenAt.toMillis ? o.designApprovalSeenAt.toMillis() : new Date(o.designApprovalSeenAt).getTime();
+  return latestMs > seenMs;
+}
+
+export function renderOrderRow(o, selectedOrderIds, approvalSummary) {
   const urgency = orderUrgency(o);
   const statusInfo = ORDER_STATUS[o.status] || { label: o.status || "—" };
+  const unseenApproval = hasUnseenDesignApproval(o, approvalSummary);
+  const approvalDot = unseenApproval
+    ? `<span class="cp-approval-dot" title="มีลูกค้าอนุมัติ/ขอแก้ไขแบบใหม่ที่ยังไม่เห็น"></span>`
+    : "";
   const dueHtml = o.dueDate
     ? `<span class="${urgency==='overdue'?'is-overdue':urgency==='due-soon'?'is-duesoon':''}">${escapeHtml(o.dueDate)}</span>`
     : "—";
@@ -37,7 +55,7 @@ export function renderOrderRow(o, selectedOrderIds) {
   return `
     <tr data-id="${o.id}" class="cp-row-clickable">
       <td><input type="checkbox" class="cp-row-check cp-o-row-check" data-id="${o.id}" ${selectedOrderIds.has(o.id) ? "checked" : ""} aria-label="เลือกคำสั่งผลิตนี้"></td>
-      <td class="cp-code" title="${escapeHtml(o.code||"")}">${escapeHtml(o.code||"—")}</td>
+      <td class="cp-code" title="${escapeHtml(o.code||"")}">${approvalDot}${escapeHtml(o.code||"—")}</td>
       <td>
         <div class="cp-namecell">${avatarHtml(o.customer || "?")}<span class="cp-namecell-name" title="${escapeHtml(o.customer||"")}">${escapeHtml(o.customer||"—")}</span></div>
         ${assigneeChip}
