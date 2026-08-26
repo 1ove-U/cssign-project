@@ -33,6 +33,7 @@
 <link rel="stylesheet" href="css/track-modal.css">
 <link rel="stylesheet" href="css/cart-modal.css">
 <link rel="stylesheet" href="css/fancy-effects.css">
+<link rel="stylesheet" href="css/account-pages.css">
 </head>
 <body data-page="my-orders">
 <a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
@@ -137,6 +138,10 @@
      ============================================================ -->
 <section class="article-hero">
   <div class="wrap">
+    <a href="javascript:void(0)" class="ap-back" onclick="history.length > 1 ? history.back() : (location.href='my-account.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      ย้อนกลับ
+    </a>
     <div class="article-breadcrumb"><a href="index.html">หน้าแรก</a> / <a href="my-account.html">บัญชีของฉัน</a> / ออเดอร์ของฉัน</div>
     <h1>ออเดอร์ของฉัน</h1>
     <div class="article-updated">เข้าสู่ระบบด้วย LINE เพื่อดูสถานะคำสั่งผลิตทั้งหมดของคุณในที่เดียว ไม่ต้องจำเลขที่ PO</div>
@@ -151,7 +156,7 @@
            คู่กับ mo-link-more ไม่ได้อยู่ในกลุ่ม 5 state ที่ showOnly() คุม) กดแล้ว signOut(auth)
            ฝั่ง Firebase + liff.logout() (ถ้า LIFF login ค้างอยู่) แล้ว reset กลับไปหน้า
            "เข้าสู่ระบบด้วย LINE" เดิม ไม่ redirect ออกจากหน้านี้ -->
-      <div id="mo-logout" style="display:none; text-align:right; margin-bottom:14px;">
+      <div id="mo-logout" style="display:none; text-align:right; margin-bottom:16px;">
         <button type="button" id="mo-logout-btn" class="btn btn-secondary btn-sm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           ออกจากระบบ
@@ -187,19 +192,22 @@
       </div>
 
       <!-- login สำเร็จ แต่ยังไม่มีออเดอร์ผูกกับบัญชี LINE นี้เลย -->
-      <div id="mo-empty" style="display:none; text-align:center; padding:32px 0;">
-        <p style="color:var(--gray-600); margin-bottom:20px;">ยังไม่มีคำสั่งผลิตที่เชื่อมกับบัญชี LINE นี้ — เช็คสถานะด้วยเลขที่ PO และเบอร์โทร แล้วกดปุ่ม "เชื่อมบัญชี LINE" ในผลลัพธ์เพื่อเริ่มดูออเดอร์แรกของคุณที่นี่</p>
+      <div id="mo-empty" style="display:none;" class="ap-empty">
+        <div class="ap-empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+        </div>
+        <p>ยังไม่มีคำสั่งผลิตที่เชื่อมกับบัญชี LINE นี้ — เช็คสถานะด้วยเลขที่ PO และเบอร์โทร แล้วกดปุ่ม "เชื่อมบัญชี LINE" ในผลลัพธ์ หรือใช้ "เชื่อมออเดอร์เพิ่ม" ด้านล่าง เพื่อเริ่มดูออเดอร์แรกของคุณที่นี่</p>
         <button type="button" class="btn btn-primary" data-track-modal-open>เช็คสถานะคำสั่งผลิต</button>
       </div>
 
       <!-- รายการออเดอร์ -->
-      <div id="mo-list" style="display:none; flex-direction:column; gap:14px;"></div>
+      <div id="mo-list" class="ap-item-list" style="display:none;"></div>
 
       <!-- เชื่อมออเดอร์เพิ่ม (P2.8c-F) — โชว์เฉพาะหลัง login LINE สำเร็จแล้ว (ทั้ง state มีรายการ/
            ว่างเปล่า) ใช้ liff session เดิมที่ล็อกอินอยู่แล้ว ไม่ต้อง login ซ้ำ กรอกแค่เลข PO+เบอร์โทร
            ของออเดอร์ใหม่ที่ยังไม่เคยเชื่อม แล้วเรียก linkLineAccount() เดิมจาก P1.5 ซ้ำ (ไม่เขียนใหม่)
            — สำเร็จแล้วออเดอร์จะโผล่ในลิสต์ด้านบนเองอัตโนมัติผ่าน listenMyOrders() ที่ subscribe อยู่แล้ว -->
-      <div id="mo-link-more" style="display:none; margin-top:28px; padding-top:24px; border-top:1px solid var(--gray-100);">
+      <div id="mo-link-more" style="display:none; margin-top:28px; padding:20px; border-radius:var(--r-lg); border:1.5px dashed var(--gray-200); background:var(--gray-25);">
         <button type="button" id="mo-link-more-toggle" class="btn btn-secondary btn-sm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           เชื่อมออเดอร์เพิ่ม
