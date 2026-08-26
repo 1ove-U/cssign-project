@@ -209,6 +209,9 @@
 .cp-stat-trend.flat{ color:var(--text-meta); }
 .cp-load-error .cp-retry-btn{ padding:7px 16px !important; font-size:12.5px !important; }
 .cp-code{ font-family:var(--font-mono); font-size:11.5px; color:var(--gray-500); }
+/* P0.2-fix: จุดแดงบอก "มีลูกค้าอนุมัติ/ขอแก้ไขแบบใหม่ที่ยังไม่เห็น" หน้าเลขที่คำสั่งผลิตในตาราง
+   (ดู hasUnseenDesignApproval() ใน js/orders-tab-row.js) */
+.cp-approval-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background-color:#DC2626; margin-right:6px; vertical-align:middle; }
 
 /* ── Name cell: avatar circle + stacked name/company (leads + orders tables) ── */
 .cp-avatar{
