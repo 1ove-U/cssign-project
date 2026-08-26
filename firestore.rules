@@ -494,7 +494,8 @@ service cloud.firestore {
                            'attachments','designFiles',
                            'deposit','paymentStatus','discount','vatIncluded','invoiceAddress',
                            'shippingAddress','recipient','shippingMethod','shippingCost','shippingTrackingId',
-                           'assignee','assigneeName','specs','qcChecklist','reviewRequestedAt'
+                           'assignee','assigneeName','specs','qcChecklist','reviewRequestedAt',
+                           'designApprovalSeenAt'
                          ])
                       && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
                       && (!('unit_price' in incomingData()) || incomingData().unit_price is number)
@@ -505,6 +506,7 @@ service cloud.firestore {
                       && (!('deposit' in incomingData()) || incomingData().deposit is number)
                       && (!('discount' in incomingData()) || incomingData().discount is number)
                       && (!('shippingCost' in incomingData()) || incomingData().shippingCost is number)
+                      && (!('designApprovalSeenAt' in incomingData()) || isTimestampField(incomingData().designApprovalSeenAt))
                     )
                     // P1.5 (LIFF auto-link) — ลูกค้าที่ verify ตัวตนผ่าน /link-line (Worker เซ็น
                     // custom token ให้ หลังยืนยัน code+phone ตรงกับ order_tracking จริงแล้วเท่านั้น)
@@ -567,14 +569,34 @@ service cloud.firestore {
       // หลักจะถูกปฏิเสธด้วย hasOnly() เสมอ (permission-denied) — แม้เอกสาร orders/{id} หลักจะ
       // บันทึกสำเร็จไปแล้วก็ตาม (ทำให้เห็นข้อมูลเปลี่ยนจริงในตาราง แต่ระบบยังโชว์ toast
       // "บันทึกไม่สำเร็จ" เพราะ exception หลุดออกมาจากขั้นตอนถัดไปนี้)
-      allow create, update: if isAuthenticated()
+      // P0.2-fix: เพิ่ม designApprovalDecision/designApprovalDecisionAt เข้า whitelist ฝั่งแอดมิน
+      // ด้วย (ปกติแอดมินไม่ได้แตะ 2 field นี้ตรงๆ แต่ upsertOrderTracking()/js/db-orders.js ใช้
+      // merge:true เขียนทั้ง doc ทุกครั้งที่ order เปลี่ยน — ถ้าไม่อยู่ใน hasOnly() ตรงนี้ การ merge
+      // จะถูกปฏิเสธทันทีที่ 2 field นี้เคยถูกลูกค้าเขียนไว้ก่อนหน้า เหมือนบั๊ก 'compliant'/
+      // 'lineUserId' เดิมที่เคยเจอมาแล้วในไฟล์นี้)
+      allow create, update: if (
+                    isAuthenticated()
                     && incomingData().keys().hasOnly([
                          'code','item','category','qty','status','progress','dueDate','updatedAt',
-                         'shippingMethod','shippingTrackingId','designFiles','lineUserId'
+                         'shippingMethod','shippingTrackingId','designFiles','lineUserId',
+                         'designApprovalDecision','designApprovalDecisionAt'
                        ])
                     && incomingData().qty is number && incomingData().qty > 0
                     && incomingData().status in ['received','design','approval','production','qc','packing','shipping','completed','cancelled']
-                    && incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100;
+                    && incomingData().progress is number && incomingData().progress >= 0 && incomingData().progress <= 100
+                    && (!('designApprovalDecision' in incomingData()) || incomingData().designApprovalDecision in ['','approved','changes_requested'])
+                    && (!('designApprovalDecisionAt' in incomingData()) || isTimestampField(incomingData().designApprovalDecisionAt))
+                  )
+                  // P0.2-fix — ลูกค้ากด "อนุมัติ/ขอแก้ไข" เองแบบ public (submitDesignApproval() ใน
+                  // js/db-orders.js) ไม่ได้ login เลย เหมือน design_approvals ด้านล่าง (โมเดล
+                  // ความปลอดภัยเดียวกัน: doc id ของ order_tracking = trackingId = เลข PO + เบอร์โทร
+                  // 4 หลัก "เดาไม่ได้" ถ้าไม่รู้ทั้งคู่ — เท่ากับรู้ตัวตนแล้ว) จำกัดให้แก้ได้แค่ 2
+                  // field นี้เท่านั้น ห้ามแตะ status/progress/designFiles ฯลฯ แม้แต่ field เดียว
+                  || (
+                    incomingData().diff(resource.data).affectedKeys().hasOnly(['designApprovalDecision','designApprovalDecisionAt'])
+                    && incomingData().designApprovalDecision in ['approved','changes_requested']
+                    && isTimestampField(incomingData().designApprovalDecisionAt)
+                  );
 
       allow delete: if isAdminRole();
     }
