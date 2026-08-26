@@ -39,13 +39,30 @@ function hasUnseenDesignApproval(o, approvalSummary) {
   return latestMs > seenMs;
 }
 
+// ── ป้ายสถานะคอลัมน์ "แบบงาน" — สรุปสถานะอนุมัติแบบล่าสุดของ order นี้แบบย่อ (ไม่ต้อง query
+// เพิ่ม ใช้ approvalSummary ตัวเดียวกับที่คำนวณ approvalDot ด้านล่างอยู่แล้ว) ──
+function designApprovalBadge(o, approvalSummary, unseenApproval) {
+  if (!o.trackingId) {
+    return `<span class="cp-design-badge is-none" title="ต้องกรอกเลขที่คำสั่ง + เบอร์โทรลูกค้าให้ครบก่อน ลูกค้าถึงจะเข้าหน้าอนุมัติแบบได้">ยังไม่พร้อม</span>`;
+  }
+  const latest = approvalSummary && approvalSummary[o.trackingId];
+  if (!latest) {
+    return `<span class="cp-design-badge is-waiting">รอลูกค้าตรวจ</span>`;
+  }
+  const label = latest.action === "approved" ? "อนุมัติแล้ว"
+    : latest.action === "changes_requested" ? "ขอแก้ไข"
+    : "รอลูกค้าตรวจ";
+  const cls = latest.action === "approved" ? "is-approved"
+    : latest.action === "changes_requested" ? "is-changes"
+    : "is-waiting";
+  return `<span class="cp-design-badge ${cls}">${unseenApproval ? `<span class="cp-approval-dot" title="มีลูกค้าอนุมัติ/ขอแก้ไขแบบใหม่ที่ยังไม่เห็น"></span>` : ""}${label}</span>`;
+}
+
 export function renderOrderRow(o, selectedOrderIds, approvalSummary) {
   const urgency = orderUrgency(o);
   const statusInfo = ORDER_STATUS[o.status] || { label: o.status || "—" };
   const unseenApproval = hasUnseenDesignApproval(o, approvalSummary);
-  const approvalDot = unseenApproval
-    ? `<span class="cp-approval-dot" title="มีลูกค้าอนุมัติ/ขอแก้ไขแบบใหม่ที่ยังไม่เห็น"></span>`
-    : "";
+  const designBadgeHtml = designApprovalBadge(o, approvalSummary, unseenApproval);
   const dueHtml = o.dueDate
     ? `<span class="${urgency==='overdue'?'is-overdue':urgency==='due-soon'?'is-duesoon':''}">${escapeHtml(o.dueDate)}</span>`
     : "—";
@@ -55,13 +72,16 @@ export function renderOrderRow(o, selectedOrderIds, approvalSummary) {
   return `
     <tr data-id="${o.id}" class="cp-row-clickable">
       <td><input type="checkbox" class="cp-row-check cp-o-row-check" data-id="${o.id}" ${selectedOrderIds.has(o.id) ? "checked" : ""} aria-label="เลือกคำสั่งผลิตนี้"></td>
-      <td class="cp-code" title="${escapeHtml(o.code||"")}">${approvalDot}${escapeHtml(o.code||"—")}</td>
+      <td class="cp-code" title="${escapeHtml(o.code||"")}">${escapeHtml(o.code||"—")}</td>
       <td>
         <div class="cp-namecell">${avatarHtml(o.customer || "?")}<span class="cp-namecell-name" title="${escapeHtml(o.customer||"")}">${escapeHtml(o.customer||"—")}</span></div>
         ${assigneeChip}
       </td>
       <td>${escapeHtml(o.phone || "—")}</td>
       <td><span class="cp-status-badge" data-status="${o.status}">${escapeHtml(statusInfo.label)}</span></td>
+      <td>
+        <button class="cp-design-btn" type="button" data-action="design" title="ดูแบบ / ประวัติการอนุมัติและขอแก้ไข">${designBadgeHtml}</button>
+      </td>
       <td>${dueHtml}</td>
       <td>
         <div class="cp-row-actions">
