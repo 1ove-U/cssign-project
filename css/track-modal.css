@@ -172,26 +172,89 @@
 }
 @keyframes tmShimmer{ from{ transform:translateX(-100%); } to{ transform:translateX(100%); } }
 
-/* ── stage tracker (scrolls horizontally on small popups) ── */
-.tm-stages{ position:relative; display:flex; margin-bottom:22px; padding:0 2px 6px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-.tm-stage{ flex:0 0 64px; text-align:center; position:relative; }
-.tm-stage-line{ position:absolute; top:15px; left:calc(-50% + 15px); right:calc(50% + 15px); height:2px; background:var(--gray-200); z-index:0; }
-.tm-stage.done .tm-stage-line, .tm-stage.current .tm-stage-line{ background:var(--primary); }
+/* ── stage tracker — vertical list so all 8 steps read in one view, no horizontal
+   scrolling needed on small popups like the old version had ── */
+.tm-stages{ display:flex; flex-direction:column; }
+.tm-stage{ display:flex; gap:12px; }
+.tm-stage-rail{ display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
 .tm-stage-dot{
-  position:relative; z-index:1;
-  width:28px; height:28px; border-radius:50%; margin:0 auto 7px;
+  width:26px; height:26px; border-radius:50%; flex-shrink:0;
   background:#fff; border:2px solid var(--gray-200);
   display:flex; align-items:center; justify-content:center;
-  color:var(--gray-400); transition:all .2s var(--ease);
+  color:var(--gray-400); transition:all .2s var(--ease); z-index:1;
 }
-.tm-stage-dot svg{ width:13px; height:13px; }
+.tm-stage-dot svg{ width:12px; height:12px; }
+.tm-stage-line{ width:2px; flex:1; min-height:18px; background:var(--gray-200); margin-top:2px; }
 .tm-stage.done .tm-stage-dot{ background:var(--primary); border-color:var(--primary); color:#fff; }
-.tm-stage.current .tm-stage-dot{ background:#fff; border-color:var(--primary); color:var(--primary); box-shadow:0 0 0 5px rgba(var(--primary-rgb),0.15); animation:tmPulse 1.8s ease-in-out infinite; }
-@keyframes tmPulse{ 0%,100%{ box-shadow:0 0 0 5px rgba(var(--primary-rgb),0.15); } 50%{ box-shadow:0 0 0 8px rgba(var(--primary-rgb),0.08); } }
-.tm-stage-label{ font-size:9.5px; color:var(--gray-500); line-height:1.3; font-weight:500; }
-.tm-stage.done .tm-stage-label, .tm-stage.current .tm-stage-label{ color:var(--secondary); font-weight:700; }
+.tm-stage.done .tm-stage-line{ background:var(--primary); }
+.tm-stage.current .tm-stage-dot{ background:#fff; border-color:var(--accent-dark); color:var(--accent-dark); box-shadow:0 0 0 4px rgba(var(--accent-rgb),0.16); animation:tmPulse 1.8s ease-in-out infinite; }
+@keyframes tmPulse{ 0%,100%{ box-shadow:0 0 0 4px rgba(var(--accent-rgb),0.16); } 50%{ box-shadow:0 0 0 7px rgba(var(--accent-rgb),0.06); } }
+.tm-stage-body{ padding-bottom:14px; padding-top:1px; }
+.tm-stage:last-child .tm-stage-body{ padding-bottom:0; }
+.tm-stage-label{ font-size:12.5px; color:var(--gray-400); font-weight:700; }
+.tm-stage.done .tm-stage-label, .tm-stage.current .tm-stage-label{ color:var(--secondary); }
+.tm-stage-note{ font-size:11px; color:var(--accent-dark); font-weight:600; margin-top:2px; line-height:1.5; }
+.tm-stage-tag{ display:inline-block; margin-top:5px; font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:99px; background:var(--gray-100); color:var(--gray-500); }
+.tm-stage.done .tm-stage-tag{ background:#E7F6EC; color:#1F7A3E; }
+.tm-stage.current .tm-stage-tag{ background:#FDF0E3; color:var(--accent-dark); }
 
-.tm-info-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; border-top:1px solid var(--gray-100); padding-top:18px; }
+/* ── collapsed "search again" pill — replaces the full form once a result is found ── */
+.tm-lookup-pill{
+  display:flex; align-items:center; gap:8px;
+  margin:20px 26px 0; padding:10px 12px;
+  background:var(--gray-50); border:1px solid var(--gray-100); border-radius:var(--r-md);
+  font-size:11.5px; color:var(--gray-600);
+}
+.tm-lookup-pill svg{ width:13px; height:13px; color:var(--gray-400); flex-shrink:0; }
+.tm-lookup-pill b{ color:var(--secondary); font-family:var(--font-mono); }
+.tm-lookup-again{
+  margin-left:auto; border:none; background:none; cursor:pointer; padding:2px 4px;
+  color:var(--primary); font-weight:700; font-size:11.5px; font-family:inherit;
+}
+.tm-lookup-again:hover{ text-decoration:underline; }
+
+/* ── segmented tab bar (สรุป / ขั้นตอนงาน / ดำเนินการ) ── */
+.tm-tabs{
+  display:flex; gap:4px; margin-top:20px; padding:3px;
+  background:var(--gray-100); border-radius:var(--r-md);
+}
+.tm-tab{
+  flex:1; border:none; background:none; cursor:pointer; padding:8px 4px;
+  font-family:var(--font-body); font-size:12px; font-weight:700; color:var(--gray-500);
+  border-radius:9px; transition:all .18s var(--ease);
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.tm-tab svg{ width:16px; height:16px; }
+.tm-tab.active{ background:#fff; color:var(--primary-dark); box-shadow:var(--shadow-sm); }
+
+.tm-tabpanels{ padding-top:16px; }
+.tm-tabpanel{ display:none; animation:tmPanelIn .22s var(--ease); }
+.tm-tabpanel.active{ display:block; }
+@keyframes tmPanelIn{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:translateY(0); } }
+
+/* ── "what's happening now" callout — sits above the info grid in the "สรุป" tab ── */
+.tm-callout{ display:flex; gap:11px; padding:13px 14px; border-radius:var(--r-md); margin-top:16px; }
+.tm-callout-dot{ flex-shrink:0; width:32px; height:32px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; }
+.tm-callout-dot svg{ width:15px; height:15px; }
+.tm-callout h4{ margin:0 0 3px; font-family:var(--font-display); font-size:13px; font-weight:600; }
+.tm-callout p{ margin:0; font-size:11.5px; line-height:1.55; }
+.tm-callout-accent{ background:#FDF0E3; border:1px solid #F3D9AF; }
+.tm-callout-accent .tm-callout-dot{ border:2px solid var(--accent-dark); color:var(--accent-dark); }
+.tm-callout-accent h4{ color:#7A4A0E; } .tm-callout-accent p{ color:#8A5A15; }
+.tm-callout-primary{ background:#E7EEFB; border:1px solid #C7D8F2; }
+.tm-callout-primary .tm-callout-dot{ border:2px solid var(--primary); color:var(--primary); }
+.tm-callout-primary h4{ color:var(--primary-dark); } .tm-callout-primary p{ color:var(--primary-dark); }
+.tm-callout-success{ background:#E7F6EC; border:1px solid #BEE8C8; }
+.tm-callout-success .tm-callout-dot{ border:2px solid var(--success); color:var(--success); }
+.tm-callout-success h4{ color:#1F7A3E; } .tm-callout-success p{ color:#1F7A3E; }
+
+/* ── grouped blocks inside the "ดำเนินการ" tab ── */
+.tm-action-block{ margin-top:16px; }
+.tm-action-block:first-child{ margin-top:0; }
+.tm-action-head{ display:flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:var(--secondary); margin-bottom:8px; }
+.tm-action-head svg{ width:14px; height:14px; color:var(--primary); flex-shrink:0; }
+
+.tm-info-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; border-top:1px solid var(--gray-100); padding-top:18px; }
 .tm-info-item{ display:flex; align-items:flex-start; gap:9px; }
 .tm-info-item-icon{ width:30px; height:30px; border-radius:var(--r-sm); background:var(--gray-50); color:var(--gray-400); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .tm-info-item-icon svg,
@@ -254,6 +317,7 @@
    ใช้ class .tm-compliant เดิมร่วมกับเลขพัสดุขนส่งด้านบน แค่เพิ่ม .tm-line-linked เผื่อปรับสี
    แยกในอนาคต — สีเขียวเดิมของ .tm-compliant ก็สื่อความหมาย "สำเร็จ" ตรงอยู่แล้ว) */
 .tm-line-link-section{ margin-top:16px; }
+.tm-action-block .tm-line-link-section{ margin-top:0; }
 .tm-line-link-btn{
   width:100%; padding:11px 14px; font-size:13.5px; font-weight:700; font-family:inherit;
   display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;
