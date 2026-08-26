@@ -1059,6 +1059,12 @@ body.cp-scroll-locked{ overflow:hidden; }
   column-count:2; column-gap:16px; column-fill:balance;
 }
 
+/* หมวด "ราคา & ตัวเลือก" มีตารางราคาที่กว้างได้ไม่จำกัด (คอลัมน์ #/รหัสตัวเลือก/แต่ละหมวดตัวเลือก/
+   ราคา) ถ้าถูกบีบให้เหลือแค่ครึ่งเดียวของ 2 คอลัมน์แบบหมวดอื่นๆ (~370px) ตัวหนังสือในตารางจะถูกบีบ
+   จนขึ้นบรรทัดใหม่กลางคำ อ่านไม่ออก จึงให้หมวดนี้ข้ามพ้นเลย์เอาต์ 2 คอลัมน์ กางเต็มความกว้างป๊อปอัพ
+   เสมอ (หมวดอื่นที่เนื้อหาสั้นกว่ายังคงอยู่ในเลย์เอาต์ 2 คอลัมน์ตามเดิม) */
+#ad-p-form.cp-od-gridview .ad-p-panel-pricing{ column-span:all; }
+
 @media (max-width:900px){
   .cp-od-gridview.cp-modal,
   #ad-p-form.cp-od-gridview.cp-modal{ max-width:100%; padding:18px; }
