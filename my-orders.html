@@ -152,17 +152,6 @@
   <div class="wrap">
     <div class="article-content" id="mo-root" style="max-width:640px;">
 
-      <!-- ออกจากระบบ (P2.9-A) — โชว์เฉพาะหลัง login LINE สำเร็จแล้ว (ควบคุม visibility แยกเอง
-           คู่กับ mo-link-more ไม่ได้อยู่ในกลุ่ม 5 state ที่ showOnly() คุม) กดแล้ว signOut(auth)
-           ฝั่ง Firebase + liff.logout() (ถ้า LIFF login ค้างอยู่) แล้ว reset กลับไปหน้า
-           "เข้าสู่ระบบด้วย LINE" เดิม ไม่ redirect ออกจากหน้านี้ -->
-      <div id="mo-logout" style="display:none; text-align:right; margin-bottom:16px;">
-        <button type="button" id="mo-logout-btn" class="btn btn-secondary btn-sm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          ออกจากระบบ
-        </button>
-      </div>
-
       <!-- สถานะเริ่มต้น — กำลังตรวจสอบว่า LIFF login อยู่แล้วหรือยัง (auto-detect ตอนกลับมาจาก
            liff.login() redirect) -->
       <div id="mo-loading" style="display:flex; align-items:center; gap:10px; justify-content:center; padding:48px 0; color:var(--gray-500); font-size:14px;">
