@@ -48,6 +48,10 @@ import { formatBaht } from "./orders-tab.js";
 import { confirmDialog, errorStateHTML } from "./ui-helpers.js";
 import { escapeHtml, deleteWithUndo, showToast, openOverlay, closeOverlay } from "./admin-utils.js";
 import { openNewQuotationForm, openEditQuotationForm, openQuotationFormFromRequest, openQuotationFormFromClone } from "./admin-quotations-form.js";
+// ช่องโหว่ที่ 1: ปุ่ม "สร้างคำสั่งผลิต" ในโมดัลเลือกคำขอด้านล่าง — คัดลอก lineUserId (และข้อมูล
+// ลูกค้าอื่นที่มี) ตรงจากคำขอที่แอดมินเพิ่งกดเลือกจริง แทนที่จะให้แอดมินไปเปิดฟอร์มเปล่าที่แท็บ
+// "คำสั่งผลิต" แล้วเดา/เลือก LINE user ID เองจาก datalist (ดูคอมเมนต์เต็มที่หัวฟังก์ชันในไฟล์นั้น)
+import { openOrderModalFromQuoteRequest } from "./orders-tab-modal.js";
 
 export const qTableBody = document.getElementById("ad-q-table-body");
 const qAddBtn      = document.getElementById("ad-q-add-btn");
@@ -380,6 +384,7 @@ function renderQuoteRequestPicker() {
         <td>
           <div class="cp-row-actions ad-qr-row-actions">
             <button type="button" class="btn btn-primary cl-btn ad-qr-use-btn" data-action="use">ใช้คำขอนี้</button>
+            <button type="button" class="btn cl-btn ad-qr-to-order-btn" data-action="to-order" title="เปิดฟอร์มเพิ่มคำสั่งผลิต พร้อมคัดลอก LINE user ID/ข้อมูลลูกค้าจากคำขอนี้ให้อัตโนมัติ">สร้างคำสั่งผลิต</button>
             <button type="button" class="cp-icon-btn danger" data-action="delete" title="ลบคำขอนี้"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
           </div>
         </td>
@@ -396,6 +401,17 @@ if (qrListBody) {
       if (!request) return;
       closeOverlay(qrOverlay);
       openQuotationFormFromRequest(request);
+      return;
+    }
+    const toOrderBtn = e.target.closest('button[data-action="to-order"]');
+    if (toOrderBtn) {
+      const row = toOrderBtn.closest("tr[data-id]");
+      const request = allQuoteRequests.find(r => r.id === row.dataset.id);
+      if (!request) return;
+      closeOverlay(qrOverlay);
+      // ช่องโหว่ที่ 1: เปิดฟอร์ม "เพิ่มคำสั่งผลิต" (แท็บคำสั่งผลิต) พร้อมคัดลอก lineUserId ตรงจาก
+      // คำขอที่เพิ่งกดเลือกนี้เข้าไปให้เลย — แอดมินไม่ต้องไปเดา/เลือกเองจาก datalist อีกต่อไป
+      openOrderModalFromQuoteRequest(request);
       return;
     }
     const delBtn = e.target.closest('button[data-action="delete"]');
