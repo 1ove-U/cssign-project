@@ -166,7 +166,7 @@ function startOrdersListener() {
     render();
     if (onOrdersChangedCb) onOrdersChangedCb();
   }, err => {
-    tableBody.innerHTML = `<tr><td colspan="7">${errorStateHTML(`โหลดข้อมูลไม่สำเร็จ: ${err.message || ""}`, startOrdersListener, { wrapTag: "span" })}</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="8">${errorStateHTML(`โหลดข้อมูลไม่สำเร็จ: ${err.message || ""}`, startOrdersListener, { wrapTag: "span" })}</td></tr>`;
   });
   // P0.2-fix: ฟัง design_approvals คู่กันไปเลยตั้งแต่เปิดแท็บ — ไม่ต้อง fail ทั้งแท็บถ้าพลาด
   // (แค่จุดแดงจะไม่ขึ้น ตารางคำสั่งผลิตหลักยังใช้งานได้ปกติ)
@@ -401,7 +401,7 @@ export function render() {
   } catch (err) {
     console.error("[orders-tab] render(): แสดงตาราง/kanban คำสั่งผลิตล้มเหลว", err);
     if (tableBody) {
-      tableBody.innerHTML = `<tr><td colspan="7">${errorStateHTML(`แสดงตารางคำสั่งผลิตไม่สำเร็จ: ${err.message || ""}`, () => render(), { wrapTag: "span" })}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="8">${errorStateHTML(`แสดงตารางคำสั่งผลิตไม่สำเร็จ: ${err.message || ""}`, () => render(), { wrapTag: "span" })}</td></tr>`;
     }
     if (paginationBox) paginationBox.style.display = "none";
   }
@@ -409,7 +409,7 @@ export function render() {
 
 function renderTable(rows) {
   if (!rows.length) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="cp-empty">ไม่พบคำสั่งผลิต</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="8" class="cp-empty">ไม่พบคำสั่งผลิต</td></tr>`;
     updateOrdersBulkBar();
     return;
   }
@@ -419,7 +419,7 @@ function renderTable(rows) {
       return renderOrderRow(o, selectedOrderIds, approvalSummary);
     } catch (err) {
       console.error("[orders-tab] renderTable(): แสดงแถวคำสั่งผลิตล้มเหลว", o && o.id, err);
-      return `<tr data-id="${o && o.id || ""}"><td colspan="7" class="cp-empty">แสดงรายการนี้ไม่สำเร็จ (เลขที่: ${escapeHtml((o && o.code) || (o && o.id) || "-")})</td></tr>`;
+      return `<tr data-id="${o && o.id || ""}"><td colspan="8" class="cp-empty">แสดงรายการนี้ไม่สำเร็จ (เลขที่: ${escapeHtml((o && o.code) || (o && o.id) || "-")})</td></tr>`;
     }
   }).join("");
   updateOrdersBulkBar();
@@ -510,6 +510,7 @@ tableBody.addEventListener("click", async (e) => {
     const order = allOrders.find(o => o.id === id);
     if (!order) return;
     if (btn.dataset.action === "detail") openOrderModal(order);
+    if (btn.dataset.action === "design") openOrderModal(order, "design-approvals");
     if (btn.dataset.action === "clone") openOrderModalClone(order);
     if (btn.dataset.action === "delete") confirmDeleteOrder(order);
     return;
