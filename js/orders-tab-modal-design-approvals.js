@@ -15,7 +15,7 @@
 //     order object เข้าตรงๆ (ต่างจาก loadOrderHistory(orderId) ที่รับแค่ id) เพราะไฟล์นี้ต้อง
 //     คำนวณ trackingId เองจาก order.code + order.phone
 // ===========================
-import { listDesignApprovals, buildTrackingId } from "./db-orders.js";
+import { listDesignApprovals, buildTrackingId, markDesignApprovalSeen } from "./db-orders.js";
 import { errorStateHTML } from "./ui-helpers.js";
 import { escapeHtml } from "./orders-tab.js";
 
@@ -35,6 +35,11 @@ export async function loadDesignApprovals(order) {
     return;
   }
   designApprovalsListBox.innerHTML = `<div class="cp-qc-empty">กำลังโหลด…</div>`;
+  // P0.2-fix: เปิดแท็บนี้ = แอดมิน "เห็นแล้ว" — บันทึกเวลาไว้เทียบกับ log ล่าสุดของ trackingId นี้
+  // (ดู markDesignApprovalSeen()/listenDesignApprovalsSummary() ใน js/db-orders.js) เพื่อเลิกโชว์
+  // จุดแดงของ order ใบนี้ในตาราง — เรียกก่อน await ด้านล่างได้เลย ไม่ต้องรอโหลด log เสร็จก่อน
+  // (ไม่ throw ออกมาเองอยู่แล้ว ดูคอมเมนต์หัวฟังก์ชัน)
+  markDesignApprovalSeen(order.id);
   try {
     const logs = await listDesignApprovals(trackingId);
     if (!logs.length) {
