@@ -197,12 +197,30 @@
 
 /* ── ตารางคำสั่งผลิตโดยเฉพาะ: ใช้ colgroup + table-layout:fixed กันปัญหาคอลัมน์บีบ/
    ข้อความตัดบรรทัดมั่ว ตอนข้อมูลบางคอลัมน์ว่าง (เช่น รายการ/จำนวน) หรือจอแคบ —
-   ความกว้างคอลัมน์จะคงที่ตาม colgroup เสมอ ไม่ผันตามเนื้อหาต่อแถวอีกต่อไป และ
-   ถ้าจอแคบกว่าความกว้างรวม จะเลื่อนแนวนอนใน .cp-table-wrap แทนการบีบคอลัมน์ ── */
-#cp-table-view .cp-table{ table-layout:fixed; min-width:1130px; }
+   ความกว้างคอลัมน์จะคงที่ตาม colgroup เสมอ ไม่ผันตามเนื้อหาต่อแถวอีกต่อไป
+   min-width ตั้งไว้แค่พอกันคอลัมน์บีบจนอ่านไม่ออกบนจอมือถือจริงๆ (ต่ำกว่าความกว้าง
+   เนื้อหาปกติของ .cp-main ที่ ~1128px) ตารางเลยพอดีความกว้างจอ ไม่ต้องเลื่อนแนวนอน
+   บนจอเดสก์ท็อป/แท็บเล็ตทั่วไปอีกต่อไป — .cp-table-wrap ยังมี overflow-x:auto ไว้เป็น
+   ทางเลือกสำรองสำหรับจอที่แคบกว่า min-width นี้จริงๆ เท่านั้น ── */
+#cp-table-view .cp-table{ table-layout:fixed; min-width:860px; }
 #cp-table-view .cp-table td{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 #cp-table-view .cp-table td:last-child { overflow:visible; }
 #cp-table-view .cp-namecell-name{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
+
+/* ── คอลัมน์ "แบบงาน" — ป้ายสถานะอนุมัติแบบล่าสุด กดเปิดป๊อปอัพคำสั่งผลิตตรงแท็บ
+   "อนุมัติแบบ" ได้ทันที (ดูแบบ/ประวัติการขอแก้ไข-อนุมัติ) โดยไม่ต้องไล่คลิกเข้าไปทีละแท็บ ── */
+.cp-design-btn{
+  background:none; border:none; padding:0; margin:0; cursor:pointer; font:inherit;
+}
+.cp-design-badge{
+  display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:var(--r-pill);
+  font-size:11.5px; font-weight:700; white-space:nowrap; border:1px solid transparent;
+}
+.cp-design-badge.is-none{ background:var(--gray-50); color:var(--text-meta); border-color:var(--gray-200); }
+.cp-design-badge.is-waiting{ background:#F1F5F9; color:#475569; border-color:#E2E8F0; }
+.cp-design-badge.is-approved{ background:#ECFDF5; color:#059669; border-color:#A7F3D0; }
+.cp-design-badge.is-changes{ background:#FFF7ED; color:#C2410C; border-color:#FED7AA; }
+.cp-design-badge .cp-approval-dot{ margin-right:0; }
 .cp-empty{ text-align:center; color:var(--text-meta); padding:30px 0 !important; }
 .cp-load-error{ display:flex; flex-direction:column; align-items:center; gap:10px; }
 .cp-load-error .cp-load-error-msg,
