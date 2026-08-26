@@ -1251,12 +1251,12 @@
   <option value="งาน Custom Order ตามแบบลูกค้า">
 </datalist>
 
-<!-- ============ ADD/EDIT PRODUCT MODAL — จัดเป็น 4 หมวด (ข้อมูลพื้นฐาน/รูปภาพ/ราคา&ตัวเลือก/
+<!-- ============ ADD/EDIT PRODUCT MODAL — จัดเป็น 4 หมวด (ข้อมูลพื้นฐาน/ราคา&ตัวเลือก/รูปภาพ/
      SEO ขั้นสูง) แทนฟอร์มยาวเดียวเดิม แพทเทิร์นเดียวกับป๊อปอัพคำสั่งผลิต (cp-order-overlay): บนจอกว้าง
-     ทุกหมวดแสดงพร้อมกันเป็นการ์ดในกริด 2 คอลัมน์ (คลาส .cp-od-gridview บนฟอร์ม + .ad-p-modal-grid ครอบ
-     4 หมวด) ไม่ต้องสลับแท็บ จอแคบยุบเหลือคอลัมน์เดียว — ดูคลาส CSS ที่เกี่ยวข้องใน css/console.css
-     หัวข้อ "Order/Product popup — ให้เห็นทุกหมวดพร้อมกันในจอกว้าง" (ใช้ .cp-od-tabs/.cp-od-panel
-     ร่วมกับป๊อปอัพคำสั่งผลิต เป็นคลาสกลาง ไม่ผูกกับฟอร์มใดฟอร์มหนึ่งโดยเฉพาะ) ============ -->
+     ทุกหมวดแสดงพร้อมกันเป็นการ์ดใน multi-column แบบ balance อัตโนมัติ (คลาส .cp-od-gridview บนฟอร์ม +
+     .ad-p-modal-grid ครอบ 4 หมวด) ไม่ต้องสลับแท็บ จอแคบยุบเหลือคอลัมน์เดียว — ดูคลาส CSS ที่เกี่ยวข้อง
+     ใน css/console.css หัวข้อ "Order/Product popup — คอลัมน์แบบ balance อัตโนมัติ" (ใช้
+     .cp-od-tabs/.cp-od-panel ร่วมกับป๊อปอัพคำสั่งผลิต เป็นคลาสกลาง ไม่ผูกกับฟอร์มใดฟอร์มหนึ่งโดยเฉพาะ) ============ -->
 <div class="cp-modal-overlay" id="ad-p-overlay" style="display:none;">
   <form class="cp-modal ad-modal-wide cl-sticky-footer cp-order-detail cp-od-gridview" id="ad-p-form">
     <div class="cp-modal-title" id="ad-p-modal-title">เพิ่มสินค้า</div>
@@ -1296,20 +1296,7 @@
       </label>
     </div>
 
-    <!-- ── หมวด 3: รูปภาพ (ย้ายมาไว้คู่กับข้อมูลพื้นฐานในกริด เพราะเนื้อหาสั้นพอกัน) ── -->
-    <div class="cp-od-panel ad-p-panel-images" data-od-panel="images">
-      <div class="cp-od-panel-heading">รูปภาพ</div>
-      <div class="ad-img-label">รูปภาพสินค้า</div>
-      <div class="ad-img-grid" id="ad-p-images"></div>
-      <label class="ad-upload-btn">
-        <input type="file" id="ad-p-upload" accept="image/*" multiple hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-        อัปโหลดรูปภาพ
-      </label>
-      <div class="ad-upload-status" id="ad-p-upload-status"></div>
-    </div>
-
-    <!-- ── หมวด 2: ราคา & ตัวเลือกสินค้า ── -->
+    <!-- ── หมวด 2: ราคา & ตัวเลือกสินค้า (เรียงก่อน "รูปภาพ" เพราะเป็นลำดับที่กรอกต่อจากข้อมูลพื้นฐานจริง) ── -->
     <div class="cp-od-panel ad-p-panel-pricing" data-od-panel="pricing">
       <div class="cp-od-panel-heading">ราคา &amp; ตัวเลือก</div>
       <div class="cp-modal-row">
@@ -1337,6 +1324,19 @@
         <div class="ad-variant-builder" id="ad-p-variant-builder"></div>
         <div class="ad-variant-table-wrap" id="ad-p-variant-table"></div>
       </div>
+    </div>
+
+    <!-- ── หมวด 3: รูปภาพ ── -->
+    <div class="cp-od-panel ad-p-panel-images" data-od-panel="images">
+      <div class="cp-od-panel-heading">รูปภาพ</div>
+      <div class="ad-img-label">รูปภาพสินค้า</div>
+      <div class="ad-img-grid" id="ad-p-images"></div>
+      <label class="ad-upload-btn">
+        <input type="file" id="ad-p-upload" accept="image/*" multiple hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        อัปโหลดรูปภาพ
+      </label>
+      <div class="ad-upload-status" id="ad-p-upload-status"></div>
     </div>
 
     <!-- ── หมวด 4: SEO ขั้นสูง (ไม่บังคับกรอก) ── -->
@@ -1609,13 +1609,12 @@
       <button type="button" class="cp-od-tab" data-od-tab="history" role="tab" aria-selected="false">ประวัติ</button>
     </div>
 
-    <!-- หมายเหตุ (2026-08 รอบล่าสุด — กลับมาแสดงทุกหมวดพร้อมกันตามคำขอ): เคยลองทำกริด 3 คอลัมน์
-         เท่ากันมาก่อนแล้วเลิกใช้ เพราะคอลัมน์สูงไม่เท่ากันจนดูรก คราวนี้แก้ด้วยกริด "2 คอลัมน์ไม่เท่ากัน"
-         แทน — คอลัมน์ซ้าย (ข้อมูลงาน) กว้างกว่าและครอบคลุมทุกแถวของคอลัมน์ขวา (การเงิน/การจัดส่ง/
-         แนบไฟล์/อนุมัติแบบ/ประวัติ เรียงซ้อนกัน) เพราะข้อมูลงานมีเนื้อหามากที่สุดอยู่แล้ว การจัดแบบนี้
-         ทำให้ความสูงรวมของทั้ง 2 คอลัมน์ใกล้เคียงกัน ไม่มีช่องว่างเหลือมาก — ดูรายละเอียด CSS ที่หัวข้อ
-         "Order/Product popup — ให้เห็นทุกหมวดพร้อมกันในจอกว้าง" ท้ายไฟล์ console.css (คลาส
-         .cp-od-gridview ที่ตัวฟอร์ม + grid-area ต่อหมวดที่กำหนดผ่านคลาส .cp-o-panel-* เดิม) -->
+    <!-- หมายเหตุ (2026-08 รอบล่าสุด — ห้ามเนื้อหาหาย/ห้ามต้องเลื่อนอ่านเพิ่ม): เคยลองทั้งกริดคอลัมน์
+         จับคู่หมวดด้วยมือ (ช่องว่างเยอะเวลาเดาความสูงพลาด) และคอลัมน์เดียวเรียงยาว (จัดเรียงเป็นระเบียบ
+         แต่ต้องเลื่อนอ่านยาวขึ้น) รอบนี้ใช้ CSS multi-column (column-count) แทน — เบราว์เซอร์บาลานซ์
+         ความสูงแต่ละคอลัมน์ให้ใกล้เคียงกันเองอัตโนมัติตามเนื้อหาจริง ไม่ต้องเดามือ ทุกหมวดยังอยู่ครบ
+         ไม่มีอะไรถูกซ่อน — ดูรายละเอียด CSS ที่หัวข้อ "Order/Product popup — คอลัมน์แบบ balance
+         อัตโนมัติ" ท้ายไฟล์ console.css (คลาส .cp-od-gridview ที่ตัวฟอร์ม) -->
     <div class="cp-o-grid">
     <!-- ── หมวด 1: ข้อมูลงาน ── -->
     <div class="cp-od-panel cp-o-panel-info" data-od-panel="info">
