@@ -150,8 +150,8 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
   // "บัญชีของฉัน" ในหน้าอื่นๆ ที่ไม่ได้เช็ค Firebase session จริง) เรียกแบบ if (typeof ... ===
   // "function") กันพัง เผื่อ main.js โหลดไม่เสร็จ/ถูกปิดกั้นบางกรณี (pattern เดียวกับที่ไฟล์นี้ใช้
   // เช็ค window.openQuoteRequestForm ที่อื่นในโปรเจกต์)
-  function setLoginIndicator(isActive) {
-    if (typeof window.CSSignSetAccountLoggedIn === "function") window.CSSignSetAccountLoggedIn(isActive);
+  function setLoginIndicator(isActive, pictureUrl) {
+    if (typeof window.CSSignSetAccountLoggedIn === "function") window.CSSignSetAccountLoggedIn(isActive, pictureUrl);
   }
 
   function afterLogin(profile, lineUserId) {
@@ -159,7 +159,10 @@ import { listenMyQuoteRequests } from "./db-quote-requests.js";
     renderProfile(profile);
     currentLineUserId = lineUserId || null;
     showOnly(profileEl);
-    setLoginIndicator(true);
+    // ส่ง pictureUrl จากโปรไฟล์ LINE ไปเก็บ cache ด้วย (js/main.js) เพื่อเอาไปโชว์เป็น
+    // รูปโปรไฟล์บนไอคอน "บัญชีของฉัน" ใน nav ของหน้าอื่นๆ ทั้งหมด — pattern เดียวกับ flag
+    // login boolean เดิม ไม่ authoritative 100% แค่ UI hint
+    setLoginIndicator(true, (profile && profile.pictureUrl) || null);
   }
 
   // ===========================
