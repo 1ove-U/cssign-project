@@ -317,7 +317,12 @@ const ORDER_ALLOWED_FIELDS = new Set([
   "attachments", "designFiles",
   "deposit", "paymentStatus", "discount", "vatIncluded", "invoiceAddress",
   "shippingAddress", "recipient", "shippingMethod", "shippingCost", "shippingTrackingId",
-  "assignee", "assigneeName", "specs", "qcChecklist", "reviewRequestedAt"
+  "assignee", "assigneeName", "specs", "qcChecklist", "reviewRequestedAt",
+  // P0.2-fix: เวลาที่แอดมินเปิดดูแท็บ "อนุมัติแบบ" ของคำสั่งผลิตใบนี้ล่าสุด — ใช้เทียบกับเวลาของ
+  // log อนุมัติ/ขอแก้ไขล่าสุด (design_approvals) เพื่อโชว์จุดแดง "มีอนุมัติใหม่ที่ยังไม่เห็น" ใน
+  // ตาราง/การ์ดคำสั่งผลิต (ดู markDesignApprovalSeen()/listenDesignApprovalsSummary() ด้านล่าง
+  // และ js/orders-tab-row.js) — เขียนได้เฉพาะ admin/staff login เท่านั้น (เหมือน field อื่นๆ ในนี้)
+  "designApprovalSeenAt"
 ]);
 
 export async function updateOrder(id, patch) {
@@ -412,6 +417,19 @@ export async function updateOrder(id, patch) {
   }
 }
 
+// P0.2-fix: เรียกจาก loadDesignApprovals() (js/orders-tab-modal-design-approvals.js) หลังโหลด
+// ประวัติอนุมัติแบบของ order ใบนี้สำเร็จ (เท่ากับแอดมิน "เห็นแล้ว") — บันทึกเวลาไว้เทียบกับเวลา
+// ของ log ล่าสุดใน listenDesignApprovalsSummary() ด้านล่าง เพื่อเลิกโชว์จุดแดงของ order ใบนี้ใน
+// ตาราง — ตั้งใจแยกเป็น updateDoc() เดี่ยวๆ ไม่ผ่าน updateOrder() (ไม่อยากให้ไป trigger
+// sendOrderStatusEmail()/sendOrderStatusLine() หรือ logAudit ของการแก้ order ทั่วไป เพราะนี่ไม่ใช่
+// การแก้ไขคำสั่งผลิตจริงๆ) — ไม่ throw ออกไป (ผู้เรียกไม่ต้อง await/catch) เพราะแค่พลาดแล้วจุดแดง
+// ค้างอยู่ต่ออีกนิดไม่ใช่เรื่องคอขาดบาดตาย ไม่ควรทำให้การเปิดป๊อปอัพดูคำสั่งผลิตพังไปด้วย
+export function markDesignApprovalSeen(id) {
+  if (!id) return;
+  updateDoc(doc(db, "orders", id), { designApprovalSeenAt: serverTimestamp() })
+    .catch(err => console.error("markDesignApprovalSeen error:", err));
+}
+
 export async function deleteOrder(id) {
   const ref = doc(db, "orders", id);
   const snap = await getDoc(ref);
@@ -441,7 +459,11 @@ export function buildTrackingId(code, phone) {
 async function upsertOrderTracking(order) {
   const trackingId = buildTrackingId(order.code, order.phone);
   if (!trackingId) return;
-  await setDoc(doc(db, "order_tracking", trackingId), {
+  const designFiles = Array.isArray(order.designFiles)
+    ? order.designFiles.map(f => ({ url: String(f.url || ""), label: String(f.label || ""), uploadedAt: f.uploadedAt || "" }))
+    : [];
+
+  const payload = {
     code:       order.code || "",
     item:       order.item || "",
     category:   order.category || "",
@@ -461,10 +483,32 @@ async function upsertOrderTracking(order) {
     // P0.2 (Design Proof Approval) — คัดลอกเฉพาะ designFiles (ไฟล์ที่แอดมินเลือกให้ลูกค้าดูได้แล้ว)
     // เข้ามาที่สำเนา public นี้ด้วย ไม่ใช่ attachments ทั้งก้อน (ดูเหตุผลที่ normalizeOrderExtras()
     // ด้านบนของไฟล์นี้) — ใช้โดยหน้าอนุมัติแบบ (public) แสดงไฟล์ดีไซน์ให้ลูกค้าดูก่อนกดอนุมัติ/ขอแก้
-    designFiles: Array.isArray(order.designFiles)
-      ? order.designFiles.map(f => ({ url: String(f.url || ""), label: String(f.label || ""), uploadedAt: f.uploadedAt || "" }))
-      : []
-  });
+    designFiles
+  };
+
+  // P0.2-fix: เดิม setDoc() ก้อนนี้ทับทั้ง doc ทุกครั้ง (ไม่มี merge) ทำให้ field
+  // designApprovalDecision/designApprovalDecisionAt ที่ลูกค้าเพิ่งเขียนไว้ (ดู submitDesignApproval()
+  // ด้านบน) หายไปทันทีที่แอดมินแก้ order ใบนี้เรื่องอื่นที่ไม่เกี่ยวกับแบบเลยแม้แต่นิดเดียว (เช่น
+  // แก้แค่กำหนดส่ง) — เปลี่ยนเป็น merge:true แล้ว "ไม่" ใส่ 2 field นั้นในนี้ตามปกติ (merge:true จะ
+  // ไม่แตะ field ที่ไม่ได้ส่งมา) ค่าที่ลูกค้าเขียนไว้จึงอยู่ต่อได้ — ยกเว้นกรณีเดียวที่ "ตั้งใจ" ล้าง
+  // ทิ้ง: แอดมินอัปโหลด/เปลี่ยนไฟล์ดีไซน์ชุดใหม่ (แปลว่าเป็นแบบรอบใหม่ ผลอนุมัติรอบเก่าใช้ต่อไม่ได้
+  // แล้ว ต้องให้ลูกค้ากดใหม่) — เช็คโดยเทียบกับ designFiles ที่เคยบันทึกไว้ล่าสุดใน doc เดิม
+  let shouldResetApproval = false;
+  try {
+    const prevSnap = await getDoc(doc(db, "order_tracking", trackingId));
+    if (prevSnap.exists()) {
+      const prevFiles = JSON.stringify(prevSnap.data().designFiles || []);
+      if (prevFiles !== JSON.stringify(designFiles)) shouldResetApproval = true;
+    }
+  } catch (err) {
+    console.error("upsertOrderTracking: เช็ค designFiles เดิมไม่สำเร็จ (ข้ามการรีเซ็ตผลอนุมัติรอบนี้):", err);
+  }
+  if (shouldResetApproval) {
+    payload.designApprovalDecision = "";
+    payload.designApprovalDecisionAt = null;
+  }
+
+  await setDoc(doc(db, "order_tracking", trackingId), payload, { merge: true });
 }
 
 async function removeOrderTracking(trackingId) {
@@ -644,6 +688,25 @@ export async function submitDesignApproval(trackingId, action, comment = "") {
     createdAt: serverTimestamp()
   };
   const ref = await addDoc(collection(db, "design_approvals"), payload);
+
+  // P0.2-fix: นอกจาก log แบบ append-only ข้างบน (ที่แอดมินต้องเปิดดูเองถึงจะเห็น) ยังบันทึก
+  // "ผลล่าสุด" ไว้ที่ order_tracking/{trackingId} ด้วย field แคบๆ 2 ตัว (designApprovalDecision/
+  // designApprovalDecisionAt) — เพื่อให้หน้าเช็คสถานะ (js/track-modal.js) เลิกโชว์ปุ่ม "อนุมัติ
+  // แบบ" ซ้ำทุกครั้งที่ลูกค้าเข้ามาเช็คใหม่ ทั้งที่กดไปแล้ว (บั๊กเดิม — ก่อนหน้านี้ order.status
+  // ไม่ถูกแตะเลยจนกว่า admin จะมาเปลี่ยนเอง หน้าเช็คสถานะเลยเห็น status เดิมแล้วโชว์ปุ่มซ้ำ)
+  // เขียนแบบ public ได้เฉพาะ 2 field นี้เท่านั้น (ดู firestore.rules match /order_tracking/{id}
+  // — ใช้โมเดลความปลอดภัยเดียวกับ design_approvals ข้างบน: รู้ trackingId แปลว่ารู้ทั้งเลข PO +
+  // เบอร์โทรจริงอยู่แล้ว) — ตั้งใจ "ไม่" throw ถ้าพลาด เพราะ log หลักด้านบนเขียนสำเร็จไปแล้ว
+  // (ถือว่าการอนุมัติ "นับ" แล้ว) ส่วนนี้แค่ช่วยเรื่อง UX ไม่ให้ปุ่มโผล่ซ้ำเฉยๆ
+  try {
+    await updateDoc(doc(db, "order_tracking", trackingId), {
+      designApprovalDecision: action,
+      designApprovalDecisionAt: serverTimestamp()
+    });
+  } catch (err) {
+    console.error("submitDesignApproval: บันทึก order_tracking ไม่สำเร็จ (ไม่กระทบ log หลัก):", err);
+  }
+
   return ref.id;
 }
 
@@ -658,4 +721,27 @@ export async function listDesignApprovals(trackingId) {
   return snap.docs
     .map(d => ({ id: d.id, ...d.data() }))
     .filter(a => a.trackingId === trackingId);
+}
+
+// P0.2-fix: ใช้โดยตาราง/การ์ดคำสั่งผลิตฝั่งแอดมิน (js/orders-tab.js) เพื่อโชว์จุดแดง "มีอนุมัติ/
+// ขอแก้ไขแบบใหม่ที่ยังไม่เห็น" แบบเรียลไทม์ — ต่างจาก listDesignApprovals() ด้านบนตรงที่ตัวนั้น
+// ดึงประวัติ "ทั้งหมด" ของ order ใบเดียว (เรียกตอนเปิดป๊อปอัพ) ส่วนตัวนี้ฟัง "ทั้ง collection"
+// รวดเดียว (collection นี้เล็ก เป็นระบบเล็กของร้านป้าย ไม่ได้คาดว่าจะมีเป็นหมื่นรายการ) แล้วสรุป
+// เหลือแค่ "รายการล่าสุดของแต่ละ trackingId" ส่งกลับเป็น object — ตารางเทียบเวลานี้กับ
+// order.designApprovalSeenAt (เขียนโดย markDesignApprovalSeen() ด้านบน) เองอีกที
+export function listenDesignApprovalsSummary(callback, onError) {
+  const q = query(collection(db, "design_approvals"), orderBy("createdAt", "desc"));
+  return onSnapshot(
+    q,
+    snap => {
+      const latestByTracking = {};
+      snap.docs.forEach(d => {
+        const a = d.data();
+        if (!a.trackingId || latestByTracking[a.trackingId]) return; // เรียงใหม่สุดก่อนอยู่แล้ว ตัวแรกที่เจอคือล่าสุด
+        latestByTracking[a.trackingId] = { action: a.action, createdAt: a.createdAt };
+      });
+      callback(latestByTracking);
+    },
+    err => { if (onError) onError(err); else console.error("listenDesignApprovalsSummary error:", err); }
+  );
 }
