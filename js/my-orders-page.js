@@ -6,7 +6,11 @@
 // รอบ P2.8c-D — ต่างจาก js/track-modal.js (P1.5) ตรงที่ track-modal.js ต้อง "เชื่อมบัญชี" กับ
 // order เดียวก่อนด้วยเลข PO/เบอร์โทร ส่วนหน้านี้ login ด้วย LINE อย่างเดียวแล้วเห็นทุกออเดอร์ที่
 // เคยเชื่อมไว้แล้วทันที (ไม่ต้องรู้เลข PO ล่วงหน้า)
-import { loginWithLine, listenMyOrders, linkLineAccount, ORDER_STATUS } from "./db-orders.js";
+import { loginWithLine, listenMyOrders, linkLineAccount, ORDER_STATUS, ORDER_STATUS_FLOW, PAYMENT_STATUS, SHIPPING_METHOD } from "./db-orders.js";
+// สถิติ/คำนวณล้วนๆ (pure function, ไม่แตะ Firestore เลย — ดูคอมเมนต์หัวไฟล์ js/db-orders-stats.js)
+// ใช้เพิ่มข้อมูลใน renderOrderCard() รอบ redesign นี้: กำหนดส่ง (เร่งด่วน/เกินกำหนด) + ยอดคงเหลือ —
+// ทุกฟังก์ชันรับแค่ order เดี่ยวๆ ที่ listenMyOrders() ส่งมาอยู่แล้ว ไม่ต้อง query เพิ่ม
+import { daysUntilDue, orderUrgency, orderGrandTotal, orderBalance } from "./db-orders-stats.js";
 // signOut ฝั่งลูกค้า (P2.9-A) — ใช้ logoutAdmin() เดิมจาก js/db.js ตรงๆ (ครอบ signOut(auth) ตัว
 // เดียวกับที่แอดมินใช้ — ดูเหตุผลใน p2.9-account-hub-plan.md ว่าทำไมไม่เพิ่ม alias
 // signOutCustomer() ใหม่ในรอบนี้: ชื่อสื่อความหมายฝั่งแอดมินก็จริง แต่ทำงานกับ auth instance
@@ -102,24 +106,173 @@ import { logoutAdmin, auth, onAuthChange } from "./db.js";
     });
   }
 
-  // การ์ดออเดอร์เดี่ยว — ใช้ class .tm-* เดิมจาก css/track-modal.css ซ้ำ (โหลดอยู่แล้วทุกหน้า)
-  // แทนที่จะเพิ่ม CSS ใหม่ในรอบนี้ (ตามแผน P2.8c-E: เริ่มจาก html+js ก่อน เพิ่ม CSS เฉพาะทาง
-  // ในรอบ P2.8c-F ถ้าจำเป็นจริงๆ)
+  // การ์ดออเดอร์เดี่ยว — ปรับปรุงรอบ redesign: ยังใช้ .tm-badge/.tm-progress-bar เดิมจาก
+  // css/track-modal.css สำหรับสถานะ/แถบความคืบหน้า (ไม่เปลี่ยนพฤติกรรม/ลุค 2 ส่วนนี้) แต่ห่อด้วย
+  // การ์ดใหม่ (.ap-item-card, css/account-pages.css) + เพิ่มข้อมูลที่มีอยู่แล้วใน order แต่ไม่เคย
+  // แสดงในหน้านี้เลย: วันที่สร้าง, กำหนดส่ง (พร้อมไฮไลต์ถ้าใกล้/เกินกำหนด — ใช้ daysUntilDue()/
+  // orderUrgency() จาก js/db-orders-stats.js ตรงๆ ไม่คำนวณเอง), ยอดคงเหลือที่ต้องชำระ (orderBalance()),
+  // ช่องทางจัดส่ง/เลขพัสดุ — ทุกส่วนเป็น optional เพราะ order จริงบางรายการอาจไม่มีข้อมูลการเงิน/
+  // โลจิสติกส์ครบ (เช่น เพิ่งรับงานสดๆ) จึง query แบบ if (order.xxx) ก่อนเรนเดอร์ทุกจุด — ไม่กระทบ
+  // เทสเดิมที่ยิง order object แบบขั้นต่ำ (code/item/qty/status/progress เท่านั้น) เพราะ chip ทุกอัน
+  // จะแค่ไม่ถูกเรนเดอร์เฉยๆ ถ้าไม่มีข้อมูล
+  //
+  // ขั้นตอนงานทั้งหมด (8 stage ตาม ORDER_STATUS_FLOW) ห่อด้วย <details>/<summary> native — เลือกใช้
+  // เพราะเป็น progressive disclosure ในตัว ไม่ต้องผูก event listener เพิ่มจาก JS (การ์ดถูกเรนเดอร์
+  // จาก string เข้า .innerHTML ล้วนๆ อยู่แล้ว การ toggle ด้วย addEventListener ทีละใบจะต้องรื้อ
+  // โครงสร้างการ subscribe/re-render ใหม่ทั้งหมด — <details> ทำงานได้ทันทีจากเบราว์เซอร์เอง)
+
+  function orderDateLabel(order) {
+    var ts = order && order.createdAt;
+    if (!ts) return "";
+    var ms = ts.toMillis ? ts.toMillis() : (typeof ts === "number" ? ts : null);
+    if (!ms) return "";
+    return new Date(ms).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function dueDateLabel(order) {
+    if (!order || !order.dueDate) return "";
+    var d = new Date(order.dueDate + "T00:00:00");
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function formatBaht(n) {
+    return (Math.round((Number(n) || 0) * 100) / 100).toLocaleString("th-TH") + " บาท";
+  }
+
+  // แถวข้อมูลย่อยใต้การ์ด (กำหนดส่ง / ยอดคงเหลือ / ช่องทางจัดส่ง) — คืน "" ถ้าไม่มี chip ให้แสดงเลย
+  // (order ไม่มี dueDate/ยอดเงิน/ช่องทางจัดส่งครบ) กันเหลือแถวว่างๆ ในการ์ด
+  function renderChipRow(order) {
+    var chips = [];
+
+    var dueLabel = dueDateLabel(order);
+    if (dueLabel && order.status !== "completed" && order.status !== "cancelled") {
+      var urgency = orderUrgency(order);
+      var chipClass = urgency === "overdue" ? " overdue" : (urgency === "due-soon" ? " duesoon" : "");
+      var days = daysUntilDue(order);
+      var urgencyText = urgency === "overdue" ? " (เกินกำหนด " + Math.abs(days) + " วัน)" : (urgency === "due-soon" ? " (อีก " + Math.max(days, 0) + " วัน)" : "");
+      chips.push(
+        '<span class="ap-chip' + chipClass + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+          'กำหนดส่ง ' + escapeHtml(dueLabel) + escapeHtml(urgencyText) +
+        '</span>'
+      );
+    }
+
+    if (order.paymentStatus && order.status !== "cancelled") {
+      if (order.paymentStatus === "paid_full") {
+        chips.push(
+          '<span class="ap-chip paid">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>' +
+            'ชำระครบแล้ว' +
+          '</span>'
+        );
+      } else {
+        var balance = orderBalance(order);
+        if (balance > 0) {
+          chips.push(
+            '<span class="ap-chip balance">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' +
+              'ค้างชำระ ' + escapeHtml(formatBaht(balance)) +
+            '</span>'
+          );
+        }
+      }
+    }
+
+    if (order.shippingMethod) {
+      var methodInfo = SHIPPING_METHOD[order.shippingMethod];
+      if (methodInfo) {
+        chips.push(
+          '<span class="ap-chip">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8Z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' +
+            escapeHtml(methodInfo.label) +
+          '</span>'
+        );
+      }
+    }
+
+    if (order.shippingTrackingId && (order.status === "shipping" || order.status === "completed")) {
+      chips.push(
+        '<span class="ap-chip">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+          'เลขพัสดุ ' + escapeHtml(order.shippingTrackingId) +
+        '</span>'
+      );
+    }
+
+    if (!chips.length) return "";
+    return '<div class="ap-chip-row">' + chips.join("") + '</div>';
+  }
+
+  // ขั้นตอนงานทั้งหมด 8 stage แบบ mini tracker แนวนอน (.ap-flow, css/account-pages.css) — ใช้
+  // ORDER_STATUS_FLOW เดิมจาก js/db-orders.js เป๊ะ (ลำดับเดียวกับที่ป๊อปอัพเช็คสถานะใช้) ไม่รวม
+  // "cancelled" เพราะเป็นสถานะพิเศษที่ออกจาก flow ได้จากทุกขั้นตอน (แสดงแยกด้วย
+  // renderCancelledNote() ด้านล่างแทน)
+  var STAGE_ICON_DONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  function renderFlowTracker(order) {
+    var currentIdx = ORDER_STATUS_FLOW.indexOf(order.status);
+    var stepsHtml = ORDER_STATUS_FLOW.map(function (key, idx) {
+      var info = ORDER_STATUS[key] || { label: key };
+      var stepClass = idx < currentIdx ? "done" : (idx === currentIdx ? "current" : "");
+      return (
+        '<div class="ap-flow-step' + (stepClass ? " " + stepClass : "") + '">' +
+          '<div class="ap-flow-rail">' +
+            '<span class="ap-flow-line"></span>' +
+            '<span class="ap-flow-dot">' + (idx < currentIdx ? STAGE_ICON_DONE : "") + '</span>' +
+            '<span class="ap-flow-line"></span>' +
+          '</div>' +
+          '<div class="ap-flow-label">' + escapeHtml(info.label) + '</div>' +
+        '</div>'
+      );
+    }).join("");
+    return (
+      '<details class="ap-details">' +
+        '<summary>ดูขั้นตอนงานทั้งหมด' +
+          '<svg class="ap-details-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>' +
+        '</summary>' +
+        '<div class="ap-details-body"><div class="ap-flow">' + stepsHtml + '</div></div>' +
+      '</details>'
+    );
+  }
+
+  function renderCancelledNote() {
+    return (
+      '<div style="padding:0 18px 16px;">' +
+        '<div class="ap-cancelled-note">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+          'คำสั่งผลิตนี้ถูกยกเลิกแล้ว หากมีข้อสงสัยติดต่อ 062-883-3880' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
   function renderOrderCard(order) {
     var statusInfo = ORDER_STATUS[order.status] || { label: order.status, css: "received" };
     var progress = Math.max(0, Math.min(100, order.progress || 0));
+    var dateLabel = orderDateLabel(order);
+    var isCancelled = order.status === "cancelled";
+    var isCompleted = order.status === "completed";
+
     return (
-      '<div style="border:1px solid var(--gray-100); border-radius:var(--r-lg); padding:18px 20px; background:var(--bg);">' +
-        '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px;">' +
+      '<div class="ap-item-card">' +
+        '<div class="ap-item-top">' +
           '<div>' +
-            '<div class="tm-result-code">' + escapeHtml(order.code || "\u2014") + '</div>' +
-            '<div class="tm-result-item">' + escapeHtml(order.item || "") + (order.qty ? " \u00b7 \u0e08\u0e33\u0e19\u0e27\u0e19 " + escapeHtml(String(order.qty)) : "") + '</div>' +
+            '<div class="ap-item-code">' + escapeHtml(order.code || "\u2014") + '</div>' +
+            (dateLabel ? '<div class="ap-item-date">สั่งเมื่อ ' + escapeHtml(dateLabel) + '</div>' : '') +
           '</div>' +
           '<span class="tm-badge ' + statusInfo.css + '">' + escapeHtml(statusInfo.label) + '</span>' +
         '</div>' +
-        (order.status !== "cancelled" ?
-          '<div class="tm-progress-bar"><i style="width:' + progress + '%"></i></div>'
-        : "") +
+        '<div class="ap-item-name">' + escapeHtml(order.item || "") + (order.qty ? ' <b>\u00d7 ' + escapeHtml(String(order.qty)) + '</b>' : '') + '</div>' +
+        (!isCancelled ?
+          '<div class="ap-item-progress">' +
+            '<div class="ap-item-progress-top"><span>ความคืบหน้า</span><span>' + progress + '%</span></div>' +
+            '<div class="tm-progress-bar"><i style="width:' + progress + '%"></i></div>' +
+          '</div>'
+        : '') +
+        renderChipRow(order) +
+        (isCancelled ? renderCancelledNote() : (isCompleted ? '' : renderFlowTracker(order))) +
       '</div>'
     );
   }
