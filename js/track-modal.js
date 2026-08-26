@@ -15,7 +15,33 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
   var errorBox   = document.getElementById("tm-error");
   var errorText  = document.getElementById("tm-error-text");
   var resultBox  = document.getElementById("tm-result");
+  var lookupPill      = document.getElementById("tm-lookup-pill");
+  var lookupPhoneEl   = document.getElementById("tm-lookup-phone");
+  var lookupAgainBtn  = document.getElementById("tm-lookup-again-btn");
   if (!overlay || !form) return;
+
+  // 2026 refactor (ป๊อปอัพเวอร์ชันแท็บ) — หลังค้นเจอสำเร็จ ฟอร์มเต็มจะถูกซ่อนแล้วแทนที่ด้วยแถบ
+  // สรุปเล็กๆ (#tm-lookup-pill: "ยืนยันด้วยเบอร์ลงท้าย XXXX" + ปุ่ม "เช็คใบอื่น") กันฟอร์มเปล่าเปลือง
+  // พื้นที่ด้านบนโดยไม่จำเป็นหลังกรอกเสร็จแล้ว — showLookupPill()/hideLookupPill() คุมการสลับ 2
+  // สถานะนี้ ถูกเรียกจาก submit handler (สำเร็จ), ปุ่ม "เช็คใบอื่น", และ closeModal() (reset ตอนปิด)
+  function showLookupPill(phone) {
+    form.style.display = "none";
+    if (lookupPhoneEl) lookupPhoneEl.textContent = String(phone || "").replace(/\D/g, "").slice(-4);
+    if (lookupPill) lookupPill.style.display = "flex";
+  }
+  function hideLookupPill() {
+    form.style.display = "";
+    if (lookupPill) lookupPill.style.display = "none";
+  }
+  if (lookupAgainBtn) {
+    lookupAgainBtn.addEventListener("click", function () {
+      hideLookupPill();
+      resultBox.classList.remove("show");
+      resultBox.innerHTML = "";
+      currentOrder = null;
+      requestAnimationFrame(function () { codeInput && codeInput.focus(); });
+    });
+  }
 
   // P0.2 (Design Proof Approval) — เก็บ order ล่าสุดที่ค้นเจอไว้ในตัวแปรนี้ ให้ delegated click
   // handler ของปุ่มอนุมัติ/ขอแก้ไข (ผูกกับ #tm-result ด้านล่าง) เข้าถึง trackingId (order.id) ได้
@@ -92,6 +118,31 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
     completed:  '<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5"/>'
   };
 
+  // 2026 refactor (ป๊อปอัพเวอร์ชันแท็บ) — คำอธิบาย 1 บรรทัดของ "ขั้นตอนปัจจุบัน" แสดงในการ์ด
+  // ไฮไลต์ของแท็บ "สรุป" (ดู renderOverviewPanel()) + สีของการ์ดนั้น (STAGE_CALLOUT_TONE) —
+  // แยกจาก STAGE_LABEL (ป้ายสั้นๆ ของ stage tracker เดิม) เพราะอันนี้ต้องอธิบายละเอียดกว่า/พูดกับ
+  // ลูกค้าตรงๆ ว่า "ตอนนี้รออะไรอยู่"
+  var STAGE_DESC = {
+    received:   "รับคำสั่งผลิตเรียบร้อยแล้ว ทีมงานกำลังเตรียมเข้าสู่ขั้นตอนออกแบบ",
+    design:     "ทีมออกแบบกำลังจัดทำแบบป้ายให้คุณอยู่",
+    approval:   "ทีมออกแบบส่งไฟล์ดีไซน์แล้ว ดูและกดอนุมัติได้ในแท็บ \u201cดำเนินการ\u201d",
+    production: "แบบได้รับการอนุมัติแล้ว กำลังเข้าสู่ขั้นตอนผลิต",
+    qc:         "ผลิตเสร็จแล้ว กำลังตรวจสอบคุณภาพก่อนแพ็กสินค้า",
+    packing:    "ผ่านการตรวจสอบคุณภาพแล้ว กำลังแพ็กสินค้าเตรียมจัดส่ง",
+    shipping:   "สินค้าอยู่ระหว่างการจัดส่งไปยังคุณ",
+    completed:  "งานเสร็จสมบูรณ์แล้ว ขอบคุณที่ใช้บริการ"
+  };
+  var STAGE_CALLOUT_TONE = {
+    received: "accent", design: "accent", approval: "accent",
+    production: "primary", qc: "primary", packing: "primary", shipping: "primary",
+    completed: "success"
+  };
+  var TAB_ICON = {
+    overview: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+    steps:    '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1.6"/><circle cx="4" cy="12" r="1.6"/><circle cx="4" cy="18" r="1.6"/>',
+    actions:  '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'
+  };
+
   // ── เปิด/ปิด popup ──
   var lastFocused = null;
   function openModal() {
@@ -104,6 +155,13 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
     overlay.style.display = "none";
     document.body.style.overflow = "";
     if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+    // รีเซ็ตกลับสู่สถานะเริ่มต้นทุกครั้งที่ปิด (ฟอร์มเปล่า ไม่มี pill/ผลลัพธ์ค้าง) กันสับสนตอนเปิดใหม่
+    hideLookupPill();
+    hideError();
+    resultBox.classList.remove("show");
+    resultBox.innerHTML = "";
+    currentOrder = null;
+    form.reset();
   }
   window.openTrackModal = openModal;
   window.closeTrackModal = closeModal;
@@ -162,6 +220,7 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
         showError("ไม่พบคำสั่งผลิตนี้ กรุณาตรวจสอบเลขที่ PO และเบอร์โทรอีกครั้ง หรือติดต่อทีมงานที่ 062-883-3880");
         return;
       }
+      showLookupPill(phone);
       renderResult(order);
     }).catch(function (err) {
       console.error("trackOrderStatus error:", err);
@@ -173,6 +232,19 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
   });
 
   resultBox.addEventListener("click", function (e) {
+    // แท็บสรุป / ขั้นตอนงาน / ดำเนินการ — สลับ .active ทั้งปุ่มแท็บและ panel ที่ data-tmtab ตรงกัน
+    // เก็บ current tab ไว้ที่ DOM เอง (ไม่ผูก state แยก) เพราะ renderResult() แทนที่ทั้งก้อนใหม่ทุกครั้ง
+    // ที่ค้นหาใหม่อยู่แล้ว (กลับไปเริ่มที่แท็บ "สรุป" เสมอเมื่อผลลัพธ์เปลี่ยน ถือว่าตั้งใจ)
+    var tabBtn = e.target.closest(".tm-tab");
+    if (tabBtn) {
+      var targetId = tabBtn.dataset.tmtab;
+      resultBox.querySelectorAll(".tm-tab").forEach(function (t) { t.classList.toggle("active", t === tabBtn); });
+      resultBox.querySelectorAll(".tm-tabpanel").forEach(function (p) {
+        p.classList.toggle("active", p.id === "tm-tabpanel-" + targetId);
+      });
+      return;
+    }
+
     var btn = e.target.closest(".tm-copy-btn");
     if (btn) {
       var code = btn.dataset.code || "";
@@ -353,13 +425,20 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
     errorBox.classList.remove("show");
   }
 
+  // 2026 refactor (ป๊อปอัพเวอร์ชันแท็บ) — เดิม renderResult() เทเนื้อหาทั้งหมด (progress + stage
+  // tracker + อนุมัติแบบ + LINE + info grid + เลขพัสดุ + สั่งซ้ำ + cta) ลงมาเรียงยาวก้อนเดียว ทำให้
+  // ต้องเลื่อนอ่านเยอะ — ตอนนี้แบ่งเป็น 3 แท็บ: "สรุป" (ภาพรวม + สิ่งที่ต้องรู้ตอนนี้), "ขั้นตอนงาน"
+  // (stage tracker แบบเต็ม), "ดำเนินการ" (อนุมัติแบบ/เชื่อม LINE/เลขพัสดุ/สั่งซ้ำ/ติดต่อทีมงาน) แต่ละ
+  // แท็บสั้นพอที่จะไม่ต้องเลื่อน — ยังคง class/id เดิมทั้งหมดที่ test อื่นอ้างถึง (.tm-stage,
+  // .tm-progress-bar, .tm-compliant, #tm-approval-section, .tm-reorder-btn, #tm-line-link-* ฯลฯ)
+  // ไว้ครบ แค่จัดตำแหน่งใหม่ ไม่ได้ลบอะไรออก
   function renderResult(order) {
     currentOrder = order;
     var statusInfo = ORDER_STATUS[order.status] || { label: order.status, css: "received" };
     var isCancelled = order.status === "cancelled";
     var dueInfo = getDueInfo(order.dueDate, order.status);
 
-    resultBox.innerHTML =
+    var headHtml =
       '<div class="tm-result-head">' +
         '<div>' +
           '<div class="tm-result-code-row">' +
@@ -372,46 +451,86 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
           '<div class="tm-result-item">' + escapeHtml(order.item || "") + (order.qty ? ' \u00b7 \u0e08\u0e33\u0e19\u0e27\u0e19 ' + escapeHtml(String(order.qty)) : "") + '</div>' +
         '</div>' +
         '<span class="tm-badge ' + statusInfo.css + '">' + escapeHtml(statusInfo.label) + '</span>' +
-      '</div>' +
-      (!isCancelled ?
-        '<div class="tm-progress-wrap">' +
-          '<div class="tm-progress-top"><span>\u0e04\u0e27\u0e32\u0e21\u0e04\u0e37\u0e1a\u0e2b\u0e19\u0e49\u0e32</span><span>' + (order.progress || 0) + '%</span></div>' +
-          '<div class="tm-progress-bar"><i style="width:' + Math.max(0, Math.min(100, order.progress || 0)) + '%"></i></div>' +
-        '</div>' +
-        renderStages(order.status)
-      :
-        '<div class="tm-progress-wrap"><div class="tm-field-hint" style="margin:0;">\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e1c\u0e25\u0e34\u0e15\u0e19\u0e35\u0e49\u0e16\u0e39\u0e01\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01\u0e41\u0e25\u0e49\u0e27 \u0e2b\u0e32\u0e01\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e2a\u0e07\u0e2a\u0e31\u0e22\u0e01\u0e23\u0e38\u0e13\u0e32\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e17\u0e35\u0e21\u0e07\u0e32\u0e19</div></div>'
-      ) +
-      renderDesignApprovalSection(order) +
-      renderLineLinkSection(order) +
-      '<div class="tm-info-grid">' +
-        '<div class="tm-info-item">' +
-          '<div class="tm-info-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>' +
-          '<div><div class="tm-info-item-label">\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07</div><div class="tm-info-item-val ' + dueInfo.cls + '">' + dueInfo.text + '</div></div>' +
-        '</div>' +
-        '<div class="tm-info-item">' +
-          '<div class="tm-info-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.4 14.5 16 10 4 20"/><path d="m21 3-9 9-4-4-6 6"/></svg></div>' +
-          '<div><div class="tm-info-item-label">\u0e2b\u0e21\u0e27\u0e14\u0e1b\u0e49\u0e32\u0e22</div><div class="tm-info-item-val">' + escapeHtml(order.category || "\u2014") + '</div></div>' +
-        '</div>' +
-      '</div>' +
-      // เลขพัสดุขนส่งจริง (Kerry/Flash ฯลฯ) — คนละตัวกับ trackingId ภายใน (id ของ order_tracking เอง)
-      // แสดงเฉพาะตอนมีข้อมูลจริง (ปกติกรอกไว้ตอนสถานะเข้าสู่ "จัดส่ง")
-      (order.shippingTrackingId ?
-        '<div class="tm-compliant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><rect x="1" y="7" width="14" height="10" rx="1"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>\u0e40\u0e25\u0e02\u0e1e\u0e31\u0e2a\u0e14\u0e38: ' + escapeHtml(order.shippingTrackingId) + '</div>'
-      : "") +
-      // P2.8b (Portal ลูกค้าประจำ) — ปุ่ม "สั่งซ้ำ" แสดงเฉพาะออเดอร์ที่เสร็จสมบูรณ์แล้ว
-      // (shouldOfferReorder() ดูรายละเอียดใน js/reorder-helper.js) — วางไว้ก่อน .tm-cta
-      // เดิม กดแล้วเปิดฟอร์มขอใบเสนอราคา (js/lead-quote-modal.js) พร้อม prefill ข้อความ
-      (shouldOfferReorder(order) ?
-        '<button type="button" class="tm-reorder-btn">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>' +
-          '\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e49\u0e33' +
-        '</button>'
-      : "") +
-      '<div class="tm-cta">\u0e21\u0e35\u0e04\u0e33\u0e16\u0e32\u0e21\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21? \u0e42\u0e17\u0e23 <a href="tel:0628833880">062-883-3880</a></div>';
+      '</div>';
+
+    if (isCancelled) {
+      // ยกเลิกแล้ว: ไม่มีความหมายจะโชว์ progress/stage tracker ("ขั้นตอนงาน") อีกต่อไป — เหลือแค่
+      // หัวการ์ด + ข้อความแจ้ง + LINE/เลขพัสดุ/cta (สิ่งเหล่านี้ยังมีประโยชน์แม้ยกเลิกแล้ว)
+      resultBox.innerHTML = headHtml +
+        '<div class="tm-progress-wrap"><div class="tm-field-hint" style="margin:0;">\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e1c\u0e25\u0e34\u0e15\u0e19\u0e35\u0e49\u0e16\u0e39\u0e01\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01\u0e41\u0e25\u0e49\u0e27 \u0e2b\u0e32\u0e01\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e2a\u0e07\u0e2a\u0e31\u0e22\u0e01\u0e23\u0e38\u0e13\u0e32\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e17\u0e35\u0e21\u0e07\u0e32\u0e19</div></div>' +
+        renderLineLinkSection(order) +
+        renderShippingAndReorder(order) +
+        '<div class="tm-cta">\u0e21\u0e35\u0e04\u0e33\u0e16\u0e32\u0e21\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21? \u0e42\u0e17\u0e23 <a href="tel:0628833880">062-883-3880</a></div>';
+    } else {
+      var tone = STAGE_CALLOUT_TONE[order.status] || "primary";
+      var approvalSection = renderDesignApprovalSection(order);
+
+      resultBox.innerHTML = headHtml +
+        renderTabBar() +
+        '<div class="tm-tabpanels">' +
+          '<div class="tm-tabpanel active" id="tm-tabpanel-overview">' +
+            '<div class="tm-progress-wrap">' +
+              '<div class="tm-progress-top"><span>\u0e04\u0e27\u0e32\u0e21\u0e04\u0e37\u0e1a\u0e2b\u0e19\u0e49\u0e32</span><span>' + (order.progress || 0) + '%</span></div>' +
+              '<div class="tm-progress-bar"><i style="width:' + Math.max(0, Math.min(100, order.progress || 0)) + '%"></i></div>' +
+            '</div>' +
+            '<div class="tm-callout tm-callout-' + tone + '">' +
+              '<div class="tm-callout-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">' + STAGE_ICON[order.status] + '</svg></div>' +
+              '<div><h4>' + escapeHtml(statusInfo.label) + '</h4><p>' + (STAGE_DESC[order.status] || "") + '</p></div>' +
+            '</div>' +
+            '<div class="tm-info-grid">' +
+              '<div class="tm-info-item">' +
+                '<div class="tm-info-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>' +
+                '<div><div class="tm-info-item-label">\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07</div><div class="tm-info-item-val ' + dueInfo.cls + '">' + dueInfo.text + '</div></div>' +
+              '</div>' +
+              '<div class="tm-info-item">' +
+                '<div class="tm-info-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.4 14.5 16 10 4 20"/><path d="m21 3-9 9-4-4-6 6"/></svg></div>' +
+                '<div><div class="tm-info-item-label">\u0e2b\u0e21\u0e27\u0e14\u0e1b\u0e49\u0e32\u0e22</div><div class="tm-info-item-val">' + escapeHtml(order.category || "\u2014") + '</div></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="tm-tabpanel" id="tm-tabpanel-steps">' + renderStages(order.status) + '</div>' +
+          '<div class="tm-tabpanel" id="tm-tabpanel-actions">' +
+            (approvalSection || '') +
+            '<div class="tm-action-block">' +
+              '<div class="tm-action-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>\u0e23\u0e31\u0e1a\u0e41\u0e08\u0e49\u0e07\u0e40\u0e15\u0e37\u0e2d\u0e19\u0e2d\u0e31\u0e15\u0e42\u0e19\u0e21\u0e31\u0e15\u0e34</div>' +
+              renderLineLinkSection(order) +
+            '</div>' +
+            renderShippingAndReorder(order) +
+            '<div class="tm-cta">\u0e21\u0e35\u0e04\u0e33\u0e16\u0e32\u0e21\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21? \u0e42\u0e17\u0e23 <a href="tel:0628833880">062-883-3880</a></div>' +
+          '</div>' +
+        '</div>';
+    }
 
     resultBox.classList.add("show");
     resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function renderTabBar() {
+    var tabs = [["overview", "\u0e2a\u0e23\u0e38\u0e1b"], ["steps", "\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19\u0e07\u0e32\u0e19"], ["actions", "\u0e14\u0e33\u0e40\u0e19\u0e34\u0e19\u0e01\u0e32\u0e23"]];
+    return '<div class="tm-tabs" role="tablist">' +
+      tabs.map(function (t, i) {
+        return '<button type="button" class="tm-tab' + (i === 0 ? ' active' : '') + '" data-tmtab="' + t[0] + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + TAB_ICON[t[0]] + '</svg>' + t[1] +
+        '</button>';
+      }).join("") +
+    '</div>';
+  }
+
+  // เลขพัสดุขนส่งจริง (Kerry/Flash ฯลฯ) + ปุ่ม "สั่งซ้ำ" — แยกเป็นฟังก์ชันของตัวเองเพราะใช้ทั้งใน
+  // เคสปกติ (แท็บ "ดำเนินการ") และเคส cancelled (ไม่มีแท็บ แต่ยังอยากโชว์ทั้งสองอย่างนี้อยู่)
+  function renderShippingAndReorder(order) {
+    return (order.shippingTrackingId ?
+      '<div class="tm-compliant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><rect x="1" y="7" width="14" height="10" rx="1"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>\u0e40\u0e25\u0e02\u0e1e\u0e31\u0e2a\u0e14\u0e38: ' + escapeHtml(order.shippingTrackingId) + '</div>'
+    : "") +
+    // P2.8b (Portal ลูกค้าประจำ) — ปุ่ม "สั่งซ้ำ" แสดงเฉพาะออเดอร์ที่เสร็จสมบูรณ์แล้ว
+    // (shouldOfferReorder() ดูรายละเอียดใน js/reorder-helper.js) — เดิม กดแล้วเปิดฟอร์มขอใบเสนอราคา
+    // (js/lead-quote-modal.js) พร้อม prefill ข้อความ
+    (shouldOfferReorder(order) ?
+      '<button type="button" class="tm-reorder-btn">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>' +
+        '\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e49\u0e33' +
+      '</button>'
+    : "");
   }
 
   // P0.2 (Design Proof Approval) — แสดงเฉพาะตอน status เป็น "design"/"approval" และมี
@@ -452,20 +571,30 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
     '</div>';
   }
 
+  // 2026 refactor (ป๊อปอัพเวอร์ชันแท็บ) — เปลี่ยนจาก stage tracker แนวนอนที่ต้องเลื่อนดูบนจอเล็ก
+  // (ของเดิม overflow-x:auto) เป็นลิสต์แนวตั้งกระชับที่เห็นครบทั้ง 8 ขั้นในจอเดียว พร้อม tag บอก
+  // สถานะแต่ละขั้น (เสร็จแล้ว/กำลังทำ/รอดำเนินการ) และคำอธิบายสั้นๆ เฉพาะขั้นที่กำลังทำอยู่ — ยังคง
+  // class "tm-stage"/"done"/"current" เดิมไว้ครบ (test/track-modal-form-flow.test.mjs อ้างถึง)
   function renderStages(status) {
     var idx = STAGE_ORDER.indexOf(status);
     return '<div class="tm-stages">' +
       STAGE_ORDER.map(function (s, i) {
-        var cls = "";
-        if (i < idx) cls = "done";
-        else if (i === idx) cls = "current";
+        var cls = "tm-stage";
+        var tag = "\u0e23\u0e2d\u0e14\u0e33\u0e40\u0e19\u0e34\u0e19\u0e01\u0e32\u0e23";
+        if (i < idx) { cls += " done"; tag = "\u0e40\u0e2a\u0e23\u0e47\u0e08\u0e41\u0e25\u0e49\u0e27"; }
+        else if (i === idx) { cls += " current"; tag = "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e17\u0e33"; }
         var iconSvg = i < idx
           ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>'
           : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + STAGE_ICON[s] + '</svg>';
-        return '<div class="tm-stage ' + cls + '">' +
-          '<div class="tm-stage-line"></div>' +
-          '<div class="tm-stage-dot">' + iconSvg + '</div>' +
-          '<div class="tm-stage-label">' + STAGE_LABEL[s] + '</div>' +
+        var noteHtml = (i === idx && STAGE_DESC[s]) ? '<div class="tm-stage-note">' + STAGE_DESC[s] + '</div>' : "";
+        var isLast = i === STAGE_ORDER.length - 1;
+        return '<div class="' + cls + '">' +
+          '<div class="tm-stage-rail"><div class="tm-stage-dot">' + iconSvg + '</div>' + (isLast ? "" : '<div class="tm-stage-line"></div>') + '</div>' +
+          '<div class="tm-stage-body">' +
+            '<div class="tm-stage-label">' + STAGE_LABEL[s] + '</div>' +
+            noteHtml +
+            '<span class="tm-stage-tag">' + tag + '</span>' +
+          '</div>' +
         '</div>';
       }).join("") +
     '</div>';
