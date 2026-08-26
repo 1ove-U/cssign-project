@@ -579,6 +579,15 @@ section,
   background:#06C755; border:2px solid #fff;
 }
 .nav-icon-btn--logged-in .nav-login-dot{ display:block; }
+
+/* ---- รูปโปรไฟล์ LINE บนไอคอน "บัญชีของฉัน" (2026-08 follow-up) — แทน SVG คนทั่วไปตอน login
+   ด้วย LINE อยู่และมี pictureUrl cache ไว้ (ดู avatarIconHTML() ใน js/main.js) วงกลมเต็มพื้นที่
+   ปุ่ม .nav-icon-btn (38x38, border 1.5px) จึงใช้ 100% แทนค่า px ตายตัว กันขนาดเพี้ยนถ้าปุ่ม
+   ถูกปรับขนาดทีหลัง ---- */
+.nav-user-avatar{
+  width:100%; height:100%; border-radius:50%;
+  object-fit:cover; display:block;
+}
 /* มือถือ: ไม่มี icon ให้ปักจุด ใช้จุดเขียว + ตัวหนังสือบอกสถานะต่อท้ายชื่อลิงก์แทน (ตั้ง textContent
    จาก JS อยู่แล้ว — ส่วนนี้แค่แต่งสี/น้ำหนักตัวอักษรให้ตัวข้อความ "(เข้าสู่ระบบด้วย LINE อยู่)" เด่นขึ้น) */
 .mobile-my-orders-link--logged-in{ color:#06C755; font-weight:700; }
