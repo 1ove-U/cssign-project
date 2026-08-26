@@ -33,6 +33,7 @@
 <link rel="stylesheet" href="css/track-modal.css">
 <link rel="stylesheet" href="css/cart-modal.css">
 <link rel="stylesheet" href="css/fancy-effects.css">
+<link rel="stylesheet" href="css/account-pages.css">
 </head>
 <body data-page="my-account">
 <a href="#top" class="skip-link">ข้ามไปยังเนื้อหาหลัก</a>
@@ -138,6 +139,10 @@
      ============================================================ -->
 <section class="article-hero">
   <div class="wrap">
+    <a href="javascript:void(0)" class="ap-back" onclick="history.length > 1 ? history.back() : (location.href='index.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      ย้อนกลับ
+    </a>
     <div class="article-breadcrumb"><a href="index.html">หน้าแรก</a> / บัญชีของฉัน</div>
     <h1>บัญชีของฉัน</h1>
     <div class="article-updated">เข้าสู่ระบบด้วย LINE เพื่อดูข้อมูลบัญชีของคุณ และไปยังส่วนต่างๆ ที่เกี่ยวข้องกับคุณได้จากที่เดียว</div>
@@ -171,25 +176,40 @@
 
       <!-- login สำเร็จ: โปรไฟล์ย่อ + เมนูลิงก์ไปหาแต่ละหมวด -->
       <div id="ma-profile" style="display:none;">
-        <div style="display:flex; align-items:center; gap:16px; margin-bottom:28px;">
-          <img id="ma-avatar" src="" alt="" width="64" height="64" style="border-radius:50%; object-fit:cover; background:var(--gray-100); display:none; flex-shrink:0;">
-          <div style="flex:1; min-width:0;">
-            <div id="ma-name" style="font-weight:700; font-size:18px; color:var(--gray-900); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
-            <div style="color:var(--gray-500); font-size:13px;">เข้าสู่ระบบด้วยบัญชี LINE</div>
+        <div class="ap-profile-card">
+          <div class="ap-avatar-wrap">
+            <div class="ap-avatar-fallback" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <img id="ma-avatar" class="ap-avatar" src="" alt="" width="66" height="66" style="display:none;">
+            <span class="ap-line-dot" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 5.94 2 10.8c0 2.98 1.78 5.62 4.5 7.24-.15.5-.63 2.14-.72 2.47-.11.4.15.4.31.29.13-.09 2.05-1.4 2.88-1.97a13 13 0 0 0 3.03.35c5.52 0 10-3.94 10-8.8S17.52 2 12 2Z"/></svg>
+            </span>
           </div>
-          <button type="button" id="ma-logout-btn" class="btn btn-secondary btn-sm" style="flex-shrink:0;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <div class="ap-profile-info">
+            <span class="ap-profile-eyebrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="11" height="11"><path d="M20 6 9 17l-5-5"/></svg>
+              เข้าสู่ระบบแล้ว
+            </span>
+            <div id="ma-name" class="ap-profile-name"></div>
+            <div class="ap-profile-sub">บัญชีลูกค้า CS.SIGN ผ่าน LINE</div>
+          </div>
+          <button type="button" id="ma-logout-btn" class="ap-logout-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             ออกจากระบบ
           </button>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <a href="my-orders.html" style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; border:1px solid var(--gray-100); border-radius:var(--r-lg); text-decoration:none; color:inherit; transition:border-color .15s;">
-            <span style="display:flex; align-items:center; gap:12px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="flex-shrink:0; color:var(--primary);"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>
-              <span style="font-weight:600; color:var(--gray-900);">ออเดอร์ของฉัน</span>
+        <div class="ap-menu">
+          <a href="my-orders.html" class="ap-menu-card ap-menu-head">
+            <span class="ap-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>
             </span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="flex-shrink:0; color:var(--gray-400);"><polyline points="9 18 15 12 9 6"/></svg>
+            <span class="ap-menu-body">
+              <span class="ap-menu-title">ออเดอร์ของฉัน</span>
+              <div class="ap-menu-desc">เช็คสถานะคำสั่งผลิต ขั้นตอนงาน และการจัดส่งทั้งหมด</div>
+            </span>
+            <svg class="ap-menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
           </a>
 
           <!-- ใบเสนอราคาของฉัน — เดิม (P2.9-D2/D3) ใช้ listenMyLeads() จาก js/leads.js แสดง lead
@@ -204,27 +224,38 @@
                js/my-account-page.js เรียก listenMyQuoteRequests(lineUserId, ...) แบบ lazy —
                subscribe จริงตอนกดขยาย panel ครั้งแรกเท่านั้น ไม่ใช่ตอน login สำเร็จทันที (ต่างจาก
                "ออเดอร์ของฉัน" ที่ subscribe listenMyOrders() ทันทีที่ login เพราะเป็นหน้าเดี่ยวเต็ม
-               หน้า ส่วนนี้เป็นแค่ 1 ใน 2 ส่วนของ hub รวม จึงเลื่อนโหลดออกไปจนกว่าลูกค้าจะสนใจดูจริงๆ) -->
-          <div style="border:1px solid var(--gray-100); border-radius:var(--r-lg); overflow:hidden;">
-            <button type="button" id="ma-leads-toggle" aria-expanded="false" aria-controls="ma-leads-panel" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:18px 20px; border:0; background:none; text-align:left; font:inherit; cursor:pointer; color:inherit;">
-              <span style="display:flex; align-items:center; gap:12px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="flex-shrink:0; color:var(--primary);"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 9h1M9 13h6M9 17h6"/></svg>
-                <span style="font-weight:600; color:var(--gray-900);">ใบเสนอราคาของฉัน</span>
+               หน้า ส่วนนี้เป็นแค่ 1 ใน 2 ส่วนของ hub รวม จึงเลื่อนโหลดออกไปจนกว่าลูกค้าจะสนใจดูจริงๆ)
+               — ค่า .ap-menu-count (id="ma-leads-count") อัปเดตด้วย JS เดิม (renderLeads()) หลังจาก
+               subscribe สำเร็จครั้งแรกเท่านั้น เพื่อไม่ขัดกับหลัก lazy-load เดิม -->
+          <div class="ap-menu-card">
+            <button type="button" id="ma-leads-toggle" class="ap-menu-head" aria-expanded="false" aria-controls="ma-leads-panel">
+              <span class="ap-menu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 9h1M9 13h6M9 17h6"/></svg>
               </span>
-              <svg id="ma-leads-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="flex-shrink:0; color:var(--gray-400); transition:transform .15s;"><polyline points="6 9 12 15 18 9"/></svg>
+              <span class="ap-menu-body">
+                <span class="ap-menu-title">ใบเสนอราคาของฉัน <span class="ap-menu-count" id="ma-leads-count" style="display:none;">0</span></span>
+                <div class="ap-menu-desc">ประวัติคำขอใบเสนอราคา และลิงก์ดูใบเสนอราคาที่ออกแล้ว</div>
+              </span>
+              <svg id="ma-leads-chevron" class="ap-menu-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
 
-            <div id="ma-leads-panel" style="display:none; padding:0 20px 18px; border-top:1px solid var(--gray-100);">
+            <div id="ma-leads-panel" class="ap-menu-panel" style="display:none;">
               <div id="ma-leads-loading" style="display:flex; align-items:center; gap:10px; justify-content:center; padding:20px 0; color:var(--gray-500); font-size:14px;">
                 <span class="tm-submit-spinner" style="display:inline-block; position:static; border-color:var(--gray-300); border-top-color:var(--primary);"></span>
                 กำลังโหลดประวัติคำขอใบเสนอราคา...
               </div>
-              <div id="ma-leads-empty" style="display:none; padding:20px 0; text-align:center; color:var(--gray-500); font-size:14px;">ยังไม่มีคำขอใบเสนอราคา</div>
+              <div id="ma-leads-empty" style="display:none;" class="ap-empty">
+                <div class="ap-empty-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>
+                </div>
+                <p>ยังไม่มีคำขอใบเสนอราคา — เริ่มต้นได้จากปุ่ม "ขอใบเสนอราคา" บนหน้าสินค้าหรือหน้าใดก็ได้ของเว็บไซต์</p>
+                <a href="contact.html" class="btn btn-primary btn-sm">ขอใบเสนอราคา</a>
+              </div>
               <div class="tm-error" id="ma-leads-error" role="alert" style="margin-top:14px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <span id="ma-leads-error-text"></span>
               </div>
-              <div id="ma-leads-list" style="display:none; flex-direction:column; gap:10px; padding-top:14px;"></div>
+              <div id="ma-leads-list" class="ap-item-list" style="display:none; padding-top:14px;"></div>
             </div>
           </div>
         </div>
