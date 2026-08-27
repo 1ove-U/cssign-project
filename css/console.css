@@ -807,43 +807,77 @@ body.cp-scroll-locked{ overflow:hidden; }
   .cp-order-detail.cp-modal{ max-width:100%; padding:18px; }
 }
 
-/* ── โมดัลเลือกคำขอใบเสนอราคา (ad-qr-picker-modal, ปุ่ม "สร้างจากคำขอ") — เดิมใช้
-   .cp-table ปกติที่มี min-width:880px (กันคอลัมน์บีบในตารางหลักของแดชบอร์ด) ทำให้ตารางแค่
-   4 คอลัมน์สั้นๆ ในโมดัลแคบ (max-width เดิม 480px) ล้นจนต้องเลื่อนแนวนอนเห็นได้ไม่ครบ —
-   แก้โดย (1) ขยายโมดัลนี้กว้างขึ้นเป็น 620px ให้มีที่พอสำหรับคอลัมน์ action ที่มี 2 ปุ่ม และ
-   (2) ยกเลิก min-width + บังคับ table-layout:fixed เฉพาะตารางในโมดัลนี้ ให้คอลัมน์หด/ตัดคำ
-   ตามความกว้างจริงของโมดัลเสมอแทนการดันให้ล้น — ผลคือเห็นทุกคอลัมน์โดยไม่ต้องเลื่อนแนวนอน
-   ทั้งจอกว้างและจอแคบ (มือถือ) */
-.ad-qr-picker-modal.cp-modal{ max-width:620px; }
-.ad-qr-picker-modal .cp-table-wrap{ overflow-x:visible; }
-.ad-qr-picker-modal .cp-table{ min-width:0; width:100%; table-layout:fixed; }
-.ad-qr-picker-modal .cp-table th,
-.ad-qr-picker-modal .cp-table td{ white-space:normal; word-break:break-word; padding:12px 10px; }
-.ad-qr-picker-modal .cp-table th:nth-child(1),
-.ad-qr-picker-modal .cp-table td:nth-child(1){ width:26%; }
-.ad-qr-picker-modal .cp-table th:nth-child(2),
-.ad-qr-picker-modal .cp-table td:nth-child(2){ width:22%; }
-.ad-qr-picker-modal .cp-table th:nth-child(3),
-.ad-qr-picker-modal .cp-table td:nth-child(3){ width:18%; }
-.ad-qr-picker-modal .cp-table th:nth-child(4),
-.ad-qr-picker-modal .cp-table td:nth-child(4){ width:34%; }
-.ad-qr-row-actions{ display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
-.ad-qr-use-btn{ padding:7px 12px !important; font-size:12.5px !important; white-space:nowrap; }
+/* ── โมดัลเลือกคำขอใบเสนอราคา (ad-qr-picker-modal, ปุ่ม "สร้างจากคำขอ") ──────────────────
+   ออกแบบใหม่ (2026-08): จากตาราง 4 คอลัมน์แคบๆ (อ่านยาก ปุ่มบีบเบียดกัน) → รายการการ์ดแนวนอน
+   อ่านชื่อลูกค้า/วันที่/จำนวนรายการเป็นลำดับชั้นชัดเจน มีช่องค้นหากรองชื่อลูกค้าเมื่อคำขอเยอะ
+   ปุ่มหลัก "ใช้คำขอนี้" เด่นสุด ส่วน "สร้างคำสั่งผลิต" เป็นรอง และปุ่มลบเป็นไอคอนเล็กแยกออกไป
+   กันกดพลาด — พับเป็นการ์ดเต็มความกว้างบนมือถือโดยอัตโนมัติ (flex-wrap) ไม่ต้องมี media query
+   แยกเหมือนตารางเดิม */
+.ad-qr-picker-modal.cp-modal{ max-width:640px; }
+.ad-qr-picker-head{ display:flex; flex-direction:column; gap:4px; }
+
+.ad-qr-search{
+  display:flex; align-items:center; gap:9px;
+  border:1.5px solid var(--gray-200); border-radius:var(--r-md);
+  padding:9px 14px; background:var(--gray-25); transition:border-color .2s var(--ease);
+}
+.ad-qr-search:focus-within{ border-color:var(--primary); background:#fff; }
+.ad-qr-search svg{ width:16px; height:16px; color:var(--gray-400); flex:none; }
+.ad-qr-search input{
+  border:none; background:none; outline:none; width:100%;
+  font-size:13.5px; font-family:inherit; color:var(--secondary);
+}
+.ad-qr-search input::placeholder{ color:var(--gray-400); }
+
+.ad-qr-list{
+  display:flex; flex-direction:column; gap:10px;
+  max-height:min(58vh, 460px); overflow-y:auto; padding:2px;
+  margin:0 -2px;
+}
+.ad-qr-list .cp-empty-state{ padding:36px 20px; }
+
+.ad-qr-card{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  background:#fff; border:1.5px solid var(--gray-200); border-radius:var(--r-lg);
+  padding:14px 16px; transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+.ad-qr-card:hover{ border-color:var(--gray-300); box-shadow:var(--shadow-sm); }
+
+.ad-qr-card-avatar{
+  flex:none; width:40px; height:40px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(var(--primary-rgb),0.1); color:var(--primary-dark);
+  font-family:var(--font-display); font-weight:700; font-size:15px;
+}
+.ad-qr-card-info{ flex:1 1 180px; min-width:0; display:flex; flex-direction:column; gap:5px; }
+.ad-qr-card-name{
+  font-size:14px; font-weight:700; color:var(--secondary);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ad-qr-card-meta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.ad-qr-card-date{
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:12px; color:var(--text-meta);
+}
+.ad-qr-card-date svg{ width:13px; height:13px; flex:none; color:var(--gray-400); }
+.ad-qr-count-badge{
+  font-size:11px; font-weight:700; color:var(--primary-dark);
+  background:rgba(var(--primary-rgb),0.08); padding:2px 9px; border-radius:var(--r-pill);
+}
+
+.ad-qr-card-actions{ display:flex; align-items:center; gap:7px; flex:none; margin-left:auto; }
+.ad-qr-use-btn{ padding:9px 16px !important; font-size:12.5px !important; white-space:nowrap; }
+.ad-qr-to-order-btn{ padding:9px 14px !important; font-size:12.5px !important; white-space:nowrap; }
+.ad-qr-delete-btn{ flex:none; }
 
 @media (max-width:640px){
   .ad-qr-picker-modal.cp-modal{ max-width:100%; padding:18px; }
-  .ad-qr-picker-modal .cp-table th,
-  .ad-qr-picker-modal .cp-table td{ padding:10px 6px; font-size:12px; }
-  .ad-qr-picker-modal .cp-table th:nth-child(1),
-  .ad-qr-picker-modal .cp-table td:nth-child(1){ width:24%; }
-  .ad-qr-picker-modal .cp-table th:nth-child(2),
-  .ad-qr-picker-modal .cp-table td:nth-child(2){ width:19%; }
-  .ad-qr-picker-modal .cp-table th:nth-child(3),
-  .ad-qr-picker-modal .cp-table td:nth-child(3){ width:16%; }
-  .ad-qr-picker-modal .cp-table th:nth-child(4),
-  .ad-qr-picker-modal .cp-table td:nth-child(4){ width:41%; }
-  .ad-qr-row-actions{ flex-direction:column; align-items:stretch; }
-  .ad-qr-use-btn{ width:100%; text-align:center; }
+  .ad-qr-card{ padding:12px; }
+  .ad-qr-card-info{ flex-basis:100%; order:1; }
+  .ad-qr-card-actions{
+    order:2; flex-basis:100%; margin-left:0; width:100%;
+  }
+  .ad-qr-use-btn, .ad-qr-to-order-btn{ flex:1 1 auto; text-align:center; }
 }
 
 /* ── ฟอร์มสร้าง/แก้ไขใบเสนอราคา (P3.0 Phase 3 รอบย่อย 4) — กว้างกว่าโมดัลทั่วไปเพราะมีตาราง
