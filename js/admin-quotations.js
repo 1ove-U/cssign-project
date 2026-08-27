@@ -45,7 +45,7 @@
 import { listenQuotations, deleteQuotation } from "./db-quotations.js";
 import { listenAllQuoteRequests, deleteQuoteRequest } from "./db-quote-requests.js";
 import { formatBaht } from "./orders-tab.js";
-import { confirmDialog, errorStateHTML } from "./ui-helpers.js";
+import { confirmDialog, errorStateHTML, emptyStateHTML } from "./ui-helpers.js";
 import { escapeHtml, deleteWithUndo, showToast, openOverlay, closeOverlay } from "./admin-utils.js";
 import { openNewQuotationForm, openEditQuotationForm, openQuotationFormFromRequest, openQuotationFormFromClone } from "./admin-quotations-form.js";
 // ช่องโหว่ที่ 1: ปุ่ม "สร้างคำสั่งผลิต" ในโมดัลเลือกคำขอด้านล่าง — คัดลอก lineUserId (และข้อมูล
@@ -60,6 +60,7 @@ const qExportCsvBtn = document.getElementById("ad-q-export-csv-btn");
 const qrOverlay    = document.getElementById("ad-qr-overlay");
 const qrListBody   = document.getElementById("ad-qr-list-body");
 const qrCancelBtn  = document.getElementById("ad-qr-cancel");
+const qrSearchInput = document.getElementById("ad-qr-search-input");
 
 export let allQuotations = [];
 export const pendingDeleteQuotationIds = new Set();
@@ -366,37 +367,61 @@ function quoteRequestDateLabel(r) {
 function renderQuoteRequestPicker() {
   if (!qrListBody) return;
   const converted = convertedRequestIds();
-  const available = allQuoteRequests.filter(r => !converted.has(r.id) && !pendingDeleteQuoteRequestIds.has(r.id));
+  const q = (qrSearchInput?.value || "").trim().toLowerCase();
+  const available = allQuoteRequests
+    .filter(r => !converted.has(r.id) && !pendingDeleteQuoteRequestIds.has(r.id))
+    .filter(r => {
+      if (!q) return true;
+      const customerName = (r.billingName || r.contactPerson || "").toLowerCase();
+      return customerName.includes(q);
+    });
 
   if (!available.length) {
-    qrListBody.innerHTML = `<tr><td colspan="4" class="cp-empty">ไม่มีคำขอใบเสนอราคาที่ยังไม่ถูกแปลง — ลูกค้ายังไม่ส่งคำขอเข้ามา หรือแปลงเป็นใบเสนอราคาไปหมดแล้ว</td></tr>`;
+    const searching = !!q;
+    qrListBody.innerHTML = emptyStateHTML({
+      icon: searching
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>`,
+      title: searching ? "ไม่พบลูกค้าที่ค้นหา" : "ไม่มีคำขอใบเสนอราคาที่ยังไม่ถูกแปลง",
+      desc: searching ? "ลองพิมพ์ชื่อลูกค้าให้สั้นลง หรือสะกดแบบอื่น" : "ลูกค้ายังไม่ส่งคำขอเข้ามา หรือแปลงเป็นใบเสนอราคาไปหมดแล้ว"
+    });
     return;
   }
 
   qrListBody.innerHTML = available.map(r => {
-    const customerName = r.billingName || r.contactPerson || "—";
+    const customerName = r.billingName || r.contactPerson || "ไม่ระบุชื่อลูกค้า";
     const itemCount = Array.isArray(r.items) ? r.items.length : 0;
     return `
-      <tr data-id="${r.id}">
-        <td class="cp-subtext">${quoteRequestDateLabel(r)}</td>
-        <td>${escapeHtml(customerName)}</td>
-        <td>${itemCount} รายการ</td>
-        <td>
-          <div class="cp-row-actions ad-qr-row-actions">
-            <button type="button" class="btn btn-primary cl-btn ad-qr-use-btn" data-action="use">ใช้คำขอนี้</button>
-            <button type="button" class="btn cl-btn ad-qr-to-order-btn" data-action="to-order" title="เปิดฟอร์มเพิ่มคำสั่งผลิต พร้อมคัดลอก LINE user ID/ข้อมูลลูกค้าจากคำขอนี้ให้อัตโนมัติ">สร้างคำสั่งผลิต</button>
-            <button type="button" class="cp-icon-btn danger" data-action="delete" title="ลบคำขอนี้"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+      <article class="ad-qr-card" data-id="${r.id}">
+        <div class="ad-qr-card-avatar" aria-hidden="true">${escapeHtml(customerName.trim().charAt(0) || "?").toUpperCase()}</div>
+        <div class="ad-qr-card-info">
+          <div class="ad-qr-card-name">${escapeHtml(customerName)}</div>
+          <div class="ad-qr-card-meta">
+            <span class="ad-qr-card-date">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+              ${quoteRequestDateLabel(r)}
+            </span>
+            <span class="ad-qr-count-badge">${itemCount} รายการ</span>
           </div>
-        </td>
-      </tr>`;
+        </div>
+        <div class="ad-qr-card-actions">
+          <button type="button" class="btn btn-primary cl-btn ad-qr-use-btn" data-action="use">ใช้คำขอนี้</button>
+          <button type="button" class="btn btn-secondary cl-btn ad-qr-to-order-btn" data-action="to-order" title="เปิดฟอร์มเพิ่มคำสั่งผลิต พร้อมคัดลอก LINE user ID/ข้อมูลลูกค้าจากคำขอนี้ให้อัตโนมัติ">สร้างคำสั่งผลิต</button>
+          <button type="button" class="cp-icon-btn danger ad-qr-delete-btn" data-action="delete" title="ลบคำขอนี้"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+        </div>
+      </article>`;
   }).join("");
+}
+
+if (qrSearchInput) {
+  qrSearchInput.addEventListener("input", () => renderQuoteRequestPicker());
 }
 
 if (qrListBody) {
   qrListBody.addEventListener("click", async (e) => {
     const useBtn = e.target.closest('button[data-action="use"]');
     if (useBtn) {
-      const row = useBtn.closest("tr[data-id]");
+      const row = useBtn.closest("[data-id]");
       const request = allQuoteRequests.find(r => r.id === row.dataset.id);
       if (!request) return;
       closeOverlay(qrOverlay);
@@ -405,7 +430,7 @@ if (qrListBody) {
     }
     const toOrderBtn = e.target.closest('button[data-action="to-order"]');
     if (toOrderBtn) {
-      const row = toOrderBtn.closest("tr[data-id]");
+      const row = toOrderBtn.closest("[data-id]");
       const request = allQuoteRequests.find(r => r.id === row.dataset.id);
       if (!request) return;
       closeOverlay(qrOverlay);
@@ -416,7 +441,7 @@ if (qrListBody) {
     }
     const delBtn = e.target.closest('button[data-action="delete"]');
     if (delBtn) {
-      const row = delBtn.closest("tr[data-id]");
+      const row = delBtn.closest("[data-id]");
       const id = row.dataset.id;
       const request = allQuoteRequests.find(r => r.id === id);
       if (!request) return;
@@ -451,6 +476,7 @@ if (qAddFromReqBtn) {
       showToast('ฟอร์ม "สร้างจากคำขอ" ยังไม่พร้อมใช้งาน', "warn");
       return;
     }
+    if (qrSearchInput) qrSearchInput.value = "";
     renderQuoteRequestPicker();
     openOverlay(qrOverlay);
   });
