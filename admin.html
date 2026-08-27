@@ -936,17 +936,20 @@
       </section>
     </section>
 
-    <!-- ============ โมดัลเลือกคำขอใบเสนอราคา (P3.0 Phase 3 รอบย่อย 5, ปุ่ม "สร้างจากคำขอ") ============ -->
+    <!-- ============ โมดัลเลือกคำขอใบเสนอราคา (P3.0 Phase 3 รอบย่อย 5, ปุ่ม "สร้างจากคำขอ") ============
+         ออกแบบใหม่ (2026-08): จากตารางคับแคบ → การ์ดรายการอ่านง่าย กดง่ายขึ้นบนมือถือ พร้อมช่องค้นหา
+         กรองรายชื่อลูกค้าเมื่อคำขอมีเยอะ (ดู js/admin-quotations.js: renderQuoteRequestPicker()) -->
     <div class="cp-modal-overlay" id="ad-qr-overlay" style="display:none;">
       <div class="cp-modal ad-qr-picker-modal">
-        <div class="cp-modal-title">เลือกคำขอใบเสนอราคา</div>
-        <p class="ad-settings-desc">เลือกคำขอที่ลูกค้าส่งเข้ามาเพื่อนำข้อมูลลูกค้า/รายการสินค้ามาช่วยกรอกฟอร์ม (คำขอที่แปลงเป็นใบเสนอราคาไปแล้วจะไม่แสดงในรายการนี้)</p>
-        <section class="cp-table-wrap">
-          <table class="cp-table">
-            <thead><tr><th>วันที่</th><th>ลูกค้า</th><th>จำนวนรายการ</th><th></th></tr></thead>
-            <tbody id="ad-qr-list-body"></tbody>
-          </table>
-        </section>
+        <div class="ad-qr-picker-head">
+          <div class="cp-modal-title">เลือกคำขอใบเสนอราคา</div>
+          <p class="ad-settings-desc">เลือกคำขอที่ลูกค้าส่งเข้ามา เพื่อดึงข้อมูลลูกค้า/รายการสินค้ามาช่วยกรอกฟอร์มให้อัตโนมัติ — คำขอที่แปลงเป็นใบเสนอราคาไปแล้วจะไม่แสดงในรายการนี้</p>
+        </div>
+        <div class="ad-qr-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="ad-qr-search-input" placeholder="ค้นหาชื่อลูกค้า...">
+        </div>
+        <section class="ad-qr-list" id="ad-qr-list-body"></section>
         <div class="cl-actions">
           <button type="button" class="btn btn-secondary cl-btn" id="ad-qr-cancel">ปิด</button>
         </div>
