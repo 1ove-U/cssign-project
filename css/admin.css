@@ -256,12 +256,22 @@ button.cp-ov-today-item:focus-visible{ outline:2px solid var(--primary); outline
   position:absolute; top:48px; left:10px; z-index:5; font-size:10.5px; font-weight:700; padding:4px 10px;
   border-radius:var(--r-pill); background:#DC2626; color:#fff; box-shadow:0 2px 6px rgba(220,38,38,0.3);
 }
+/* ป้าย "แนะนำ" (ad-card-feat-flag) — ออกแบบใหม่ (2026-08): เดิมเป็นแท็บโปร่งแสงมุมล่างซ้าย
+   สีอ่อนจนกลืนกับรูปสินค้าพื้นหลังสว่าง อ่านยากบางกรณี — ย้ายขึ้นมุมบนซ้ายของรูป (จุดที่คนมองก่อน)
+   เปลี่ยนเป็นชิปทึบไล่เฉดสีทอง (--accent) ตัดกับพื้นหลังทุกแบบชัดเจน มีดาวเต็มดวง + ขอบขาวบางๆ
+   ให้ดูเป็นป้ายจริงจัง ไม่ใช่ overlay จางๆ เหมือนเดิม */
 .ad-card-feat-flag{
-  position:absolute; bottom:10px; left:10px; z-index:5; display:flex; align-items:center; gap:4px;
-  background:rgba(255,255,255,0.88); color:#B45309; font-size:9.5px; font-weight:700; padding:3px 8px;
-  border-radius:var(--r-pill); box-shadow:0 1px 4px rgba(0,0,0,0.12); cursor:zoom-in;
+  position:absolute; top:10px; left:10px; z-index:5; display:flex; align-items:center; gap:4px;
+  background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#fff;
+  font-size:10px; font-weight:800; letter-spacing:.01em; padding:4px 9px 4px 7px;
+  border-radius:var(--r-pill); box-shadow:0 2px 8px rgba(var(--accent-rgb),0.4), 0 0 0 1.5px rgba(255,255,255,0.55) inset;
+  cursor:zoom-in;
 }
-.ad-card-feat-flag svg{ width:10px; height:10px; }
+.ad-card-feat-flag svg{ width:11px; height:11px; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
+/* เช็คบ็อกซ์เลือกหลายรายการอยู่มุมบนซ้ายเช่นกัน (top:10px) — เลื่อนป้าย "แนะนำ" ลงให้ไม่ซ้อนทับ
+   เวลาทั้งคู่แสดงพร้อมกัน (ชี้เมาส์ที่การ์ด/ติ๊กเลือกอยู่) */
+.ad-card:hover .ad-card-feat-flag,
+.ad-card:has(.ad-card-check:checked) .ad-card-feat-flag{ top:48px; }
 .ad-card-imgcount{
   position:absolute; bottom:14px; right:14px; z-index:3; font-family:var(--font-mono); font-size:10px;
   color:#fff; background:rgba(15,23,42,0.55); padding:3px 9px; border-radius:var(--r-pill);
