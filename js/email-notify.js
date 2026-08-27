@@ -73,6 +73,23 @@ const SOURCE_LABEL = {
   catalog_download: "ฟอร์มดาวน์โหลด Catalog",
 };
 
+// ช่องโหว่ที่ 2 (opt-in "เชื่อมบัญชี LINE" ซ่อนอยู่) — ก่อนหน้านี้ลูกค้ารู้จักฟีเจอร์นี้ได้ทาง
+// เดียวคือบังเอิญเปิด track-modal เอง (ปุ่ม "เชื่อมบัญชี LINE" อยู่ในแท็บ "ดำเนินการ" ของป๊อปอัพเช็ค
+// สถานะ) — คนที่ไม่เคยเปิดป๊อปอัพนั้นเลย (หรือเปิดแต่ไม่คลิกเข้าไปดูแท็บนั้น) จะไม่มีทางรู้เลยว่ามี
+// ฟีเจอร์นี้อยู่ แม้จะสนใจอยากรับแจ้งเตือนผ่าน LINE ก็ตาม — เพิ่มบรรทัดโปรโมทสั้นๆ ต่อท้ายอีเมลทั้ง
+// 2 ฉบับที่ยิงอัตโนมัติอยู่แล้วโดยไม่ต้องรอให้ลูกค้าเปิดเว็บเอง: sendOrderStatusEmail() (ทุกครั้งที่
+// สถานะเปลี่ยน) และ sendReviewRequestEmail() (ตอนงานเสร็จ — จุดที่ลูกค้าเปิดอ่านแน่ๆ เพราะรอลุ้นงาน
+// เสร็จอยู่แล้ว) — ยิงเฉพาะตอน order.lineUserId ยังว่างอยู่เท่านั้น กันข้อความซ้ำซ้อนไม่มีประโยชน์
+// ถ้าเชื่อมไว้แล้ว
+function lineLinkPromoLine(order) {
+  if (order && order.lineUserId) return "";
+  return (
+    `\n\nอยากรับแจ้งเตือนอัปเดตสถานะคำสั่งผลิต (ทั้งใบนี้และใบต่อๆ ไป) ทันทีผ่าน LINE ไหม? ` +
+    `เชื่อมบัญชี LINE ได้ฟรีที่ https://cssign.co.th/my-orders.html ` +
+    `(กดปุ่ม "เข้าสู่ระบบด้วย LINE" แล้วกรอกเลขที่ PO + เบอร์โทรของออเดอร์นี้)`
+  );
+}
+
 let inited = false;
 function ensureInit() {
   if (!inited) {
@@ -199,7 +216,8 @@ export async function sendOrderStatusEmail(order, previousStatus, newStatus) {
       message_text:
         `คำสั่งผลิต ${orderCode} (${orderItem}) ของท่านเปลี่ยนสถานะจาก ` +
         `"${statusLabelOld}" เป็น "${statusLabel}" แล้ว\n` +
-        `ตรวจสอบรายละเอียดเพิ่มเติมได้ที่เว็บไซต์ CS.SIGN`,
+        `ตรวจสอบรายละเอียดเพิ่มเติมได้ที่เว็บไซต์ CS.SIGN` +
+        lineLinkPromoLine(order),
     });
   } catch (err) {
     console.error("[email-notify] order status email error:", err);
@@ -260,7 +278,8 @@ export async function sendReviewRequestEmail(order, previousStatus, newStatus) {
       subject_text: `ขอความคิดเห็นเกี่ยวกับงาน ${orderCode}`,
       message_text:
         `ขอบคุณที่ไว้วางใจ CS.SIGN สำหรับคำสั่งผลิต ${orderCode} (${orderItem}) ค่ะ\n` +
-        `หากสะดวก รบกวนขอความคิดเห็น/รีวิวการใช้บริการสักเล็กน้อย เพื่อนำไปพัฒนาบริการให้ดียิ่งขึ้น`,
+        `หากสะดวก รบกวนขอความคิดเห็น/รีวิวการใช้บริการสักเล็กน้อย เพื่อนำไปพัฒนาบริการให้ดียิ่งขึ้น` +
+        lineLinkPromoLine(order),
     });
     return true;
   } catch (err) {
