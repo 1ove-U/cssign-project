@@ -73,6 +73,22 @@ const SOURCE_LABEL = {
   catalog_download: "ฟอร์มดาวน์โหลด Catalog",
 };
 
+// ช่องโหว่ที่ 3 (แจ้งเตือนไม่มีลิงก์กลับมาดูรายละเอียด) — เดิม sendOrderStatusEmail()/
+// sendReviewRequestEmail() มีแต่ข้อความ "ตรวจสอบรายละเอียดเพิ่มเติมได้ที่เว็บไซต์ CS.SIGN" เฉยๆ
+// ไม่ใช่ลิงก์ที่กดได้จริง ลูกค้าต้องเปิดเว็บเอง+จำ/พิมพ์เลข PO เองใหม่ทั้งหมด — buildTrackingLink()
+// สร้าง URL หน้าแรกพร้อม query param "?po=รหัส PO" แนบไปด้วย ฝั่ง js/track-modal.js (ทุกหน้าของ
+// เว็บโหลดสคริปต์นี้อยู่แล้ว) เช็ค query param นี้ตอนโหลดหน้า ถ้ามีจะเติมเลข PO ให้อัตโนมัติ + เปิด
+// popup เช็คสถานะให้เลย ลูกค้าลิงก์แค่กรอกเบอร์โทรยืนยันตัวตนต่อเองก็พอ (ดูคอมเมนต์ฝั่งรับที่
+// js/track-modal.js) — จงใจ "ไม่" ใส่เบอร์โทรลงใน URL นี้เด็ดขาด (เบอร์โทรเป็นรหัสยืนยันตัวตนของ
+// ออเดอร์ ไม่ควรฝังไว้ใน URL ที่หลุด/ถูกแชร์/ถูกบันทึกไว้ที่อื่นได้ง่ายกว่าข้อความในกล่องขาเข้าอีเมล/
+// LINE เฉยๆ — เลข PO อย่างเดียวความเสี่ยงต่ำกว่ามาก เพราะยังต้องมีเบอร์โทรคู่กันถึงจะดูข้อมูลได้จริง)
+// — encodeURIComponent() กัน PO ที่มีอักขระพิเศษ (เช่น "/") หลุดออกนอก query param
+function buildTrackingLink(order) {
+  const code = order && order.code;
+  if (!code) return "https://cssign.co.th/";
+  return `https://cssign.co.th/?po=${encodeURIComponent(code)}`;
+}
+
 // ช่องโหว่ที่ 2 (opt-in "เชื่อมบัญชี LINE" ซ่อนอยู่) — ก่อนหน้านี้ลูกค้ารู้จักฟีเจอร์นี้ได้ทาง
 // เดียวคือบังเอิญเปิด track-modal เอง (ปุ่ม "เชื่อมบัญชี LINE" อยู่ในแท็บ "ดำเนินการ" ของป๊อปอัพเช็ค
 // สถานะ) — คนที่ไม่เคยเปิดป๊อปอัพนั้นเลย (หรือเปิดแต่ไม่คลิกเข้าไปดูแท็บนั้น) จะไม่มีทางรู้เลยว่ามี
@@ -216,7 +232,7 @@ export async function sendOrderStatusEmail(order, previousStatus, newStatus) {
       message_text:
         `คำสั่งผลิต ${orderCode} (${orderItem}) ของท่านเปลี่ยนสถานะจาก ` +
         `"${statusLabelOld}" เป็น "${statusLabel}" แล้ว\n` +
-        `ตรวจสอบรายละเอียดเพิ่มเติมได้ที่เว็บไซต์ CS.SIGN` +
+        `ตรวจสอบรายละเอียดเพิ่มเติมได้ที่ ${buildTrackingLink(order)}` +
         lineLinkPromoLine(order),
     });
   } catch (err) {
@@ -278,7 +294,8 @@ export async function sendReviewRequestEmail(order, previousStatus, newStatus) {
       subject_text: `ขอความคิดเห็นเกี่ยวกับงาน ${orderCode}`,
       message_text:
         `ขอบคุณที่ไว้วางใจ CS.SIGN สำหรับคำสั่งผลิต ${orderCode} (${orderItem}) ค่ะ\n` +
-        `หากสะดวก รบกวนขอความคิดเห็น/รีวิวการใช้บริการสักเล็กน้อย เพื่อนำไปพัฒนาบริการให้ดียิ่งขึ้น` +
+        `หากสะดวก รบกวนขอความคิดเห็น/รีวิวการใช้บริการสักเล็กน้อย เพื่อนำไปพัฒนาบริการให้ดียิ่งขึ้น\n` +
+        `ดูรายละเอียดคำสั่งผลิตอีกครั้งได้ที่ ${buildTrackingLink(order)}` +
         lineLinkPromoLine(order),
     });
     return true;
