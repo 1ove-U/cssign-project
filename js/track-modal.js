@@ -166,6 +166,26 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
   window.openTrackModal = openModal;
   window.closeTrackModal = closeModal;
 
+  // ช่องโหว่ที่ 3 (แจ้งเตือนไม่มีลิงก์กลับมาดูรายละเอียด) — ก่อนหน้านี้ sendOrderStatusEmail()/
+  // sendReviewRequestEmail() (js/email-notify.js) และ sendOrderStatusLine() (js/line-notify.js)
+  // มีแต่ข้อความตัวหนังสือเปล่า ไม่มีลิงก์ที่กดแล้วพากลับมาดูรายละเอียดออเดอร์ได้เลย ลูกค้าต้อง
+  // เปิดเว็บเอง จำ/พิมพ์เลข PO เอง — ตอนนี้อีเมล/LINE แนบลิงก์ "?po=PO-2026-0120" ต่อท้าย URL
+  // หน้าแรกมาด้วย (ดู buildTrackingLink() ใน js/email-notify.js / js/line-notify.js) จุดนี้คือฝั่ง
+  // "รับ" ลิงก์นั้น: เช็ค query param ตอนหน้าโหลด ถ้ามี ?po=... ให้เติมเลข PO ลงช่อง #tm-code
+  // อัตโนมัติ + เปิด popup นี้ให้เลย (ลูกค้าลิงก์แค่กรอกเบอร์โทรยืนยันตัวตนต่อเองก็พอ ไม่ต้องพิมพ์
+  // เลข PO เองใหม่) — ไม่ auto-fill เบอร์โทรจาก URL เด็ดขาด (เบอร์โทรเป็นรหัสยืนยันตัวตน ไม่ควรฝัง
+  // ไว้ใน URL ที่อาจถูกแชร์/บันทึกไว้ที่อื่นได้ง่ายกว่าเลข PO เฉยๆ) — ใช้ query param เดิม (ไม่ลบ/
+  // ไม่ redirect) เผื่อลูกค้ากดลิงก์ซ้ำ/รีเฟรชหน้าแล้วอยากให้ auto-fill ใหม่อีกรอบได้
+  try {
+    var poParam = new URLSearchParams(window.location.search).get("po");
+    if (poParam && codeInput) {
+      codeInput.value = poParam;
+      openModal();
+    }
+  } catch (err) {
+    console.error("track-modal: auto-open from ?po= param error:", err);
+  }
+
   document.querySelectorAll("[data-track-modal-open]").forEach(function (el) {
     el.addEventListener("click", function (e) {
       e.preventDefault();
