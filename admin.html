@@ -914,9 +914,23 @@
         <div class="cp-page-crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l3 3v17H6V5l3-3Z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg> การตลาด &amp; ลูกค้า</div>
         <h1 class="cp-page-title">ใบเสนอราคา</h1>
       </div>
+      <p class="ad-settings-desc" style="margin:-4px 0 12px;">ออกใบเสนอราคาให้ลูกค้า สร้างใหม่เองหรือสร้างจากคำขอที่ลูกค้าส่งเข้ามา</p>
+      <!-- ช่องค้นหา/กรองสถานะ (2026-08 ออกแบบใหม่) — เดิมแท็บนี้ไม่มีเลย ต่างจากทุกแท็บอื่น
+           (ลีด/สินค้า/ผลงาน/บทความ) ที่มี cp-search + cp-filter อยู่แล้ว — ตอนนี้ตามรูปแบบเดียวกัน
+           เป๊ะ (คลาส cl-input cp-search / cp-filter ใช้ CSS ที่มีอยู่แล้วใน css/console.css ไม่ต้อง
+           เพิ่ม CSS ใหม่) ดู js/admin-quotations.js: getFilteredQuotations() -->
       <section class="cp-toolbar">
-        <p class="ad-settings-desc" style="flex:1;">ออกใบเสนอราคาให้ลูกค้า สร้างใหม่เองหรือสร้างจากคำขอที่ลูกค้าส่งเข้ามา</p>
-        <button class="cp-icon-text-btn" id="ad-q-export-csv-btn" title="ส่งออก CSV">
+        <input type="text" id="ad-q-search" aria-label="ค้นหาเลขที่เอกสาร / ชื่อลูกค้า..." class="cl-input cp-search" placeholder="ค้นหาเลขที่เอกสาร / ชื่อลูกค้า...">
+        <select id="ad-q-filter-status" aria-label="ทุกสถานะ" class="cl-input cp-filter">
+          <option value="">ทุกสถานะ</option>
+          <option value="draft">ร่าง</option>
+          <option value="sent">ส่งลูกค้าแล้ว</option>
+          <option value="accepted">ลูกค้าตอบรับ</option>
+          <option value="changes_requested">ลูกค้าขอแก้ไข</option>
+          <option value="rejected">ลูกค้าปฏิเสธ</option>
+          <option value="expired">หมดอายุ</option>
+        </select>
+        <button class="cp-icon-text-btn" id="ad-q-export-csv-btn" title="ส่งออก CSV (ตามตัวกรอง/คำค้นหาปัจจุบัน)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
           Export CSV
         </button>
