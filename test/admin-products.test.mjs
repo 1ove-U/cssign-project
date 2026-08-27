@@ -74,7 +74,7 @@ function makeQuoteRequest(overrides) {
   };
 }
 
-function qrRows() { return Array.from(document.getElementById("ad-qr-list-body").querySelectorAll("tr[data-id]")); }
+function qrRows() { return Array.from(document.getElementById("ad-qr-list-body").querySelectorAll("[data-id]")); }
 
 function field(id) { return document.getElementById(id); }
 function rows() { return Array.from(document.getElementById("ad-q-table-body").querySelectorAll("tr[data-id]")); }
