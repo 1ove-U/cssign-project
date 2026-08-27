@@ -491,14 +491,22 @@ import { buildReorderMessage, shouldOfferReorder } from "./reorder-helper.js";
                 '<div><div class="tm-info-item-label">\u0e2d\u0e31\u0e1b\u0e40\u0e14\u0e15\u0e25\u0e48\u0e32\u0e2a\u0e38\u0e14</div><div class="tm-info-item-val">' + formatUpdatedAt(order.updatedAt) + '</div></div>' +
               '</div>' +
             '</div>' +
-          '</div>' +
-          '<div class="tm-tabpanel" id="tm-tabpanel-steps">' + renderStages(order.status) + '</div>' +
-          '<div class="tm-tabpanel" id="tm-tabpanel-actions">' +
-            (approvalSection || '') +
+            // ช่องโหว่ที่ 2 (opt-in ซ่อนอยู่) — เดิม CTA เชื่อมบัญชี LINE อยู่แค่ในแท็บ "ดำเนินการ"
+            // เท่านั้น (ต้องกดเปลี่ยนแท็บเองก่อนถึงจะเห็น) ลูกค้าที่ไม่รู้ว่าฟีเจอร์นี้มีอยู่เลยจะไม่มี
+            // ทางเจอปุ่มนี้เลยแม้จะเปิด track-modal มาเช็คสถานะแล้วก็ตาม — ย้ายมาแสดงในแท็บ "สรุป"
+            // แทน (แท็บ default ที่เห็นทันทีหลังค้นเจอ ไม่ต้องกดอะไรเพิ่ม) เพื่อให้ลูกค้าทุกคนที่เคย
+            // เช็คสถานะอย่างน้อย 1 ครั้งเห็น CTA นี้แน่ๆ — id/markup (#tm-line-link-section,
+            // #tm-line-link-btn ฯลฯ) เหมือนเดิมทุกประการ แค่ย้ายตำแหน่งเรนเดอร์ (ไม่ duplicate ไว้ 2
+            // แท็บ เพราะจะทำให้มี id ซ้ำใน DOM พร้อมกัน ผิดกติกา HTML และ handleLineLinkClick()/
+            // renderLineLinkSection() re-render section เดียวที่เจอก่อนตาม id เท่านั้น)
             '<div class="tm-action-block">' +
               '<div class="tm-action-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>\u0e23\u0e31\u0e1a\u0e41\u0e08\u0e49\u0e07\u0e40\u0e15\u0e37\u0e2d\u0e19\u0e2d\u0e31\u0e15\u0e42\u0e19\u0e21\u0e31\u0e15\u0e34</div>' +
               renderLineLinkSection(order) +
             '</div>' +
+          '</div>' +
+          '<div class="tm-tabpanel" id="tm-tabpanel-steps">' + renderStages(order.status) + '</div>' +
+          '<div class="tm-tabpanel" id="tm-tabpanel-actions">' +
+            (approvalSection || '') +
             renderShippingAndReorder(order) +
             '<div class="tm-cta">\u0e21\u0e35\u0e04\u0e33\u0e16\u0e32\u0e21\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21? \u0e42\u0e17\u0e23 <a href="tel:0628833880">062-883-3880</a></div>' +
           '</div>' +
