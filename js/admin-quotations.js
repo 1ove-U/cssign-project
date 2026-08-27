@@ -2,16 +2,21 @@
 // js/admin-quotations.js — แท็บ "ใบเสนอราคา" (แอดมิน) — P3.0 Phase 3 รอบย่อย 2 + 4 + 5
 //
 // P3.0 Phase 6 รอบ 12 (continue-prompt-p3.0-phase6-round12.md, ฟีเจอร์สุดท้ายของ Phase 6): เพิ่ม
-// ปุ่ม "ส่งออก CSV" (ad-q-export-csv-btn) ใน toolbar — export allQuotations ทั้งหมดตรงๆ (แท็บนี้
-// ยังไม่มีระบบ filter/search เหมือนแท็บออเดอร์ — ยืนยันจากโค้ดจริงแล้วก่อนเขียน ไม่มี searchInput/
-// statusFilterValue ในไฟล์นี้เลย) — reuse pattern Blob/BOM/csvCell() จาก js/orders-tab-export.js
-// ทุกจุด แต่ copy ฟังก์ชัน helper (csvCell()) มาไว้ในไฟล์นี้ตรงๆ แทนการ import ข้ามไฟล์ (ตรวจแล้วว่า
-// js/orders-tab-export.js ไม่ได้ export อะไรเลยสักตัว เป็น side-effect module ล้วนๆ — ถ้าจะแก้ไฟล์
-// นั้นเพิ่ม export จะกลายเป็นแตะ 3 ไฟล์ ยังอยู่ในเพดานแต่ copy สั้นกว่าและไม่กระทบไฟล์เดิมที่ทำงานอยู่
-// แล้ว) — คอลัมน์: เลขที่เอกสาร/วันที่สร้าง(ISO YYYY-MM-DD แยกจาก quotationDateLabel() ที่ใช้ในตาราง
-// เพราะ CSV ควรได้ format วันที่ล้วนๆ ไม่ใช่ toLocaleString เต็มรูปแบบ)/ชื่อลูกค้า/ยอดสุทธิ/สถานะ
-// (แปลผ่าน QUOTATION_STATUS_LABEL)/วันหมดอายุ (validUntil ดิบ เป็น "YYYY-MM-DD" อยู่แล้วจาก input
-// type="date" ในฟอร์ม ไม่ต้องแปลงซ้ำ)
+// ปุ่ม "ส่งออก CSV" (ad-q-export-csv-btn) ใน toolbar — reuse pattern Blob/BOM/csvCell() จาก
+// js/orders-tab-export.js ทุกจุด แต่ copy ฟังก์ชัน helper (csvCell()) มาไว้ในไฟล์นี้ตรงๆ แทนการ
+// import ข้ามไฟล์ (ตรวจแล้วว่า js/orders-tab-export.js ไม่ได้ export อะไรเลยสักตัว เป็น side-effect
+// module ล้วนๆ — ถ้าจะแก้ไฟล์นั้นเพิ่ม export จะกลายเป็นแตะ 3 ไฟล์ ยังอยู่ในเพดานแต่ copy สั้นกว่า
+// และไม่กระทบไฟล์เดิมที่ทำงานอยู่แล้ว) — คอลัมน์: เลขที่เอกสาร/วันที่สร้าง(ISO YYYY-MM-DD แยกจาก
+// quotationDateLabel() ที่ใช้ในตารางเพราะ CSV ควรได้ format วันที่ล้วนๆ ไม่ใช่ toLocaleString เต็ม
+// รูปแบบ)/ชื่อลูกค้า/ยอดสุทธิ/สถานะ (แปลผ่าน QUOTATION_STATUS_LABEL)/วันหมดอายุ (validUntil ดิบ
+// เป็น "YYYY-MM-DD" อยู่แล้วจาก input type="date" ในฟอร์ม ไม่ต้องแปลงซ้ำ)
+//
+// (2026-08 ออกแบบหน้าใหม่) เพิ่มช่องค้นหา (ad-q-search: เลขที่เอกสาร/ชื่อลูกค้า) + ช่องกรองสถานะ
+// (ad-q-filter-status) เข้า toolbar — ตามรูปแบบเดียวกับ getFilteredLeads()/lSearch/lFilterSource
+// ใน js/admin-leads.js เป๊ะ — เดิมคอมเมนต์ตรงนี้เคยบอกว่าแท็บนี้ "ยังไม่มีระบบ filter/search" ซึ่งไม่
+// จริงแล้วตั้งแต่รอบนี้ — exportQuotationsCSV() ด้านล่างก็เปลี่ยนจาก export allQuotations ทั้งหมดตรงๆ
+// มาเป็น export ตามผลตัวกรอง/คำค้นหาปัจจุบัน (getFilteredQuotations()) แทน ให้พฤติกรรมตรงกับที่
+// แอดมินเห็นบนตาราง ณ ขณะนั้น (เหมือน getCurrentFilteredRows() ของแท็บออเดอร์)
 //
 // P3.0 Phase 6 รอบ 11 (continue-prompt-p3.0-phase6-round11.md): เพิ่มปุ่มไอคอน "คัดลอกเป็นฉบับ
 // ร่างใหม่" ต่อแถว (data-action="clone") — เปิด openQuotationFormFromClone() (js/admin-quotations-
@@ -57,6 +62,10 @@ export const qTableBody = document.getElementById("ad-q-table-body");
 const qAddBtn      = document.getElementById("ad-q-add-btn");
 const qAddFromReqBtn = document.getElementById("ad-q-add-from-request-btn");
 const qExportCsvBtn = document.getElementById("ad-q-export-csv-btn");
+// ช่องค้นหา/กรองสถานะของตารางหลัก (2026-08 ออกแบบใหม่) — คนละคู่กับ qrSearchInput ด้านล่าง
+// (ช่องค้นหาในโมดัลเลือกคำขอ คนละองค์ประกอบ คนละรายการข้อมูลกัน)
+const qSearchInput = document.getElementById("ad-q-search");
+const qFilterStatus = document.getElementById("ad-q-filter-status");
 const qrOverlay    = document.getElementById("ad-qr-overlay");
 const qrListBody   = document.getElementById("ad-qr-list-body");
 const qrCancelBtn  = document.getElementById("ad-qr-cancel");
@@ -229,14 +238,16 @@ function csvCell(val) {
   return `"${s.replace(/"/g, '""')}"`;
 }
 
-/** ส่งออกใบเสนอราคาทั้งหมด (allQuotations) เป็นไฟล์ CSV ดาวน์โหลด — แท็บนี้ยังไม่มีระบบ filter/
- *  search จึง export allQuotations ตรงๆ ทั้งหมด ไม่กรองอะไรก่อน (ต่างจาก getCurrentFilteredRows()
- *  ของแท็บออเดอร์) — pattern Blob/BOM/URL.createObjectURL() เดียวกับ js/orders-tab-export.js */
+/** ส่งออกเป็นไฟล์ CSV ดาวน์โหลด — ตามผลตัวกรอง/คำค้นหาปัจจุบัน (getFilteredQuotations(), ตรงกับที่
+ *  แอดมินเห็นบนตาราง ณ ขณะนั้น เหมือน getCurrentFilteredRows() ของแท็บออเดอร์ — ก่อนหน้านี้ (ก่อนมี
+ *  ช่องค้นหา/กรองสถานะ) export allQuotations ทั้งหมดตรงๆ) — pattern Blob/BOM/
+ *  URL.createObjectURL() เดียวกับ js/orders-tab-export.js */
 function exportQuotationsCSV() {
-  if (!allQuotations.length) { showToast("ไม่มีข้อมูลให้ส่งออก", "error"); return; }
+  const rows = getFilteredQuotations();
+  if (!rows.length) { showToast("ไม่มีข้อมูลให้ส่งออก", "error"); return; }
   const headers = ["เลขที่เอกสาร","วันที่สร้าง","ลูกค้า","ยอดสุทธิ (บาท)","สถานะ","วันหมดอายุ"];
   const csvRows = [headers.join(",")];
-  allQuotations.forEach(q => {
+  rows.forEach(q => {
     const status = q.status || "draft";
     csvRows.push([
       csvCell(q.quoteNo), csvCell(quotationCsvDateLabel(q)),
@@ -258,8 +269,25 @@ function exportQuotationsCSV() {
 
 if (qExportCsvBtn) qExportCsvBtn.addEventListener("click", exportQuotationsCSV);
 
+/** กรองตามคำค้นหา (เลขที่เอกสาร/ชื่อลูกค้า) + สถานะ — pattern เดียวกับ getFilteredLeads() ใน
+ *  js/admin-leads.js เป๊ะ (อ่านค่าตรงจาก input/select ทุกครั้งที่เรียก ไม่ cache) — ตัดรายการที่
+ *  รอลบอยู่ (pendingDeleteQuotationIds) ออกก่อนเสมอเหมือนเดิม */
+function getFilteredQuotations() {
+  const term = (qSearchInput?.value || "").trim().toLowerCase();
+  const statusFilter = qFilterStatus?.value || "";
+  return allQuotations.filter(q => {
+    if (pendingDeleteQuotationIds.has(q.id)) return false;
+    if (statusFilter && (q.status || "draft") !== statusFilter) return false;
+    if (term) {
+      const haystack = [q.quoteNo, q.billingName, q.contactPerson].filter(Boolean).join(" ").toLowerCase();
+      if (!haystack.includes(term)) return false;
+    }
+    return true;
+  });
+}
+
 export function renderQuotations() {
-  const filtered = allQuotations.filter(q => !pendingDeleteQuotationIds.has(q.id));
+  const filtered = getFilteredQuotations();
 
   // colspan แก้จาก 5 เป็น 6 (P3.0 Phase 6) — ตาราง <thead> จริงใน admin.html มี 6 คอลัมน์
   // (วันที่/เลขที่เอกสาร/ลูกค้า/ยอดสุทธิ/สถานะ/action) ตรงกับ skeleton row ที่ colspan="6" อยู่แล้ว
@@ -270,8 +298,10 @@ export function renderQuotations() {
     qTableBody.innerHTML = `<tr><td colspan="6" class="cp-empty">ยังไม่มีใบเสนอราคา — กด "สร้างใบเสนอราคาใหม่" ด้านบนเพื่อเริ่มต้น</td></tr>`;
     return;
   }
+  // แยกข้อความ empty state: ค้นหา/กรองแล้วไม่เจอ (ต่างจากกรณี "ยังไม่มีใบเสนอราคาเลย" ด้านบน) —
+  // pattern เดียวกับ renderLeads()/renderQuoteRequestPicker() ในไฟล์นี้เอง
   if (!filtered.length) {
-    qTableBody.innerHTML = `<tr><td colspan="6" class="cp-empty">ไม่พบใบเสนอราคา</td></tr>`;
+    qTableBody.innerHTML = `<tr><td colspan="6" class="cp-empty">ไม่พบใบเสนอราคาที่ตรงกับคำค้นหา/ตัวกรอง</td></tr>`;
     return;
   }
 
@@ -465,6 +495,11 @@ if (qrOverlay) qrOverlay.addEventListener("click", (e) => { if (e.target === qrO
 
 // ปุ่ม "สร้างใบเสนอราคาใหม่" — เปิดฟอร์มเปล่าจริง — ปุ่ม "สร้างจากคำขอ" เปิดโมดัลเลือกคำขอจริง
 // (รอบย่อย 5 — ก่อนหน้านี้เป็นแค่ placeholder toast)
+// ช่องค้นหา/กรองสถานะของตารางหลัก — re-render ทันทีทุกครั้งที่พิมพ์/เปลี่ยนตัวเลือก (ไม่มี
+// pagination ในตารางนี้ จึงไม่ต้อง reset หน้าเหมือน lCurrentPage ของแท็บลีด)
+if (qSearchInput) qSearchInput.addEventListener("input", () => renderQuotations());
+if (qFilterStatus) qFilterStatus.addEventListener("change", () => renderQuotations());
+
 if (qAddBtn) {
   qAddBtn.addEventListener("click", () => {
     openNewQuotationForm();
