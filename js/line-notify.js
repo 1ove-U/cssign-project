@@ -26,11 +26,20 @@ const NOTIFY_LINE_URL = "https://cssign-cloudinary-delete.zillergotspw.workers.d
 function buildStatusMessage(order, previousStatus, newStatus) {
   const label = ORDER_STATUS_LABEL[newStatus] || newStatus;
   const labelOld = ORDER_STATUS_LABEL[previousStatus] || previousStatus || "-";
+  // ช่องโหว่ที่ 3 (แจ้งเตือนไม่มีลิงก์กลับมาดูรายละเอียด) — เดิมข้อความ push นี้จบแค่บรรทัดสถานะ
+  // ไม่มีลิงก์ให้กดกลับมาดูรายละเอียดเลย ลูกค้าต้องเปิดแอป/เว็บเองแล้วหาทางเข้าเว็บ CS.SIGN เอง — คน
+  // ที่ได้รับ push นี้คือคนที่เชื่อมบัญชี LINE ไว้แล้วเท่านั้น (order.lineUserId มีค่า — ดู
+  // sendOrderStatusLine() ด้านล่าง) จึงลิงก์ไปหน้า my-orders.html ตรงๆ ได้เลย (กด "เข้าสู่ระบบด้วย
+  // LINE" ครั้งเดียวเห็นออเดอร์ทั้งหมดที่เชื่อมไว้ทันที ไม่ต้องพิมพ์เลข PO/เบอร์โทรซ้ำเหมือนลิงก์ฝั่ง
+  // อีเมล — ดู buildTrackingLink() ใน js/email-notify.js สำหรับเหตุผลที่อีเมลใช้ลิงก์คนละแบบ เพราะ
+  // อีเมลไม่มี identity ของ LINE ผูกอยู่) — LINE Messaging API แสดง URL เปล่าในข้อความ text เป็น
+  // ลิงก์กดได้อัตโนมัติอยู่แล้ว ไม่ต้องใช้ template message/flex message แยก
   return (
     `CS.SIGN แจ้งอัปเดตสถานะคำสั่งผลิต\n` +
     `เลขที่: ${order.code || "-"}\n` +
     `รายการ: ${order.item || "-"}\n` +
-    `สถานะ: ${labelOld} → ${label}`
+    `สถานะ: ${labelOld} → ${label}\n\n` +
+    `ดูรายละเอียด: https://cssign.co.th/my-orders.html`
   );
 }
 
